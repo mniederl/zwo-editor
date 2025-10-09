@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import Editor from './components/Editor/Editor';
 
 export default function App() {
-
   return (
     <Router>
       <Switch>
