@@ -9,7 +9,6 @@ import Interval from "../Interval/Interval";
 import Comment from "../Comment/Comment";
 import EditComment from "../Comment/EditComment";
 import Popup from "../Popup/Popup";
-import Footer from "../Footer/Footer";
 import Workouts from "../Workouts/Workouts";
 import TimeAxis from "./TimeAxis";
 import DistanceAxis from "./DistanceAxis";
@@ -373,15 +372,15 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
           durationType === "time"
             ? duration
             : helpers.round(
-                helpers.calculateTime(length, calculateSpeed(pace)),
-                1
-              ),
+              helpers.calculateTime(length, calculateSpeed(pace)),
+              1
+            ),
         length:
           durationType === "time"
             ? helpers.round(
-                helpers.calculateDistance(duration, calculateSpeed(pace)),
-                1
-              )
+              helpers.calculateDistance(duration, calculateSpeed(pace)),
+              1
+            )
             : length,
         power: zone,
         cadence: cadence,
@@ -407,15 +406,15 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
           durationType === "time"
             ? duration
             : helpers.round(
-                helpers.calculateTime(length, calculateSpeed(pace)),
-                1
-              ),
+              helpers.calculateTime(length, calculateSpeed(pace)),
+              1
+            ),
         length:
           durationType === "time"
             ? helpers.round(
-                helpers.calculateDistance(duration, calculateSpeed(pace)),
-                1
-              )
+              helpers.calculateDistance(duration, calculateSpeed(pace)),
+              1
+            )
             : length,
         startPower: zone1,
         endPower: zone2,
@@ -463,21 +462,21 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
           durationType === "time"
             ? (onDuration + offDuration) * repeat
             : helpers.round(
-                helpers.calculateTime(
-                  (onLength + offLength) * repeat,
-                  calculateSpeed(pace)
-                ),
-                1
+              helpers.calculateTime(
+                (onLength + offLength) * repeat,
+                calculateSpeed(pace)
               ),
+              1
+            ),
         length:
           durationType === "time"
             ? helpers.round(
-                helpers.calculateDistance(
-                  (onDuration + offDuration) * repeat,
-                  calculateSpeed(pace)
-                ),
-                1
-              )
+              helpers.calculateDistance(
+                (onDuration + offDuration) * repeat,
+                calculateSpeed(pace)
+              ),
+              1
+            )
             : (onLength + offLength) * repeat,
         id: uuidv4(),
         type: "interval",
@@ -488,44 +487,44 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
           durationType === "time"
             ? onDuration
             : helpers.round(
-                helpers.calculateTime(
-                  (onLength * 1) / onPower,
-                  calculateSpeed(pace)
-                ),
-                1
+              helpers.calculateTime(
+                (onLength * 1) / onPower,
+                calculateSpeed(pace)
               ),
+              1
+            ),
         offDuration:
           durationType === "time"
             ? offDuration
             : helpers.round(
-                helpers.calculateTime(
-                  (offLength * 1) / offPower,
-                  calculateSpeed(pace)
-                ),
-                1
+              helpers.calculateTime(
+                (offLength * 1) / offPower,
+                calculateSpeed(pace)
               ),
+              1
+            ),
         onPower: onPower,
         offPower: offPower,
         pace: pace,
         onLength:
           durationType === "time"
             ? helpers.round(
-                helpers.calculateDistance(
-                  (onDuration * 1) / onPower,
-                  calculateSpeed(pace)
-                ),
-                1
-              )
+              helpers.calculateDistance(
+                (onDuration * 1) / onPower,
+                calculateSpeed(pace)
+              ),
+              1
+            )
             : onLength,
         offLength:
           durationType === "time"
             ? helpers.round(
-                helpers.calculateDistance(
-                  (offDuration * 1) / offPower,
-                  calculateSpeed(pace)
-                ),
-                1
-              )
+              helpers.calculateDistance(
+                (offDuration * 1) / offPower,
+                calculateSpeed(pace)
+              ),
+              1
+            )
             : offLength,
       },
     ]);
@@ -888,7 +887,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
   function upload(file: Blob, parse = false) {
     fetch(
       process.env.REACT_APP_UPLOAD_FUNCTION ||
-        "https://zwiftworkout.netlify.app/.netlify/functions/upload",
+      "https://zwiftworkout.netlify.app/.netlify/functions/upload",
       {
         method: "POST",
         body: JSON.stringify({
@@ -1334,7 +1333,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         let duration = durationInSeconds && parseInt(durationInSeconds[0]);
         duration = durationInMinutes
           ? parseInt(durationInMinutes[0].split(":")[0]) * 60 +
-            (parseInt(durationInMinutes[0].split(":")[1]) || 0)
+          (parseInt(durationInMinutes[0].split(":")[1]) || 0)
           : duration;
 
         // extract cadence in rpm
@@ -1392,7 +1391,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         let duration = durationInSeconds && parseInt(durationInSeconds[0]);
         duration = durationInMinutes
           ? parseInt(durationInMinutes[0].split(":")[0]) * 60 +
-            (parseInt(durationInMinutes[0].split(":")[1]) || 0)
+          (parseInt(durationInMinutes[0].split(":")[1]) || 0)
           : duration;
 
         // extract cadence in rpm
@@ -1416,7 +1415,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         let duration = durationInSeconds && parseInt(durationInSeconds[0]);
         duration = durationInMinutes
           ? parseInt(durationInMinutes[0].split(":")[0]) * 60 +
-            (parseInt(durationInMinutes[0].split(":")[1]) || 0)
+          (parseInt(durationInMinutes[0].split(":")[1]) || 0)
           : duration;
 
         // extract cadence in rpm
@@ -1436,7 +1435,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         let duration = durationInSeconds && parseInt(durationInSeconds[0]);
         duration = durationInMinutes
           ? parseInt(durationInMinutes[0].split(":")[0]) * 60 +
-            (parseInt(durationInMinutes[0].split(":")[1]) || 0)
+          (parseInt(durationInMinutes[0].split(":")[1]) || 0)
           : duration;
 
         const offDurationInSeconds = workoutBlock.match(/(-[0-9]\d*s)/);
@@ -1448,7 +1447,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
           offDurationInSeconds && Math.abs(parseInt(offDurationInSeconds[0]));
         offDuration = offDurationInMinutes
           ? Math.abs(parseInt(offDurationInMinutes[0].split(":")[0])) * 60 +
-            (parseInt(offDurationInMinutes[0].split(":")[1]) || 0)
+          (parseInt(offDurationInMinutes[0].split(":")[1]) || 0)
           : offDuration;
 
         // extract watts
@@ -1512,7 +1511,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         let duration = durationInSeconds && parseInt(durationInSeconds[0]);
         duration = durationInMinutes
           ? parseInt(durationInMinutes[0].split(":")[0]) * 60 +
-            (parseInt(durationInMinutes[0].split(":")[1]) || 0)
+          (parseInt(durationInMinutes[0].split(":")[1]) || 0)
           : duration;
 
         addInstruction(text, duration || 0);
@@ -2004,7 +2003,6 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
           <FontAwesomeIcon icon={faShareAlt} size="lg" fixedWidth /> Share
         </button>
       </div>
-      <Footer />
     </div>
   );
 };
