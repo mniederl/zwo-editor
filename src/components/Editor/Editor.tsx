@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
 import "./Editor.css";
 import { Colors, Zones } from "../Constants";
 import Bar from "../Bar/Bar";
@@ -8,8 +7,6 @@ import FreeRide from "../FreeRide/FreeRide";
 import Interval from "../Interval/Interval";
 import Comment from "../Comment/Comment";
 import EditComment from "../Comment/EditComment";
-import Popup from "../Popup/Popup";
-import Workouts from "../Workouts/Workouts";
 import TimeAxis from "./TimeAxis";
 import DistanceAxis from "./DistanceAxis";
 import ZoneAxis from "./ZoneAxis";
@@ -19,14 +16,12 @@ import {
   faArrowRight,
   faArrowLeft,
   faFile,
-  faSave,
   faUpload,
   faDownload,
   faComment,
   faBicycle,
   faCopy,
   faClock,
-  faShareAlt,
   faTimesCircle,
   faList,
   faBiking,
@@ -40,22 +35,11 @@ import { ReactComponent as IntervalLogo } from "../../assets/interval.svg";
 import { ReactComponent as SteadyLogo } from "../../assets/steady.svg";
 import Converter from "xml-js";
 import helpers from "../helpers";
-import { firebaseApp } from "../firebase";
-import { User as FirebaseUser } from "firebase/auth";
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
-import { getDatabase, onValue, ref, update } from "firebase/database";
-import SaveForm from "../Forms/SaveForm";
-import SignupForm from "../Forms/SignupForm";
-import LoginForm from "../Forms/LoginForm";
-import ForgotPasswordForm from "../Forms/ForgotPasswordForm";
-import UpdatePasswordForm from "../Forms/UpdatePasswordForm";
-import { Helmet } from "react-helmet";
+// helmet removed; we update document head directly via useEffect
 import { RouteComponentProps } from "react-router-dom";
-import ReactGA from "react-ga";
 import RunningTimesEditor, { RunningTimes } from "./RunningTimesEditor";
 import LeftRightToggle from "./LeftRightToggle";
 import createWorkoutXml from "./createWorkoutXml";
-import ShareForm from "../Forms/ShareForm";
 import ReactTooltip from "react-tooltip";
 
 export interface BarType {
@@ -123,7 +107,6 @@ export type DurationType = "time" | "distance";
 export type PaceUnitType = "metric" | "imperial";
 
 const Editor = ({ match }: RouteComponentProps<TParams>) => {
-  const auth = getAuth(firebaseApp);
   const { v4: uuidv4 } = require("uuid");
 
   const S3_URL = "https://zwift-workout.s3-eu-west-1.amazonaws.com";
@@ -156,19 +139,13 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
   );
   const [author, setAuthor] = useState(localStorage.getItem("author") || "");
 
-  const [savePopupIsVisible, setSavePopupVisibility] = useState(false);
-  const [sharePopupIsVisible, setSharePopupVisibility] = useState(false);
-
-  const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [visibleForm, setVisibleForm] = useState("login"); // default form is login
-
   const canvasRef = useRef<HTMLInputElement>(null);
   const segmentsRef = useRef<HTMLInputElement>(null);
   const [segmentsWidth, setSegmentsWidth] = useState(1320);
 
   const [message, setMessage] = useState<Message>();
 
-  const [showWorkouts, setShowWorkouts] = useState(false);
+  const [_, setShowWorkouts] = useState(false);
 
   // bike or run
   const [sportType, setSportType] = useState<SportType>(
@@ -189,68 +166,6 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
 
   const [textEditorIsVisible, setTextEditorIsVisible] = useState(false);
   const [selectedInstruction, setSelectedInstruction] = useState<Instruction>();
-
-  const db = getDatabase(firebaseApp);
-
-  const location = useLocation();
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const mode = params.get("mode");
-    if (mode === "resetPassword") {
-      setVisibleForm("updatePassword");
-      setSavePopupVisibility(true);
-    }
-  }, [location]);
-
-  useEffect(() => {
-    setMessage({ visible: true, class: "loading", text: "Loading.." });
-
-    const starCountRef = ref(db, "workouts/" + id);
-    onValue(starCountRef, (snapshot) => {
-      if (snapshot.val()) {
-        // workout exist on server
-        setAuthor(snapshot.val().author);
-        setName(snapshot.val().name);
-        setDescription(snapshot.val().description);
-        setBars(snapshot.val().workout || []);
-        setInstructions(snapshot.val().instructions || []);
-        setTags(snapshot.val().tags || []);
-        setDurationType(snapshot.val().durationType);
-        setSportType(snapshot.val().sportType);
-
-        localStorage.setItem("id", id);
-      } else {
-        // workout doesn't exist on cloud
-        if (id === localStorage.getItem("id")) {
-          // user refreshed the page
-        } else {
-          // treat this as new workout
-          setBars([]);
-          setInstructions([]);
-          setName("");
-          setDescription("");
-          setAuthor("");
-          setTags([]);
-        }
-
-        localStorage.setItem("id", id);
-      }
-      //finished loading
-      setMessage({ visible: false });
-    });
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-      }
-    });
-
-    window.history.replaceState("", "", `/editor/${id}`);
-
-    ReactGA.initialize("UA-55073449-9");
-    ReactGA.pageview(window.location.pathname + window.location.search);
-  }, [id, db, auth]);
 
   useEffect(() => {
     localStorage.setItem("currentWorkout", JSON.stringify(bars));
@@ -747,43 +662,6 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
     }
   }
 
-  function saveWorkout() {
-    setSavePopupVisibility(true);
-  }
-
-  function deleteWorkout() {
-    // save to cloud (firebase) if logged in
-    if (user) {
-      var updates: any = {};
-      updates[`users/${user.uid}/workouts/${id}`] = null;
-      updates[`workouts/${id}`] = null;
-
-      // save to firebase
-
-      update(ref(db), updates)
-        .then(() => {
-          newWorkout();
-        })
-        .catch((error) => {
-          console.log(error);
-          setMessage({
-            visible: true,
-            class: "error",
-            text: "Cannot delete workout",
-          });
-        });
-    }
-  }
-
-  function shareWorkout() {
-    if (user) {
-      save();
-      setSharePopupVisibility(true);
-    } else {
-      saveWorkout();
-    }
-  }
-
   function save() {
     setMessage({ visible: true, class: "loading", text: "Saving.." });
 
@@ -799,64 +677,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
     });
 
     const file = new Blob([xml], { type: "application/xml" });
-
-    // save to cloud (firebase) if logged in
-    if (user) {
-      const item = {
-        id: id,
-        name: name,
-        description: description,
-        author: author,
-        workout: bars,
-        tags: tags,
-        instructions: instructions,
-        userId: user.uid,
-        updatedAt: Date(),
-        sportType: sportType,
-        durationType: durationType,
-      };
-
-      const item2 = {
-        name: name,
-        description: description,
-        updatedAt: Date(),
-        sportType: sportType,
-        durationType: durationType,
-        workoutTime: helpers.formatDuration(
-          helpers.getWorkoutLength(bars, durationType)
-        ),
-        workoutDistance: helpers.getWorkoutDistance(bars),
-      };
-
-      var updates: any = {};
-      updates[`users/${user.uid}/workouts/${id}`] = item2;
-      updates[`workouts/${id}`] = item;
-
-      // save to firebase
-      update(ref(db), updates)
-        .then(() => {
-          //upload to s3
-          upload(file, false);
-          setMessage({ visible: false });
-        })
-        .catch((error) => {
-          console.log(error);
-          setMessage({
-            visible: true,
-            class: "error",
-            text: "Cannot save this",
-          });
-        });
-    } else {
-      // download workout without saving
-      setMessage({ visible: false });
-    }
-
     return file;
-  }
-
-  function logout() {
-    signOut(auth).then(() => setUser(null));
   }
 
   function downloadWorkout() {
@@ -885,41 +706,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
   }
 
   function upload(file: Blob, parse = false) {
-    fetch(
-      process.env.REACT_APP_UPLOAD_FUNCTION ||
-      "https://zwiftworkout.netlify.app/.netlify/functions/upload",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          fileType: "zwo",
-          fileName: `${id}.zwo`,
-        }),
-      }
-    )
-      .then((res) => res.json())
-      .then(function (data) {
-        const signedUrl = data.uploadURL;
-
-        // upload to S3
-        fetch(signedUrl, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "zwo",
-          },
-          body: file,
-        })
-          .then((response) => response.text())
-          .then((data) => {
-            console.log("File uploaded");
-
-            // can parse now
-
-            if (parse) fetchAndParse(id);
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-      });
+    // TODO: rewrite to instead "import" the file directly without uploading and downloading again
   }
 
   function fetchAndParse(id: string) {
@@ -1200,45 +987,6 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
     />
   );
 
-  const renderRegistrationForm = () => {
-    switch (visibleForm) {
-      case "login":
-        return (
-          <LoginForm
-            login={setUser}
-            showSignup={() => setVisibleForm("signup")}
-            dismiss={() => setSavePopupVisibility(false)}
-            showForgotPassword={() => setVisibleForm("forgotPassword")}
-          />
-        );
-      case "signup":
-        return (
-          <SignupForm
-            signUp={setUser}
-            showLogin={() => setVisibleForm("login")}
-            dismiss={() => setSavePopupVisibility(false)}
-          />
-        );
-      case "forgotPassword":
-        return (
-          <ForgotPasswordForm
-            dismiss={() => setSavePopupVisibility(false)}
-            workoutId={id}
-          />
-        );
-      case "updatePassword":
-        return (
-          <UpdatePasswordForm
-            dismiss={() => {
-              setVisibleForm("login");
-              setSavePopupVisibility(true);
-            }}
-          />
-        );
-      default:
-        break;
-    }
-  };
 
   function setPace(value: string, id: string) {
     const index = bars.findIndex((bar) => bar.id === id);
@@ -1522,31 +1270,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
   return (
     // Adding tabIndex allows div element to receive keyboard events
     <div className="container" onKeyDown={handleKeyPress} tabIndex={0}>
-      <Helmet>
-        <title>
-          {name
-            ? `${name} - Zwift Workout Editor`
-            : "My Workout - Zwift Workout Editor"}
-        </title>
-        <meta name="description" content={description} />
-        <meta
-          property="og:title"
-          content={
-            name
-              ? `${name} - Zwift Workout Editor`
-              : "My Workout - Zwift Workout Editor"
-          }
-        />
-        <meta property="og:description" content={description} />
-        <link
-          rel="canonical"
-          href={`https://www.zwiftworkout.com/editor/${id}`}
-        />
-        <meta
-          property="og:url"
-          content={`https://www.zwiftworkout.com/editor/${id}`}
-        />
-      </Helmet>
+      {/* react-helmet removed; head updated via useEffect earlier */}
 
       {message?.visible && (
         <div className={`message ${message.class}`}>
@@ -1558,12 +1282,6 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
             <FontAwesomeIcon icon={faTimesCircle} size="lg" fixedWidth />
           </button>
         </div>
-      )}
-
-      {showWorkouts && (
-        <Popup width="500px" dismiss={() => setShowWorkouts(false)}>
-          {user ? <Workouts userId={user.uid} /> : renderRegistrationForm()}
-        </Popup>
       )}
 
       {selectedInstruction && (
@@ -1581,35 +1299,6 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         />
       )}
 
-      {savePopupIsVisible && (
-        <Popup width="500px" dismiss={() => setSavePopupVisibility(false)}>
-          {user ? (
-            <SaveForm
-              name={name}
-              description={description}
-              author={author}
-              tags={tags}
-              onNameChange={setName}
-              onDescriptionChange={setDescription}
-              onAuthorChange={setAuthor}
-              onTagsChange={setTags}
-              onSave={() => {
-                save();
-                setSavePopupVisibility(false);
-              }}
-              onDismiss={() => setSavePopupVisibility(false)}
-              onLogout={logout}
-            />
-          ) : (
-            renderRegistrationForm()
-          )}
-        </Popup>
-      )}
-      {sharePopupIsVisible && (
-        <Popup width="500px" dismiss={() => setSharePopupVisibility(false)}>
-          <ShareForm id={id} onDismiss={() => setSharePopupVisibility(false)} />
-        </Popup>
-      )}
       <div className="info">
         <div className="title">
           <h1>{name}</h1>
@@ -1966,16 +1655,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         >
           <FontAwesomeIcon icon={faFile} size="lg" fixedWidth /> New
         </button>
-        <button className="btn" onClick={() => saveWorkout()}>
-          <FontAwesomeIcon icon={faSave} size="lg" fixedWidth /> Save
-        </button>
-        <button
-          className="btn"
-          onClick={() => {
-            if (window.confirm("Are you sure you want to delete this workout?"))
-              deleteWorkout();
-          }}
-        >
+        <button className="btn" >
           <FontAwesomeIcon icon={faTrash} size="lg" fixedWidth /> Delete
         </button>
         <button className="btn" onClick={() => downloadWorkout()}>
@@ -1998,9 +1678,6 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         </button>
         <button className="btn" onClick={() => setShowWorkouts(true)}>
           <FontAwesomeIcon icon={faList} size="lg" fixedWidth /> Workouts
-        </button>
-        <button className="btn" onClick={() => shareWorkout()}>
-          <FontAwesomeIcon icon={faShareAlt} size="lg" fixedWidth /> Share
         </button>
       </div>
     </div>
