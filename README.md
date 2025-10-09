@@ -53,7 +53,7 @@ Zwift Workout editor is a web based tool to edit ZWO files (Zwift workouts). It'
 - [feature] Resize a segment via keyboard arrows (◀️ reduce time, ▶️ add time, 🔼 add power, ⬇️ reduce power)
 - [feature] Showing %ftp range on warmup / cooldown
 - [feature] Moved total workout time and TSS to top right screen
-- [bugfix] Duplicating segments also copy cadance value
+- [bugfix] Duplicating segments also copy cadence value
 - [bugfix] Warmup / Cooldown default values set to 25%-75% FTP
 
 ### V1.0 (1/10/2020)
@@ -66,11 +66,23 @@ Click [Issues](https://github.com/breiko83/zwo-editor/issues) to open a support 
 
 ## Installation
 
-    $ npm i
+Install dependencies with pnpm (recommended):
+
+```bash
+# If you use a recent Node.js, enable Corepack so pnpm is available:
+corepack enable
+
+# Install dependencies
+pnpm install
+```
 
 ## Usage
 
-    $ npm start
+Start the development server:
+
+```bash
+pnpm start
+```
 
 ## Contributing
 
