@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./Trapeze.css";
-import { Colors, Zones, ZonesArray } from "../Constants";
+import { Colors, Zones, ZonesArray } from "../constants";
 import { Resizable } from "re-resizable";
 import Label from "../Label/Label";
 import helpers from "../helpers";
@@ -103,17 +103,17 @@ const Trapeze = (props: {
       props.durationType === "time"
         ? helpers.round(width * timeMultiplier * 3, 5)
         : helpers.round(
-            (helpers.calculateTime(props.length, props.speed) * 1) / avgPower,
-            1
-          );
+          (helpers.calculateTime(props.length, props.speed) * 1) / avgPower,
+          1
+        );
     const length =
       props.durationType === "time"
         ? helpers.round(
-            (helpers.calculateDistance(width * timeMultiplier, props.speed) *
-              1) /
-              avgPower,
-            1
-          )
+          (helpers.calculateDistance(width * timeMultiplier, props.speed) *
+            1) /
+          avgPower,
+          1
+        )
         : helpers.round(width * lengthMultiplier * 3, 200);
 
     props.onChange(props.id, {
@@ -132,17 +132,17 @@ const Trapeze = (props: {
       props.durationType === "time"
         ? helpers.round(width * timeMultiplier * 3, 5)
         : helpers.round(
-            (helpers.calculateTime(props.length, props.speed) * 1) / avgPower,
-            1
-          );
+          (helpers.calculateTime(props.length, props.speed) * 1) / avgPower,
+          1
+        );
     const length =
       props.durationType === "time"
         ? helpers.round(
-            (helpers.calculateDistance(width * timeMultiplier, props.speed) *
-              1) /
-              avgPower,
-            1
-          )
+          (helpers.calculateDistance(width * timeMultiplier, props.speed) *
+            1) /
+          avgPower,
+          1
+        )
         : helpers.round(width * lengthMultiplier * 3, 200);
 
     props.onChange(props.id, {
@@ -162,19 +162,19 @@ const Trapeze = (props: {
     const length =
       props.durationType === "time"
         ? helpers.round(
-            (helpers.calculateDistance(newWidth * timeMultiplier * 3, props.speed) *
-              1) /
-              avgPower,
-            1
-          )
+          (helpers.calculateDistance(newWidth * timeMultiplier * 3, props.speed) *
+            1) /
+          avgPower,
+          1
+        )
         : helpers.round(newWidth * lengthMultiplier * 3, 200);
     const time =
       props.durationType === "time"
         ? helpers.round(newWidth * timeMultiplier * 3, 5)
         : helpers.round(
-            (helpers.calculateTime(props.length, props.speed) * 1) / avgPower,
-            1
-          );
+          (helpers.calculateTime(props.length, props.speed) * 1) / avgPower,
+          1
+        );
 
     props.onChange(props.id, {
       time: time,
@@ -249,7 +249,7 @@ const Trapeze = (props: {
           speedStart={speedStart}
           speedEnd={speedEnd}
           paceUnitType={props.paceUnitType}
-          />
+        />
       )}
       <div className="trapeze" onClick={() => props.onClick(props.id)}>
         <Resizable
@@ -309,54 +309,48 @@ const Trapeze = (props: {
           className="color"
           style={{
             backgroundColor: Colors.GRAY,
-            width: `${
-              (bars["Z1"] * 100) / Math.abs(props.endPower - props.startPower)
-            }%`,
+            width: `${(bars["Z1"] * 100) / Math.abs(props.endPower - props.startPower)
+              }%`,
           }}
         ></div>
         <div
           className="color"
           style={{
             backgroundColor: Colors.BLUE,
-            width: `${
-              (bars["Z2"] * 100) / Math.abs(props.endPower - props.startPower)
-            }%`,
+            width: `${(bars["Z2"] * 100) / Math.abs(props.endPower - props.startPower)
+              }%`,
           }}
         ></div>
         <div
           className="color"
           style={{
             backgroundColor: Colors.GREEN,
-            width: `${
-              (bars["Z3"] * 100) / Math.abs(props.endPower - props.startPower)
-            }%`,
+            width: `${(bars["Z3"] * 100) / Math.abs(props.endPower - props.startPower)
+              }%`,
           }}
         ></div>
         <div
           className="color"
           style={{
             backgroundColor: Colors.YELLOW,
-            width: `${
-              (bars["Z4"] * 100) / Math.abs(props.endPower - props.startPower)
-            }%`,
+            width: `${(bars["Z4"] * 100) / Math.abs(props.endPower - props.startPower)
+              }%`,
           }}
         ></div>
         <div
           className="color"
           style={{
             backgroundColor: Colors.ORANGE,
-            width: `${
-              (bars["Z5"] * 100) / Math.abs(props.endPower - props.startPower)
-            }%`,
+            width: `${(bars["Z5"] * 100) / Math.abs(props.endPower - props.startPower)
+              }%`,
           }}
         ></div>
         <div
           className="color"
           style={{
             backgroundColor: Colors.RED,
-            width: `${
-              (bars["Z6"] * 100) / Math.abs(props.endPower - props.startPower)
-            }%`,
+            width: `${(bars["Z6"] * 100) / Math.abs(props.endPower - props.startPower)
+              }%`,
           }}
         ></div>
       </div>
@@ -366,9 +360,8 @@ const Trapeze = (props: {
         className="trapeze-svg-container"
       >
         <polygon
-          points={`0,${vertexA} 0,${trapezeHeight} ${
-            width * 3
-          },${trapezeHeight} ${width * 3},${vertexD}`}
+          points={`0,${vertexA} 0,${trapezeHeight} ${width * 3
+            },${trapezeHeight} ${width * 3},${vertexD}`}
           className="trapeze-svg"
         />
         <polygon

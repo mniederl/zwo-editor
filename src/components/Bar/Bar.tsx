@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./Bar.css";
-import { Colors, Zones } from "../Constants";
+import { Colors, Zones } from "../constants";
 import { Resizable } from "re-resizable";
 import Label from "../Label/Label";
 import helpers from "../helpers";
@@ -85,21 +85,21 @@ const Bar = (props: {
     const length =
       props.durationType === "time"
         ? helpers.round(
-            helpers.calculateDistance(
-              (width + dWidth) * timeMultiplier * props.power,
-              props.speed
-            ),
-            1
-          )
+          helpers.calculateDistance(
+            (width + dWidth) * timeMultiplier * props.power,
+            props.speed
+          ),
+          1
+        )
         : helpers.round((width + dWidth) * lengthMultiplier, 200);
     const time =
       props.durationType === "time"
         ? helpers.round((width + dWidth) * timeMultiplier, 5)
         : helpers.round(
-            (helpers.calculateTime(props.length, props.speed) * 1) /
-              props.power,
-            1
-          );
+          (helpers.calculateTime(props.length, props.speed) * 1) /
+          props.power,
+          1
+        );
 
     props.onChange(props.id, {
       time: time,
@@ -116,21 +116,21 @@ const Bar = (props: {
     const length =
       props.durationType === "time"
         ? helpers.round(
-            helpers.calculateDistance(
-              (width + dWidth) * timeMultiplier * props.power,
-              props.speed
-            ),
-            1
-          )
+          helpers.calculateDistance(
+            (width + dWidth) * timeMultiplier * props.power,
+            props.speed
+          ),
+          1
+        )
         : helpers.round((width + dWidth) * lengthMultiplier, 200);
     const time =
       props.durationType === "time"
         ? helpers.round((width + dWidth) * timeMultiplier, 5)
         : helpers.round(
-            (helpers.calculateTime(props.length, props.speed) * 1) /
-              props.power,
-            1
-          );
+          (helpers.calculateTime(props.length, props.speed) * 1) /
+          props.power,
+          1
+        );
 
     props.onChange(props.id, {
       time: time,

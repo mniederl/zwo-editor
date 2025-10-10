@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./Editor.css";
-import { Colors, Zones } from "../Constants";
+import { Colors, Zones } from "../constants";
 import Bar from "../Bar/Bar";
 import Trapeze from "../Trapeze/Trapeze";
 import FreeRide from "../FreeRide/FreeRide";
@@ -29,18 +29,27 @@ import {
   faRuler,
   faPen,
 } from "@fortawesome/free-solid-svg-icons";
-import { ReactComponent as WarmdownLogo } from "../../assets/warmdown.svg";
-import { ReactComponent as WarmupLogo } from "../../assets/warmup.svg";
-import { ReactComponent as IntervalLogo } from "../../assets/interval.svg";
-import { ReactComponent as SteadyLogo } from "../../assets/steady.svg";
+
+import { CooldownLogo, IntervalLogo, SteadyLogo, WarmupLogo } from "../../assets";
+
 import Converter from "xml-js";
-import helpers from "../helpers";
+import {
+  calculateDistance,
+  calculateTime,
+  formatDuration,
+  getStressScore,
+  getTimeInSeconds,
+  getWorkoutDistance,
+  getWorkoutLength,
+  getWorkoutPace,
+  round
+} from "../helpers";
 // helmet removed; we update document head directly via useEffect
 import { RouteComponentProps } from "react-router-dom";
 import RunningTimesEditor, { RunningTimes } from "./RunningTimesEditor";
 import LeftRightToggle from "./LeftRightToggle";
 import createWorkoutXml from "./createWorkoutXml";
-import ReactTooltip from "react-tooltip";
+import { Tooltip } from "react-tooltip";
 
 export interface BarType {
   id: string;
@@ -253,7 +262,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         break;
       case 37:
         // reduce time
-        removeTimeToBar(actionId || "");
+        removeTimeFromBar(actionId || "");
         break;
       case 39:
         // add time
@@ -265,7 +274,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         break;
       case 40:
         // add power
-        removePowerToBar(actionId || "");
+        removePowerFromBar(actionId || "");
         break;
       default:
         //console.log(event.keyCode);
@@ -286,14 +295,14 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         time:
           durationType === "time"
             ? duration
-            : helpers.round(
-              helpers.calculateTime(length, calculateSpeed(pace)),
+            : round(
+              calculateTime(length, calculateSpeed(pace)),
               1
             ),
         length:
           durationType === "time"
-            ? helpers.round(
-              helpers.calculateDistance(duration, calculateSpeed(pace)),
+            ? round(
+              calculateDistance(duration, calculateSpeed(pace)),
               1
             )
             : length,
@@ -320,14 +329,14 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         time:
           durationType === "time"
             ? duration
-            : helpers.round(
-              helpers.calculateTime(length, calculateSpeed(pace)),
+            : round(
+              calculateTime(length, calculateSpeed(pace)),
               1
             ),
         length:
           durationType === "time"
-            ? helpers.round(
-              helpers.calculateDistance(duration, calculateSpeed(pace)),
+            ? round(
+              calculateDistance(duration, calculateSpeed(pace)),
               1
             )
             : length,
@@ -376,8 +385,8 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         time:
           durationType === "time"
             ? (onDuration + offDuration) * repeat
-            : helpers.round(
-              helpers.calculateTime(
+            : round(
+              calculateTime(
                 (onLength + offLength) * repeat,
                 calculateSpeed(pace)
               ),
@@ -385,8 +394,8 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
             ),
         length:
           durationType === "time"
-            ? helpers.round(
-              helpers.calculateDistance(
+            ? round(
+              calculateDistance(
                 (onDuration + offDuration) * repeat,
                 calculateSpeed(pace)
               ),
@@ -401,8 +410,8 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         onDuration:
           durationType === "time"
             ? onDuration
-            : helpers.round(
-              helpers.calculateTime(
+            : round(
+              calculateTime(
                 (onLength * 1) / onPower,
                 calculateSpeed(pace)
               ),
@@ -411,8 +420,8 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         offDuration:
           durationType === "time"
             ? offDuration
-            : helpers.round(
-              helpers.calculateTime(
+            : round(
+              calculateTime(
                 (offLength * 1) / offPower,
                 calculateSpeed(pace)
               ),
@@ -423,8 +432,8 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         pace: pace,
         onLength:
           durationType === "time"
-            ? helpers.round(
-              helpers.calculateDistance(
+            ? round(
+              calculateDistance(
                 (onDuration * 1) / onPower,
                 calculateSpeed(pace)
               ),
@@ -433,8 +442,8 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
             : onLength,
         offLength:
           durationType === "time"
-            ? helpers.round(
-              helpers.calculateDistance(
+            ? round(
+              calculateDistance(
                 (offDuration * 1) / offPower,
                 calculateSpeed(pace)
               ),
@@ -486,7 +495,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
     if (element && durationType === "time") {
       element.time = element.time + 5;
       element.length =
-        (helpers.calculateDistance(
+        (calculateDistance(
           element.time,
           calculateSpeed(element.pace || 0)
         ) *
@@ -498,7 +507,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
     if (element && durationType === "distance") {
       element.length = (element.length || 0) + 200;
       element.time =
-        (helpers.calculateTime(
+        (calculateTime(
           element.length,
           calculateSpeed(element.pace || 0)
         ) *
@@ -508,7 +517,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
     }
   }
 
-  function removeTimeToBar(id: string) {
+  function removeTimeFromBar(id: string) {
     const updatedArray = [...bars];
 
     const index = updatedArray.findIndex((bar) => bar.id === id);
@@ -516,7 +525,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
     if (element && element.time > 5 && durationType === "time") {
       element.time = element.time - 5;
       element.length =
-        (helpers.calculateDistance(
+        (calculateDistance(
           element.time,
           calculateSpeed(element.pace || 0)
         ) *
@@ -528,7 +537,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
     if (element && (element.length || 0) > 200 && durationType === "distance") {
       element.length = (element.length || 0) - 200;
       element.time =
-        (helpers.calculateTime(
+        (calculateTime(
           element.length,
           calculateSpeed(element.pace || 0)
         ) *
@@ -548,7 +557,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
 
       if (durationType === "time") {
         element.length =
-          (helpers.calculateDistance(
+          (calculateDistance(
             element.time,
             calculateSpeed(element.pace || 0)
           ) *
@@ -556,7 +565,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
           element.power;
       } else {
         element.time =
-          (helpers.calculateTime(
+          (calculateTime(
             element.length,
             calculateSpeed(element.pace || 0)
           ) *
@@ -568,7 +577,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
     }
   }
 
-  function removePowerToBar(id: string) {
+  function removePowerFromBar(id: string) {
     const updatedArray = [...bars];
 
     const index = updatedArray.findIndex((bar) => bar.id === id);
@@ -578,7 +587,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
 
       if (durationType === "time") {
         element.length =
-          (helpers.calculateDistance(
+          (calculateDistance(
             element.time,
             calculateSpeed(element.pace || 0)
           ) *
@@ -586,7 +595,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
           element.power;
       } else {
         element.time =
-          (helpers.calculateTime(
+          (calculateTime(
             element.length,
             calculateSpeed(element.pace || 0)
           ) *
@@ -878,7 +887,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         runningTimes.marathon,
       ];
 
-      return (distances[pace] * 1000) / helpers.getTimeinSeconds(times[pace]);
+      return (distances[pace] * 1000) / getTimeInSeconds(times[pace]);
     }
   }
 
@@ -974,8 +983,8 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
       durationType={durationType}
       width={
         durationType === "distance"
-          ? parseInt(helpers.getWorkoutDistance(bars)) * 100
-          : helpers.getWorkoutLength(bars, durationType) / 3
+          ? parseInt(getWorkoutDistance(bars)) * 100
+          : getWorkoutLength(bars, durationType) / 3
       }
       onChange={(id: string, values: Instruction) =>
         changeInstruction(id, values)
@@ -998,7 +1007,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
 
       if (durationType === "time") {
         element.length =
-          (helpers.calculateDistance(
+          (calculateDistance(
             element.time,
             calculateSpeed(element.pace || 0)
           ) *
@@ -1006,7 +1015,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
           (element.power || 1);
       } else {
         element.time =
-          (helpers.calculateTime(
+          (calculateTime(
             element.length,
             calculateSpeed(element.pace || 0)
           ) *
@@ -1279,7 +1288,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
             className="close"
             onClick={() => setMessage({ visible: false })}
           >
-            <FontAwesomeIcon icon={faTimesCircle} size="lg" fixedWidth />
+            <FontAwesomeIcon icon={faTimesCircle} size="lg" />
           </button>
         </div>
       )}
@@ -1310,8 +1319,8 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
             <label>Workout Time</label>
             <input
               className="textInput"
-              value={helpers.formatDuration(
-                helpers.getWorkoutLength(bars, durationType)
+              value={formatDuration(
+                getWorkoutLength(bars, durationType)
               )}
               disabled
             />
@@ -1321,7 +1330,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
               <label>Workout Distance</label>
               <input
                 className="textInput"
-                value={helpers.getWorkoutDistance(bars)}
+                value={getWorkoutDistance(bars)}
                 disabled
               />
             </div>
@@ -1331,7 +1340,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
               <label title="Training Load">Training Load</label>
               <input
                 className="textInput"
-                value={helpers.getStressScore(bars, ftp)}
+                value={getStressScore(bars, ftp)}
                 disabled
               />
             </div>
@@ -1341,7 +1350,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
               <label>Avg. Workout Pace</label>
               <input
                 className="textInput"
-                value={helpers.getWorkoutPace(bars, durationType, paceUnitType)}
+                value={getWorkoutPace(bars, durationType, paceUnitType)}
                 disabled
               />
             </div>
@@ -1447,16 +1456,16 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         {actionId && (
           <div className="actions">
             <button onClick={() => moveLeft(actionId)} title="Move Left">
-              <FontAwesomeIcon icon={faArrowLeft} size="lg" fixedWidth />
+              <FontAwesomeIcon icon={faArrowLeft} size="lg" />
             </button>
             <button onClick={() => moveRight(actionId)} title="Move Right">
-              <FontAwesomeIcon icon={faArrowRight} size="lg" fixedWidth />
+              <FontAwesomeIcon icon={faArrowRight} size="lg" />
             </button>
             <button onClick={() => removeBar(actionId)} title="Delete">
-              <FontAwesomeIcon icon={faTrash} size="lg" fixedWidth />
+              <FontAwesomeIcon icon={faTrash} size="lg" />
             </button>
             <button onClick={() => duplicateBar(actionId)} title="Duplicate">
-              <FontAwesomeIcon icon={faCopy} size="lg" fixedWidth />
+              <FontAwesomeIcon icon={faCopy} size="lg" />
             </button>
             {sportType === "run" && (
               <select
@@ -1516,14 +1525,14 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
       <div className="cta">
         {sportType === "bike" ? (
           <div>
-            <ReactTooltip effect="solid" />
+            <Tooltip id="my-tooltip" />
             <button
               className="btn btn-square"
               onClick={() => toggleTextEditor()}
               style={{ backgroundColor: "palevioletred" }}
               data-tip="New! Workout text editor!"
             >
-              <FontAwesomeIcon icon={faPen} fixedWidth />
+              <FontAwesomeIcon icon={faPen} />
             </button>
             <button
               className="btn btn-square"
@@ -1590,7 +1599,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
           onClick={() => addTrapeze(0.75, 0.25)}
           style={{ backgroundColor: Colors.WHITE }}
         >
-          <WarmdownLogo className="btn-icon" /> Cool down
+          <CooldownLogo className="btn-icon" /> Cool down
         </button>
         <button
           className="btn"
@@ -1607,8 +1616,8 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
           <FontAwesomeIcon
             icon={sportType === "bike" ? faBicycle : faRunning}
             size="lg"
-            fixedWidth
-          />{" "}
+
+          />
           Free {sportType === "bike" ? "Ride" : "Run"}
         </button>
         <button
@@ -1616,7 +1625,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
           onClick={() => addInstruction()}
           style={{ backgroundColor: Colors.WHITE }}
         >
-          <FontAwesomeIcon icon={faComment} size="lg" fixedWidth /> Text Event
+          <FontAwesomeIcon icon={faComment} size="lg" /> Text Event
         </button>
         {sportType === "bike" && (
           <div className="form-input">
@@ -1653,13 +1662,13 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
               newWorkout();
           }}
         >
-          <FontAwesomeIcon icon={faFile} size="lg" fixedWidth /> New
+          <FontAwesomeIcon icon={faFile} size="lg" /> New
         </button>
         <button className="btn" >
-          <FontAwesomeIcon icon={faTrash} size="lg" fixedWidth /> Delete
+          <FontAwesomeIcon icon={faTrash} size="lg" /> Delete
         </button>
         <button className="btn" onClick={() => downloadWorkout()}>
-          <FontAwesomeIcon icon={faDownload} size="lg" fixedWidth /> Download
+          <FontAwesomeIcon icon={faDownload} size="lg" /> Download
         </button>
         <input
           accept=".xml,.zwo"
@@ -1674,10 +1683,10 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
             document.getElementById("contained-button-file")!.click()
           }
         >
-          <FontAwesomeIcon icon={faUpload} size="lg" fixedWidth /> Upload
+          <FontAwesomeIcon icon={faUpload} size="lg" /> Upload
         </button>
         <button className="btn" onClick={() => setShowWorkouts(true)}>
-          <FontAwesomeIcon icon={faList} size="lg" fixedWidth /> Workouts
+          <FontAwesomeIcon icon={faList} size="lg" /> Workouts
         </button>
       </div>
     </div>

@@ -1,9 +1,11 @@
-import React from 'react';
-import './App.css';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
-import Editor from './components/Editor/Editor';
+// import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
+// import Editor from './components/Editor/Editor';
 
-export default function App() {
+import WarmupLogo from './assets/warmup.svg?react';
+
+import './App.css';
+
+/* export default function App() {
   return (
     <Router>
       <Switch>
@@ -12,4 +14,20 @@ export default function App() {
       </Switch>
     </Router>
   )
+} */
+
+// TODO: check if this would be sufficient:
+export default function App() {
+  const path = window.location.pathname;
+
+  if (!path.startsWith('/editor/')) {
+    window.history.replaceState(null, '', '/editor/new');
+    return null;
+  }
+
+  const id = path.split('/').pop() || 'new';
+
+  return <WarmupLogo />;
+
+  // return <Editor id={id} />;
 }
