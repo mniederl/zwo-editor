@@ -32,7 +32,7 @@ import {
 
 import { CooldownLogo, IntervalLogo, SteadyLogo, WarmupLogo } from "../../assets";
 
-import Converter from "xml-js";
+// import Converter from "xml-js";
 import {
   calculateDistance,
   calculateTime,
@@ -45,11 +45,11 @@ import {
   round
 } from "../helpers";
 // helmet removed; we update document head directly via useEffect
-import { RouteComponentProps } from "react-router-dom";
-import RunningTimesEditor, { RunningTimes } from "./RunningTimesEditor";
+import RunningTimesEditor, { type RunningTimes } from "./RunningTimesEditor";
 import LeftRightToggle from "./LeftRightToggle";
 import createWorkoutXml from "./createWorkoutXml";
 import { Tooltip } from "react-tooltip";
+import { genId, genShortId } from "../../utils/id";
 
 export interface BarType {
   id: string;
@@ -84,8 +84,6 @@ interface Message {
   text?: string;
 }
 
-type TParams = { id: string };
-
 const loadRunningTimes = (): RunningTimes => {
   const missingRunningTimes: RunningTimes = {
     oneMile: "",
@@ -115,15 +113,13 @@ export type SportType = "bike" | "run";
 export type DurationType = "time" | "distance";
 export type PaceUnitType = "metric" | "imperial";
 
-const Editor = ({ match }: RouteComponentProps<TParams>) => {
-  const { v4: uuidv4 } = require("uuid");
+type EditorProps = { id: string };
 
+const Editor = ({ id }: EditorProps) => {
   const S3_URL = "https://zwift-workout.s3-eu-west-1.amazonaws.com";
 
-  const [id, setId] = useState(
-    match.params.id === "new"
-      ? localStorage.getItem("id") || generateId()
-      : match.params.id
+  const [workoutId, setId] = useState(
+    id === "new" ? localStorage.getItem("id") || genShortId() : id
   );
   const [bars, setBars] = useState<Array<BarType>>(
     JSON.parse(localStorage.getItem("currentWorkout") || "[]")
@@ -210,14 +206,10 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
     runningTimes,
   ]);
 
-  function generateId() {
-    return Math.random().toString(36).substr(2, 16);
-  }
-
   function newWorkout() {
     console.log("New workout");
 
-    setId(generateId());
+    setId(genShortId());
     setBars([]);
     setInstructions([]);
     setName("");
@@ -309,7 +301,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         power: zone,
         cadence: cadence,
         type: "bar",
-        id: uuidv4(),
+        id: genId(),
         pace: pace,
       },
     ]);
@@ -345,7 +337,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         cadence: cadence,
         pace: pace,
         type: "trapeze",
-        id: uuidv4(),
+        id: genId(),
       },
     ]);
   }
@@ -362,7 +354,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         length: durationType === "time" ? 0 : length,
         cadence: cadence,
         type: "freeRide",
-        id: uuidv4(),
+        id: genId(),
       },
     ]);
   }
@@ -402,7 +394,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
               1
             )
             : (onLength + offLength) * repeat,
-        id: uuidv4(),
+        id: genId(),
         type: "interval",
         cadence: cadence,
         restingCadence: restingCadence,
@@ -461,7 +453,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
         text: text,
         time: time,
         length: length,
-        id: uuidv4(),
+        id: genId(),
       },
     ]);
   }
@@ -697,7 +689,7 @@ const Editor = ({ match }: RouteComponentProps<TParams>) => {
     document.body.appendChild(a);
     a.style.display = "none";
     a.href = url;
-    a.download = `${id}.zwo`;
+    a.download = `${workoutId}.zwo`;
     a.click();
     window.URL.revokeObjectURL(url);
   }

@@ -1,33 +1,25 @@
-// import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
-// import Editor from './components/Editor/Editor';
-
-import WarmupLogo from './assets/warmup.svg?react';
-
 import './App.css';
+import Editor from './components/Editor/Editor';
 
-/* export default function App() {
-  return (
-    <Router>
-      <Switch>
-        <Route path="/editor/:id" component={Editor} />
-        <Route render={({ history }) => { history.replace('/editor/new'); return null; }} />
-      </Switch>
-    </Router>
-  )
-} */
-
-// TODO: check if this would be sufficient:
 export default function App() {
-  const path = window.location.pathname;
+  const pathname = window.location.pathname || "/";
+  // normalize trailing slash
+  const path = pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
 
-  if (!path.startsWith('/editor/')) {
-    window.history.replaceState(null, '', '/editor/new');
-    return null;
+  // route: /editor/:id
+  if (path.startsWith("/editor/")) {
+    const id = path.split("/").pop() || "new";
+    return <Editor id={id} />;
   }
 
-  const id = path.split('/').pop() || 'new';
+  // optional viewer route if you support /viewer/:id
+  /* if (path.startsWith("/viewer/")) {
+    const id = path.split("/").pop() || "";
+    return <Viewer id={id} />;
+  } */
 
-  return <WarmupLogo />;
+  // default redirect / -> /editor/new (replace history)
+  window.history.replaceState(null, "", "/editor/new");
 
-  // return <Editor id={id} />;
+  return null; // no render on this pass; browser will have updated location
 }
