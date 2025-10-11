@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./Workouts.css";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClock, faRuler } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface Workout {
   id: string;
@@ -56,12 +56,12 @@ const Workouts = (props: { userId: string }) => {
             <div className="title">{item.name}</div>
             {item.durationType === "time" ? (
               <div className="description">
-                <FontAwesomeIcon icon={faClock} size="sm" fixedWidth />{" "}
+                <FontAwesomeIcon icon={faClock} size="sm" />{" "}
                 {item.workoutTime}
               </div>
             ) : (
               <div className="description">
-                <FontAwesomeIcon icon={faRuler} size="sm" fixedWidth />{" "}
+                <FontAwesomeIcon icon={faRuler} size="sm" />{" "}
                 {item.workoutDistance}
               </div>
             )}

@@ -1,5 +1,5 @@
-import './App.css';
-import Editor from './components/Editor/Editor';
+import "./App.css";
+import Editor from "./components/Editor/Editor";
 
 export default function App() {
   const pathname = window.location.pathname || "/";

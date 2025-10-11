@@ -1,32 +1,30 @@
-import React from 'react';
-import Comment from '../../Comment/Comment';
-import renderer from 'react-test-renderer';
-import {cleanup, fireEvent, render} from '@testing-library/react';
-import { v4 as uuidv4 } from 'uuid'
-import '@testing-library/jest-dom/extend-expect'
+import React from "react";
+import { cleanup, fireEvent, render } from "@testing-library/react";
+import renderer from "react-test-renderer";
+import { v4 as uuidv4 } from "uuid";
 
+import Comment from "../../Comment/Comment";
+import "@testing-library/jest-dom/extend-expect";
 
-test('Comment renders correctly', () => {
-
-
+test("Comment renders correctly", () => {
   const instruction = {
-    text: 'This is a comment',
+    text: "This is a comment",
     time: 300,
-    id: uuidv4()
-  }
+    id: uuidv4(),
+  };
 
   const component = renderer.create(
-      <Comment
-        key={instruction.id} 
-        instruction={instruction} 
-        onChange={(id, values) => changeInstruction(id, values)} 
-        onDelete={(id) => deleteInstruction(id)} 
-      />,
-  )
+    <Comment
+      key={instruction.id}
+      instruction={instruction}
+      onChange={(id, values) => changeInstruction(id, values)}
+      onDelete={(id) => deleteInstruction(id)}
+    />,
+  );
 
-  let tree = component.toJSON();
+  const tree = component.toJSON();
   expect(tree).toMatchSnapshot();
-})
+});
 
 // need more testing
 
@@ -39,10 +37,10 @@ test('Comment renders correctly', () => {
 
 //   const {getByTestId} = render(
 //     <Comment
-//         key={instruction.id} 
-//         instruction={instruction} 
-//         onChange={(id, values) => changeInstruction(id, values)} 
-//         onDelete={(id) => deleteInstruction(id)} 
+//         key={instruction.id}
+//         instruction={instruction}
+//         onChange={(id, values) => changeInstruction(id, values)}
+//         onDelete={(id) => deleteInstruction(id)}
 //         durationType="time"
 //         index={0}
 //         width={300}

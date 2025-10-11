@@ -1,7 +1,7 @@
 .segment {
   position: relative;
 }
-.bar {    
+.bar {
   border-radius: 10px;
   border: 1px solid white;
 }
@@ -11,6 +11,6 @@
   top: -60px;
   left: 105px;
   color: gray;
-  padding: 5px;  
+  padding: 5px;
   font-size: 20px;
 }

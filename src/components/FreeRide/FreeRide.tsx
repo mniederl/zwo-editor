@@ -1,9 +1,11 @@
 import { useState } from "react";
-import "./FreeRide.css";
 import { Resizable } from "re-resizable";
-import Label from "../Label/Label";
+
 import { formatTime } from "@utils/time";
 import { round } from "../helpers";
+import Label from "../Label/Label";
+
+import "./FreeRide.css";
 
 const FreeRide = (props: {
   id: string;
@@ -23,9 +25,7 @@ const FreeRide = (props: {
 
   // RUN WORKOUTS ON DISTANCE - BIKE WORKOUTS ON TIME
   const [width, setWidth] = useState(
-    props.durationType === "time"
-      ? (props.time || 0) / timeMultiplier
-      : (props.length || 0) / lengthMultiplier
+    props.durationType === "time" ? (props.time || 0) / timeMultiplier : (props.length || 0) / lengthMultiplier,
   );
 
   // DISTANCE
@@ -48,14 +48,8 @@ const FreeRide = (props: {
   const handleResizeStop = (dWidth: number) => {
     setWidth(width + dWidth);
 
-    const length =
-      props.durationType === "time"
-        ? 0
-        : round((width + dWidth) * lengthMultiplier, 200);
-    const time =
-      props.durationType === "time"
-        ? round((width + dWidth) * timeMultiplier, 5)
-        : 0;
+    const length = props.durationType === "time" ? 0 : round((width + dWidth) * lengthMultiplier, 200);
+    const time = props.durationType === "time" ? round((width + dWidth) * timeMultiplier, 5) : 0;
 
     props.onChange(props.id, {
       time: time,
@@ -67,14 +61,8 @@ const FreeRide = (props: {
   };
 
   const handleResize = (dWidth: number) => {
-    const length =
-      props.durationType === "time"
-        ? 0
-        : round((width + dWidth) * lengthMultiplier, 200);
-    const time =
-      props.durationType === "time"
-        ? round((width + dWidth) * timeMultiplier, 5)
-        : 0;
+    const length = props.durationType === "time" ? 0 : round((width + dWidth) * lengthMultiplier, 200);
+    const time = props.durationType === "time" ? round((width + dWidth) * timeMultiplier, 5) : 0;
 
     props.onChange(props.id, {
       time: time,
@@ -106,9 +94,7 @@ const FreeRide = (props: {
         className="freeRide"
         size={{
           width:
-            props.durationType === "time"
-              ? (props.time || 0) / timeMultiplier
-              : (props.length || 0) / lengthMultiplier,
+            props.durationType === "time" ? (props.time || 0) / timeMultiplier : (props.length || 0) / lengthMultiplier,
           height: height,
         }}
         minWidth={timeMultiplier}

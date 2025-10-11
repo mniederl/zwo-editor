@@ -1,9 +1,11 @@
 import { useState } from "react";
-import Draggable from "react-draggable";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment, faCommentDots } from "@fortawesome/free-solid-svg-icons";
-import "./Comment.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Draggable from "react-draggable";
+
 import { formatTime } from "@utils/time";
+
+import "./Comment.css";
 
 interface Instruction {
   id: string;
@@ -27,12 +29,9 @@ const Comment = (props: {
   const [isDragging, setIsDragging] = useState(false);
 
   // FOR RUN WORKOUTS
-  const [length, setLength] = useState(
-    props.instruction.length / lengthMultiplier
-  );
+  const [length, setLength] = useState(props.instruction.length / lengthMultiplier);
 
   function handleTouch(position: number) {
-
     setIsDragging(false);
 
     if (isDragging) {
@@ -43,7 +42,7 @@ const Comment = (props: {
         text: props.instruction.text,
       });
     } else {
-      props.onClick(props.instruction.id)
+      props.onClick(props.instruction.id);
     }
   }
 

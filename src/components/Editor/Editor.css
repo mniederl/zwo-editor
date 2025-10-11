@@ -259,7 +259,7 @@ label {
   flex-direction: row;
 }
 .info > .workout > .form-input {
-   padding: 0 6px;
+  padding: 0 6px;
 }
 
 .run-workout {

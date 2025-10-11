@@ -1,9 +1,11 @@
-import React, { useCallback } from 'react';
-import TimePicker from 'rc-time-picker';
-import 'rc-time-picker/assets/index.css'
-import { calculateEstimatedTimes } from '../helpers';
+import type React from "react";
+import { useCallback } from "react";
+import TimePicker from "rc-time-picker";
+import "rc-time-picker/assets/index.css";
 
-import './RunningTimesEditor.css';
+import { calculateEstimatedTimes } from "../helpers";
+
+import "./RunningTimesEditor.css";
 
 export interface RunningTimes {
   oneMile: string;
@@ -20,8 +22,15 @@ interface RunningTimesEditorProps {
 
 export default function RunningTimesEditor({ times, onChange }: RunningTimesEditorProps) {
   const estimateRunningTimes = useCallback(() => {
-    const distances = [1.60934, 5, 10, 21.0975, 42.195, 1.60934]
-    const estimatedTimes = calculateEstimatedTimes(distances, [times.oneMile, times.fiveKm, times.tenKm, times.halfMarathon, times.marathon, '00:11:20'])
+    const distances = [1.60934, 5, 10, 21.0975, 42.195, 1.60934];
+    const estimatedTimes = calculateEstimatedTimes(distances, [
+      times.oneMile,
+      times.fiveKm,
+      times.tenKm,
+      times.halfMarathon,
+      times.marathon,
+      "00:11:20",
+    ]);
 
     onChange({
       oneMile: times.oneMile || estimatedTimes[0],
@@ -29,8 +38,8 @@ export default function RunningTimesEditor({ times, onChange }: RunningTimesEdit
       tenKm: times.tenKm || estimatedTimes[2],
       halfMarathon: times.halfMarathon || estimatedTimes[3],
       marathon: times.marathon || estimatedTimes[4],
-    })
-  }, [times, onChange])
+    });
+  }, [times, onChange]);
 
   return (
     <div className="run-workout">
@@ -50,21 +59,28 @@ export default function RunningTimesEditor({ times, onChange }: RunningTimesEdit
         Marathon Time
       </RunTimeInput>
       <div className="form-input">
-        <button onClick={estimateRunningTimes} className="btn">Estimate missing times</button>
+        <button onClick={estimateRunningTimes} className="btn">
+          Estimate missing times
+        </button>
       </div>
     </div>
   );
 }
 
-const RunTimeInput: React.FC<{ time: string, onChange: (time: string) => void }> = ({ time, onChange, children }) => (
+const RunTimeInput: React.FC<{
+  time: string;
+  onChange: (time: string) => void;
+}> = ({ time, onChange, children }) => (
   <div className="form-input">
-    <label><abbr title="hh:mm:ss">{children}</abbr></label>
+    <label>
+      <abbr title="hh:mm:ss">{children}</abbr>
+    </label>
     <TimePicker
-      value={time === '' ? undefined : moment(time, "HH:mm:ss")}
+      value={time === "" ? undefined : moment(time, "HH:mm:ss")}
       placeholder="00:00:00"
       defaultOpenValue={moment("00:00:00")}
       className="timePicker"
-      onChange={(value) => onChange(value ? value.format("HH:mm:ss") : '')}
+      onChange={(value) => onChange(value ? value.format("HH:mm:ss") : "")}
     />
   </div>
 );

@@ -1,6 +1,7 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBolt, faClock, faRuler } from "@fortawesome/free-solid-svg-icons";
-import { type PaceUnitType } from "../Editor/Editor";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+import type { PaceUnitType } from "../Editor/Editor";
 import { speedToPace } from "../helpers";
 
 import "./Label.css";
@@ -16,7 +17,7 @@ const Label = (props: {
   ftp?: number;
   pace?: number;
   cadence?: number;
-  setCadence?: Function;
+  setCadence?: (cadence: number) => void;
   speed?: number;
   speedStart?: number;
   speedEnd?: number;
@@ -38,53 +39,36 @@ const Label = (props: {
       )}
       {props.powerStart && props.powerEnd && props.sportType === "bike" && (
         <div>
-          <FontAwesomeIcon icon={faBolt} /> {props.powerStart}W -{" "}
-          {props.powerEnd}W
+          <FontAwesomeIcon icon={faBolt} /> {props.powerStart}W - {props.powerEnd}W
         </div>
       )}
       {props.weight && props.power && props.ftp && props.sportType === "bike" && (
         <div>
-          {(props.power / props.weight).toFixed(1)}W/Kg &middot;{" "}
-          {((props.power / props.ftp) * 100).toFixed(0)}% FTP
+          {(props.power / props.weight).toFixed(1)}W/Kg &middot; {((props.power / props.ftp) * 100).toFixed(0)}% FTP
         </div>
       )}
-      {props.powerStart &&
-        props.powerEnd &&
-        props.ftp &&
-        props.sportType === "bike" && (
-          <div>
-            {((props.powerStart / props.ftp) * 100).toFixed(0)}% FTP -{" "}
-            {((props.powerEnd / props.ftp) * 100).toFixed(0)}% FTP
-          </div>
-        )}
-      {props.sportType === "run" &&
-        props.distance !== undefined &&
-        props.distance !== 0 && (
-          <div>
-            <FontAwesomeIcon icon={faRuler} />{" "}
-            {props.distance.toFixed(0)} m
-          </div>
-        )}
-      {props.power &&
-        props.ftp &&
-        props.pace !== null &&
-        props.sportType === "run" && (
-          <div>
-            {((props.power / props.ftp) * 100).toFixed(1).replace(/[.]0$/, "")}%{" "}
-            {paces[props.pace || 0]} pace
-          </div>
-        )}
-      {props.powerStart &&
-        props.powerEnd &&
-        props.ftp &&
-        props.pace !== null &&
-        props.sportType === "run" && (
-          <div>
-            {((props.powerStart / props.ftp) * 100).toFixed(0)}% to{" "}
-            {((props.powerEnd / props.ftp) * 100).toFixed(0)}%{" "}
-            {paces[props.pace || 0]} pace
-          </div>
-        )}
+      {props.powerStart && props.powerEnd && props.ftp && props.sportType === "bike" && (
+        <div>
+          {((props.powerStart / props.ftp) * 100).toFixed(0)}% FTP - {((props.powerEnd / props.ftp) * 100).toFixed(0)}%
+          FTP
+        </div>
+      )}
+      {props.sportType === "run" && props.distance !== undefined && props.distance !== 0 && (
+        <div>
+          <FontAwesomeIcon icon={faRuler} /> {props.distance.toFixed(0)} m
+        </div>
+      )}
+      {props.power && props.ftp && props.pace !== null && props.sportType === "run" && (
+        <div>
+          {((props.power / props.ftp) * 100).toFixed(1).replace(/[.]0$/, "")}% {paces[props.pace || 0]} pace
+        </div>
+      )}
+      {props.powerStart && props.powerEnd && props.ftp && props.pace !== null && props.sportType === "run" && (
+        <div>
+          {((props.powerStart / props.ftp) * 100).toFixed(0)}% to {((props.powerEnd / props.ftp) * 100).toFixed(0)}%{" "}
+          {paces[props.pace || 0]} pace
+        </div>
+      )}
       {props.sportType === "bike" && (
         <div className="cadence-row">
           <label className="cadenceLabel">Cadence</label>
@@ -108,16 +92,20 @@ const Label = (props: {
       {props.sportType === "run" && props.speed && props.paceUnitType && (
         <div>
           <div>{props.speed?.toFixed(1)} km/h</div>
-          <div>{speedToPace(props.speed, props.paceUnitType)} {props.paceUnitType === "metric" ? "min/km" : "min/mi"}</div>
+          <div>
+            {speedToPace(props.speed, props.paceUnitType)} {props.paceUnitType === "metric" ? "min/km" : "min/mi"}
+          </div>
         </div>
       )}
       {props.sportType === "run" && props.speedStart && props.speedEnd && (
         <div>
           <div>
-            {props.speedStart?.toFixed(1)} km/h - {props.speedEnd?.toFixed(1)}{" "}
-            km/h
+            {props.speedStart?.toFixed(1)} km/h - {props.speedEnd?.toFixed(1)} km/h
           </div>
-          <div>{speedToPace(props.speedStart, props.paceUnitType)} - {speedToPace(props.speedEnd, props.paceUnitType)} {props.paceUnitType === "metric" ? "min/km" : "min/mi"}</div>
+          <div>
+            {speedToPace(props.speedStart, props.paceUnitType)} - {speedToPace(props.speedEnd, props.paceUnitType)}{" "}
+            {props.paceUnitType === "metric" ? "min/km" : "min/mi"}
+          </div>
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
 import Builder from "xmlbuilder";
-import { BarType, Instruction, SportType, DurationType } from "./Editor";
+
+import type { BarType, DurationType, Instruction, SportType } from "./Editor";
 
 interface Workout {
   author: string;
@@ -91,22 +92,15 @@ export default function createWorkoutXml({
       // <IntervalsT Repeat="5" OnDuration="60" OffDuration="300" OnPower="0.8844353" OffPower="0.51775455" pace="0"/>
       segment = Builder.create("IntervalsT")
         .att("Repeat", bar.repeat)
-        .att(
-          "OnDuration",
-          durationType === "time" ? bar.onDuration : bar.onLength
-        )
-        .att(
-          "OffDuration",
-          durationType === "time" ? bar.offDuration : bar.offLength
-        )
+        .att("OnDuration", durationType === "time" ? bar.onDuration : bar.onLength)
+        .att("OffDuration", durationType === "time" ? bar.offDuration : bar.offLength)
         .att("OnPower", bar.onPower)
         .att("OffPower", bar.offPower)
         .att("pace", bar.pace);
       // add cadence if not zero
       bar.cadence !== 0 && segment.att("Cadence", bar.cadence);
       // add cadence resting if not zero
-      bar.restingCadence !== 0 &&
-        segment.att("CadenceResting", bar.restingCadence);
+      bar.restingCadence !== 0 && segment.att("CadenceResting", bar.restingCadence);
     } else {
       // free ride
       segment = Builder.create("FreeRide")
@@ -119,11 +113,7 @@ export default function createWorkoutXml({
     // add instructions if present
     if (durationType === "time") {
       instructions
-        .filter(
-          (instruction) =>
-            instruction.time >= totalTime &&
-            instruction.time < totalTime + bar.time
-        )
+        .filter((instruction) => instruction.time >= totalTime && instruction.time < totalTime + bar.time)
         .forEach((i) => {
           segment.ele("textevent", {
             timeoffset: i.time - totalTime,
@@ -133,9 +123,7 @@ export default function createWorkoutXml({
     } else {
       instructions
         .filter(
-          (instruction) =>
-            instruction.length >= totalLength &&
-            instruction.length < totalLength + (bar.length || 0)
+          (instruction) => instruction.length >= totalLength && instruction.length < totalLength + (bar.length || 0),
         )
         .forEach((i) => {
           segment.ele("textevent", {

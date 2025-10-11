@@ -1,11 +1,13 @@
 import { useState } from "react";
-import "./Trapeze.css";
-import { Colors, Zones, ZonesArray } from "../constants";
 import { Resizable } from "re-resizable";
-import Label from "../Label/Label";
-import { calculateDistance, calculateTime, round } from "../helpers";
-import { type PaceUnitType } from "../Editor/Editor";
+
 import { formatTime } from "@utils/time";
+import { Colors, Zones, ZonesArray } from "../constants";
+import type { PaceUnitType } from "../Editor/Editor";
+import { calculateDistance, calculateTime, round } from "../helpers";
+import Label from "../Label/Label";
+
+import "./Trapeze.css";
 
 interface IDictionary {
   [index: string]: number;
@@ -59,7 +61,7 @@ const Trapeze = (props: {
   const [width, setWidth] = useState(
     props.durationType === "time"
       ? Math.round((props.time || 0) / timeMultiplier / 3)
-      : (props.length || 0) / lengthMultiplier / 3
+      : (props.length || 0) / lengthMultiplier / 3,
   );
 
   const speedStart = props.startPower * (props.speed || 0) * 3.6;
@@ -67,9 +69,7 @@ const Trapeze = (props: {
   const speedEnd = props.endPower * (props.speed || 0) * 3.6;
 
   const [height1, setHeight1] = useState(props.startPower * multiplier);
-  const [height2, setHeight2] = useState(
-    ((props.endPower + props.startPower) * multiplier) / 2
-  );
+  const [height2, setHeight2] = useState(((props.endPower + props.startPower) * multiplier) / 2);
   const [height3, setHeight3] = useState(props.endPower * multiplier);
 
   const trapezeHeight = height3 > height1 ? height3 : height1;
@@ -104,18 +104,10 @@ const Trapeze = (props: {
     const time =
       props.durationType === "time"
         ? round(width * timeMultiplier * 3, 5)
-        : round(
-          (calculateTime(props.length, props.speed) * 1) / avgPower,
-          1
-        );
+        : round((calculateTime(props.length, props.speed) * 1) / avgPower, 1);
     const length =
       props.durationType === "time"
-        ? round(
-          (calculateDistance(width * timeMultiplier, props.speed) *
-            1) /
-          avgPower,
-          1
-        )
+        ? round((calculateDistance(width * timeMultiplier, props.speed) * 1) / avgPower, 1)
         : round(width * lengthMultiplier * 3, 200);
 
     props.onChange(props.id, {
@@ -133,18 +125,10 @@ const Trapeze = (props: {
     const time =
       props.durationType === "time"
         ? round(width * timeMultiplier * 3, 5)
-        : round(
-          (calculateTime(props.length, props.speed) * 1) / avgPower,
-          1
-        );
+        : round((calculateTime(props.length, props.speed) * 1) / avgPower, 1);
     const length =
       props.durationType === "time"
-        ? round(
-          (calculateDistance(width * timeMultiplier, props.speed) *
-            1) /
-          avgPower,
-          1
-        )
+        ? round((calculateDistance(width * timeMultiplier, props.speed) * 1) / avgPower, 1)
         : round(width * lengthMultiplier * 3, 200);
 
     props.onChange(props.id, {
@@ -163,20 +147,12 @@ const Trapeze = (props: {
 
     const length =
       props.durationType === "time"
-        ? round(
-          (calculateDistance(newWidth * timeMultiplier * 3, props.speed) *
-            1) /
-          avgPower,
-          1
-        )
+        ? round((calculateDistance(newWidth * timeMultiplier * 3, props.speed) * 1) / avgPower, 1)
         : round(newWidth * lengthMultiplier * 3, 200);
     const time =
       props.durationType === "time"
         ? round(newWidth * timeMultiplier * 3, 5)
-        : round(
-          (calculateTime(props.length, props.speed) * 1) / avgPower,
-          1
-        );
+        : round((calculateTime(props.length, props.speed) * 1) / avgPower, 1);
 
     props.onChange(props.id, {
       time: time,
@@ -293,9 +269,7 @@ const Trapeze = (props: {
           maxHeight={multiplier * Zones.Z6.max}
           enable={{ top: true, right: true }}
           grid={[1, 1]}
-          onResizeStop={(e, direction, ref, d) =>
-            handleResizeStop3(d.width, d.height)
-          }
+          onResizeStop={(e, direction, ref, d) => handleResizeStop3(d.width, d.height)}
           onResize={(e, direction, ref, d) => handleResize3(d.width, d.height)}
         ></Resizable>
       </div>
@@ -311,65 +285,51 @@ const Trapeze = (props: {
           className="color"
           style={{
             backgroundColor: Colors.GRAY,
-            width: `${(bars["Z1"] * 100) / Math.abs(props.endPower - props.startPower)
-              }%`,
+            width: `${(bars["Z1"] * 100) / Math.abs(props.endPower - props.startPower)}%`,
           }}
         ></div>
         <div
           className="color"
           style={{
             backgroundColor: Colors.BLUE,
-            width: `${(bars["Z2"] * 100) / Math.abs(props.endPower - props.startPower)
-              }%`,
+            width: `${(bars["Z2"] * 100) / Math.abs(props.endPower - props.startPower)}%`,
           }}
         ></div>
         <div
           className="color"
           style={{
             backgroundColor: Colors.GREEN,
-            width: `${(bars["Z3"] * 100) / Math.abs(props.endPower - props.startPower)
-              }%`,
+            width: `${(bars["Z3"] * 100) / Math.abs(props.endPower - props.startPower)}%`,
           }}
         ></div>
         <div
           className="color"
           style={{
             backgroundColor: Colors.YELLOW,
-            width: `${(bars["Z4"] * 100) / Math.abs(props.endPower - props.startPower)
-              }%`,
+            width: `${(bars["Z4"] * 100) / Math.abs(props.endPower - props.startPower)}%`,
           }}
         ></div>
         <div
           className="color"
           style={{
             backgroundColor: Colors.ORANGE,
-            width: `${(bars["Z5"] * 100) / Math.abs(props.endPower - props.startPower)
-              }%`,
+            width: `${(bars["Z5"] * 100) / Math.abs(props.endPower - props.startPower)}%`,
           }}
         ></div>
         <div
           className="color"
           style={{
             backgroundColor: Colors.RED,
-            width: `${(bars["Z6"] * 100) / Math.abs(props.endPower - props.startPower)
-              }%`,
+            width: `${(bars["Z6"] * 100) / Math.abs(props.endPower - props.startPower)}%`,
           }}
         ></div>
       </div>
-      <svg
-        height={`${trapezeHeight}`}
-        width={`${width * 3}`}
-        className="trapeze-svg-container"
-      >
+      <svg height={`${trapezeHeight}`} width={`${width * 3}`} className="trapeze-svg-container">
         <polygon
-          points={`0,${vertexA} 0,${trapezeHeight} ${width * 3
-            },${trapezeHeight} ${width * 3},${vertexD}`}
+          points={`0,${vertexA} 0,${trapezeHeight} ${width * 3},${trapezeHeight} ${width * 3},${vertexD}`}
           className="trapeze-svg"
         />
-        <polygon
-          points={`0,0 ${vertexB},${trapezeTop} ${width * 3},0`}
-          className="trapeze-svg-off"
-        />
+        <polygon points={`0,0 ${vertexB},${trapezeTop} ${width * 3},0`} className="trapeze-svg-off" />
         Sorry, your browser does not support inline SVG.
       </svg>
     </div>

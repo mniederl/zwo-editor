@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
-import "./Bar.css";
-import { Colors, Zones } from "../constants";
+import { useEffect, useState } from "react";
 import { Resizable } from "re-resizable";
-import Label from "../Label/Label";
-import { type PaceUnitType } from "../Editor/Editor";
+
 import { formatTime } from "@utils/time";
+import { Colors, Zones } from "../constants";
+import type { PaceUnitType } from "../Editor/Editor";
 import { calculateDistance, calculateTime, round } from "../helpers";
+import Label from "../Label/Label";
+
+import "./Bar.css";
 
 const Bar = (props: {
   id: string;
@@ -47,9 +49,7 @@ const Bar = (props: {
 
   // RUN WORKOUTS ON DISTANCE - BIKE WORKOUTS ON TIME
   const [width, setWidth] = useState(
-    props.durationType === "time"
-      ? (props.time || 0) / timeMultiplier
-      : (props.length || 0) / lengthMultiplier
+    props.durationType === "time" ? (props.time || 0) / timeMultiplier : (props.length || 0) / lengthMultiplier,
   );
 
   const [height, setHeight] = useState(props.power * multiplier);
@@ -58,10 +58,7 @@ const Bar = (props: {
 
   const [selected, setSelected] = useState(props.selected);
 
-  const speed =
-    distance !== undefined && props.time !== undefined
-      ? calculateSpeed(distance, props.time)
-      : 0;
+  const speed = distance !== undefined && props.time !== undefined ? calculateSpeed(distance, props.time) : 0;
 
   useEffect(() => {
     setSelected(props.selected);
@@ -85,22 +82,12 @@ const Bar = (props: {
 
     const length =
       props.durationType === "time"
-        ? round(
-          calculateDistance(
-            (width + dWidth) * timeMultiplier * props.power,
-            props.speed
-          ),
-          1
-        )
+        ? round(calculateDistance((width + dWidth) * timeMultiplier * props.power, props.speed), 1)
         : round((width + dWidth) * lengthMultiplier, 200);
     const time =
       props.durationType === "time"
         ? round((width + dWidth) * timeMultiplier, 5)
-        : round(
-          (calculateTime(props.length, props.speed) * 1) /
-          props.power,
-          1
-        );
+        : round((calculateTime(props.length, props.speed) * 1) / props.power, 1);
 
     props.onChange(props.id, {
       time: time,
@@ -116,22 +103,12 @@ const Bar = (props: {
   const handleResize = (dWidth: number, dHeight: number) => {
     const length =
       props.durationType === "time"
-        ? round(
-          calculateDistance(
-            (width + dWidth) * timeMultiplier * props.power,
-            props.speed
-          ),
-          1
-        )
+        ? round(calculateDistance((width + dWidth) * timeMultiplier * props.power, props.speed), 1)
         : round((width + dWidth) * lengthMultiplier, 200);
     const time =
       props.durationType === "time"
         ? round((width + dWidth) * timeMultiplier, 5)
-        : round(
-          (calculateTime(props.length, props.speed) * 1) /
-          props.power,
-          1
-        );
+        : round((calculateTime(props.length, props.speed) * 1) / props.power, 1);
 
     props.onChange(props.id, {
       time: time,
@@ -193,9 +170,7 @@ const Bar = (props: {
         className="bar"
         size={{
           width:
-            props.durationType === "time"
-              ? (props.time || 0) / timeMultiplier
-              : (props.length || 0) / lengthMultiplier,
+            props.durationType === "time" ? (props.time || 0) / timeMultiplier : (props.length || 0) / lengthMultiplier,
           height: props.power * multiplier,
         }}
         minWidth={3}
@@ -203,9 +178,7 @@ const Bar = (props: {
         maxHeight={multiplier * Zones.Z6.max}
         enable={{ top: true, right: true }}
         grid={[1, 1]}
-        onResizeStop={(e, direction, ref, d) =>
-          handleResizeStop(d.width, d.height)
-        }
+        onResizeStop={(e, direction, ref, d) => handleResizeStop(d.width, d.height)}
         onResize={(e, direction, ref, d) => handleResize(d.width, d.height)}
         style={style}
       ></Resizable>

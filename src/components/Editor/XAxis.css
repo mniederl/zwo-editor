@@ -22,7 +22,7 @@
 }
 
 .x-axis > span::before {
-  content: '';
+  content: "";
   position: absolute;
   width: 1px;
   height: 10px;

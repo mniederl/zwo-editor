@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
-import Bar from "../Bar/Bar";
-import "./Interval.css";
+import { useEffect, useState } from "react";
 
-import { BarType } from "../Editor/Editor";
+import Bar from "../Bar/Bar";
+import type { BarType } from "../Editor/Editor";
+
+import "./Interval.css";
 
 const Interval = (props: {
   id: string;
@@ -114,10 +115,8 @@ const Interval = (props: {
     bars.map((bar) => (time += bar.time));
 
     props.handleIntervalChange(props.id, {
-      time:
-        ((props.onDuration || 0) + (props.offDuration || 0)) * (nIntervals + 1),
-      length:
-        ((props.onLength || 0) + (props.offLength || 0)) * (nIntervals + 1),
+      time: ((props.onDuration || 0) + (props.offDuration || 0)) * (nIntervals + 1),
+      length: ((props.onLength || 0) + (props.offLength || 0)) * (nIntervals + 1),
       id: props.id,
       type: "interval",
       cadence: props.cadence,
@@ -140,11 +139,8 @@ const Interval = (props: {
       bars.map((bar) => (time += bar.time));
 
       props.handleIntervalChange(props.id, {
-        time:
-          ((props.onDuration || 0) + (props.offDuration || 0)) *
-          (nIntervals - 1),
-        length:
-          ((props.onLength || 0) + (props.offLength || 0)) * (nIntervals - 1),
+        time: ((props.onDuration || 0) + (props.offDuration || 0)) * (nIntervals - 1),
+        length: ((props.onLength || 0) + (props.offLength || 0)) * (nIntervals - 1),
         id: props.id,
         type: "interval",
         cadence: props.cadence,
@@ -189,9 +185,7 @@ const Interval = (props: {
         <button onClick={handleRemoveInterval}>-</button>
       </div>
       <div className="intervals">
-        {bars.map((bar, index) =>
-          renderBar(bar, index === 0 || index === bars.length - 1)
-        )}
+        {bars.map((bar, index) => renderBar(bar, index === 0 || index === bars.length - 1))}
       </div>
     </div>
   );

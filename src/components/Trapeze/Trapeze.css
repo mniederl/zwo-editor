@@ -3,7 +3,7 @@
   align-items: flex-end;
 }
 
-.trapeze-component {  
+.trapeze-component {
   border-top: 1px dotted gray;
   z-index: 5;
 }
@@ -26,14 +26,13 @@
 }
 
 .color {
-  
 }
 
-.color:first-child{
+.color:first-child {
   border-bottom-left-radius: 5px;
 }
 
-.color:last-child{
+.color:last-child {
   border-bottom-right-radius: 5px;
 }
 
@@ -43,9 +42,9 @@
   left: 0;
 }
 .trapeze-svg {
-  fill:transparent;
+  fill: transparent;
 }
 .trapeze-svg-off {
-  fill:white;
+  fill: white;
   display: hidden;
 }

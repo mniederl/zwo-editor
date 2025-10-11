@@ -1,38 +1,33 @@
-import React, { useState, useEffect, useRef } from "react";
-import "./Editor.css";
-import { Colors, Zones } from "../constants";
+import { useEffect, useRef, useState } from "react";
+import {
+  faArrowLeft,
+  faArrowRight,
+  faBicycle,
+  faBiking,
+  faClock,
+  faComment,
+  faCopy,
+  faDownload,
+  faFile,
+  faList,
+  faPen,
+  faRuler,
+  faRunning,
+  faTimesCircle,
+  faTrash,
+  faUpload,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Tooltip } from "react-tooltip";
+
+import { genId, genShortId } from "@utils/id";
+import { formatTime, parseTime } from "@utils/time";
+import { CooldownLogo, IntervalLogo, SteadyLogo, WarmupLogo } from "../../assets";
 import Bar from "../Bar/Bar";
-import Trapeze from "../Trapeze/Trapeze";
-import FreeRide from "../FreeRide/FreeRide";
-import Interval from "../Interval/Interval";
 import Comment from "../Comment/Comment";
 import EditComment from "../Comment/EditComment";
-import TimeAxis from "./TimeAxis";
-import DistanceAxis from "./DistanceAxis";
-import ZoneAxis from "./ZoneAxis";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faTrash,
-  faArrowRight,
-  faArrowLeft,
-  faFile,
-  faUpload,
-  faDownload,
-  faComment,
-  faBicycle,
-  faCopy,
-  faClock,
-  faTimesCircle,
-  faList,
-  faBiking,
-  faRunning,
-  faRuler,
-  faPen,
-} from "@fortawesome/free-solid-svg-icons";
-
-import { CooldownLogo, IntervalLogo, SteadyLogo, WarmupLogo } from "../../assets";
-
-// import Converter from "xml-js";
+import { Colors, Zones } from "../constants";
+import FreeRide from "../FreeRide/FreeRide";
 import {
   calculateDistance,
   calculateTime,
@@ -40,17 +35,18 @@ import {
   getWorkoutDistance,
   getWorkoutLength,
   getWorkoutPace,
-  round
+  round,
 } from "../helpers";
-
-import { formatTime, parseTime } from "@utils/time";
-import { genId, genShortId } from "@utils/id";
-
-// helmet removed; we update document head directly via useEffect
-import RunningTimesEditor, { type RunningTimes } from "./RunningTimesEditor";
-import LeftRightToggle from "./LeftRightToggle";
+import Interval from "../Interval/Interval";
+import RightTrapezoid from "../Trapeze/Trapeze";
 import createWorkoutXml from "./createWorkoutXml";
-import { Tooltip } from "react-tooltip";
+import DistanceAxis from "./DistanceAxis";
+import LeftRightToggle from "./LeftRightToggle";
+import RunningTimesEditor, { type RunningTimes } from "./RunningTimesEditor";
+import TimeAxis from "./TimeAxis";
+import ZoneAxis from "./ZoneAxis";
+
+import "./Editor.css";
 
 export interface BarType {
   id: string;
@@ -119,30 +115,18 @@ type EditorProps = { id: string };
 const Editor = ({ id }: EditorProps) => {
   const S3_URL = "https://zwift-workout.s3-eu-west-1.amazonaws.com";
 
-  const [workoutId, setId] = useState(
-    id === "new" ? localStorage.getItem("id") || genShortId() : id
-  );
-  const [bars, setBars] = useState<Array<BarType>>(
-    JSON.parse(localStorage.getItem("currentWorkout") || "[]")
-  );
+  const [workoutId, setId] = useState(id === "new" ? localStorage.getItem("id") || genShortId() : id);
+  const [bars, setBars] = useState<Array<BarType>>(JSON.parse(localStorage.getItem("currentWorkout") || "[]"));
   const [actionId, setActionId] = useState<string | undefined>(undefined);
-  const [ftp, setFtp] = useState(
-    parseInt(localStorage.getItem("ftp") || "200")
-  );
-  const [weight, setWeight] = useState(
-    parseInt(localStorage.getItem("weight") || "75")
-  );
+  const [ftp, setFtp] = useState(parseInt(localStorage.getItem("ftp") || "200"));
+  const [weight, setWeight] = useState(parseInt(localStorage.getItem("weight") || "75"));
   const [instructions, setInstructions] = useState<Array<Instruction>>(
-    JSON.parse(localStorage.getItem("instructions") || "[]")
+    JSON.parse(localStorage.getItem("instructions") || "[]"),
   );
-  const [tags, setTags] = useState(
-    JSON.parse(localStorage.getItem("tags") || "[]")
-  );
+  const [tags, setTags] = useState(JSON.parse(localStorage.getItem("tags") || "[]"));
 
   const [name, setName] = useState(localStorage.getItem("name") || "");
-  const [description, setDescription] = useState(
-    localStorage.getItem("description") || ""
-  );
+  const [description, setDescription] = useState(localStorage.getItem("description") || "");
   const [author, setAuthor] = useState(localStorage.getItem("author") || "");
 
   const canvasRef = useRef<HTMLInputElement>(null);
@@ -154,18 +138,16 @@ const Editor = ({ id }: EditorProps) => {
   const [_, setShowWorkouts] = useState(false);
 
   // bike or run
-  const [sportType, setSportType] = useState<SportType>(
-    (localStorage.getItem("sportType") as SportType) || "bike"
-  );
+  const [sportType, setSportType] = useState<SportType>((localStorage.getItem("sportType") as SportType) || "bike");
 
   // distance or time
   const [durationType, setDurationType] = useState<DurationType>(
-    (localStorage.getItem("durationType") as DurationType) || "time"
+    (localStorage.getItem("durationType") as DurationType) || "time",
   );
 
   // min / km or min / mi
   const [paceUnitType, setPaceUnitType] = useState<PaceUnitType>(
-    (localStorage.getItem("paceUnitType") as PaceUnitType) || "metric"
+    (localStorage.getItem("paceUnitType") as PaceUnitType) || "metric",
   );
 
   const [runningTimes, setRunningTimes] = useState(loadRunningTimes());
@@ -229,11 +211,7 @@ const Editor = ({ id }: EditorProps) => {
   }
 
   function handleOnClick(id: string) {
-    if (id === actionId) {
-      setActionId(undefined);
-    } else {
-      setActionId(id);
-    }
+    setActionId(id === actionId ? undefined : id);
   }
 
   function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>) {
@@ -275,30 +253,12 @@ const Editor = ({ id }: EditorProps) => {
     }
   }
 
-  function addBar(
-    zone: number,
-    duration: number = 300,
-    cadence: number = 0,
-    pace: number = 0,
-    length: number = 200
-  ) {
+  function addBar(zone: number, duration: number = 300, cadence: number = 0, pace: number = 0, length: number = 200) {
     setBars((bars) => [
       ...bars,
       {
-        time:
-          durationType === "time"
-            ? duration
-            : round(
-              calculateTime(length, calculateSpeed(pace)),
-              1
-            ),
-        length:
-          durationType === "time"
-            ? round(
-              calculateDistance(duration, calculateSpeed(pace)),
-              1
-            )
-            : length,
+        time: durationType === "time" ? duration : round(calculateTime(length, calculateSpeed(pace)), 1),
+        length: durationType === "time" ? round(calculateDistance(duration, calculateSpeed(pace)), 1) : length,
         power: zone,
         cadence: cadence,
         type: "bar",
@@ -314,25 +274,13 @@ const Editor = ({ id }: EditorProps) => {
     duration: number = 300,
     pace: number = 0,
     length: number = 1000,
-    cadence: number = 0
+    cadence: number = 0,
   ) {
     setBars((bars) => [
       ...bars,
       {
-        time:
-          durationType === "time"
-            ? duration
-            : round(
-              calculateTime(length, calculateSpeed(pace)),
-              1
-            ),
-        length:
-          durationType === "time"
-            ? round(
-              calculateDistance(duration, calculateSpeed(pace)),
-              1
-            )
-            : length,
+        time: durationType === "time" ? duration : round(calculateTime(length, calculateSpeed(pace)), 1),
+        length: durationType === "time" ? round(calculateDistance(duration, calculateSpeed(pace)), 1) : length,
         startPower: zone1,
         endPower: zone2,
         cadence: cadence,
@@ -343,11 +291,7 @@ const Editor = ({ id }: EditorProps) => {
     ]);
   }
 
-  function addFreeRide(
-    duration: number = 600,
-    cadence: number = 0,
-    length: number = 1000
-  ) {
+  function addFreeRide(duration: number = 600, cadence: number = 0, length: number = 1000) {
     setBars((bars) => [
       ...bars,
       {
@@ -370,7 +314,7 @@ const Editor = ({ id }: EditorProps) => {
     restingCadence: number = 0,
     pace: number = 0,
     onLength: number = 200,
-    offLength: number = 200
+    offLength: number = 200,
   ) {
     setBars((bars) => [
       ...bars,
@@ -378,22 +322,10 @@ const Editor = ({ id }: EditorProps) => {
         time:
           durationType === "time"
             ? (onDuration + offDuration) * repeat
-            : round(
-              calculateTime(
-                (onLength + offLength) * repeat,
-                calculateSpeed(pace)
-              ),
-              1
-            ),
+            : round(calculateTime((onLength + offLength) * repeat, calculateSpeed(pace)), 1),
         length:
           durationType === "time"
-            ? round(
-              calculateDistance(
-                (onDuration + offDuration) * repeat,
-                calculateSpeed(pace)
-              ),
-              1
-            )
+            ? round(calculateDistance((onDuration + offDuration) * repeat, calculateSpeed(pace)), 1)
             : (onLength + offLength) * repeat,
         id: genId(),
         type: "interval",
@@ -403,45 +335,21 @@ const Editor = ({ id }: EditorProps) => {
         onDuration:
           durationType === "time"
             ? onDuration
-            : round(
-              calculateTime(
-                (onLength * 1) / onPower,
-                calculateSpeed(pace)
-              ),
-              1
-            ),
+            : round(calculateTime((onLength * 1) / onPower, calculateSpeed(pace)), 1),
         offDuration:
           durationType === "time"
             ? offDuration
-            : round(
-              calculateTime(
-                (offLength * 1) / offPower,
-                calculateSpeed(pace)
-              ),
-              1
-            ),
+            : round(calculateTime((offLength * 1) / offPower, calculateSpeed(pace)), 1),
         onPower: onPower,
         offPower: offPower,
         pace: pace,
         onLength:
           durationType === "time"
-            ? round(
-              calculateDistance(
-                (onDuration * 1) / onPower,
-                calculateSpeed(pace)
-              ),
-              1
-            )
+            ? round(calculateDistance((onDuration * 1) / onPower, calculateSpeed(pace)), 1)
             : onLength,
         offLength:
           durationType === "time"
-            ? round(
-              calculateDistance(
-                (offDuration * 1) / offPower,
-                calculateSpeed(pace)
-              ),
-              1
-            )
+            ? round(calculateDistance((offDuration * 1) / offPower, calculateSpeed(pace)), 1)
             : offLength,
       },
     ]);
@@ -460,9 +368,7 @@ const Editor = ({ id }: EditorProps) => {
   }
 
   function changeInstruction(id: string, values: Instruction) {
-    const index = instructions.findIndex(
-      (instructions) => instructions.id === id
-    );
+    const index = instructions.findIndex((instructions) => instructions.id === id);
 
     const updatedArray = [...instructions];
     updatedArray[index] = values;
@@ -487,25 +393,13 @@ const Editor = ({ id }: EditorProps) => {
     const element = updatedArray[index];
     if (element && durationType === "time") {
       element.time = element.time + 5;
-      element.length =
-        (calculateDistance(
-          element.time,
-          calculateSpeed(element.pace || 0)
-        ) *
-          1) /
-        (element.power || 1);
+      element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
       setBars(updatedArray);
     }
 
     if (element && durationType === "distance") {
       element.length = (element.length || 0) + 200;
-      element.time =
-        (calculateTime(
-          element.length,
-          calculateSpeed(element.pace || 0)
-        ) *
-          1) /
-        (element.power || 1);
+      element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
       setBars(updatedArray);
     }
   }
@@ -517,25 +411,13 @@ const Editor = ({ id }: EditorProps) => {
     const element = updatedArray[index];
     if (element && element.time > 5 && durationType === "time") {
       element.time = element.time - 5;
-      element.length =
-        (calculateDistance(
-          element.time,
-          calculateSpeed(element.pace || 0)
-        ) *
-          1) /
-        (element.power || 1);
+      element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
       setBars(updatedArray);
     }
 
     if (element && (element.length || 0) > 200 && durationType === "distance") {
       element.length = (element.length || 0) - 200;
-      element.time =
-        (calculateTime(
-          element.length,
-          calculateSpeed(element.pace || 0)
-        ) *
-          1) /
-        (element.power || 1);
+      element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
       setBars(updatedArray);
     }
   }
@@ -545,25 +427,13 @@ const Editor = ({ id }: EditorProps) => {
 
     const index = updatedArray.findIndex((bar) => bar.id === id);
     const element = updatedArray[index];
-    if (element && element.power) {
+    if (element?.power) {
       element.power = parseFloat((element.power + 1 / ftp).toFixed(3));
 
       if (durationType === "time") {
-        element.length =
-          (calculateDistance(
-            element.time,
-            calculateSpeed(element.pace || 0)
-          ) *
-            1) /
-          element.power;
+        element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / element.power;
       } else {
-        element.time =
-          (calculateTime(
-            element.length,
-            calculateSpeed(element.pace || 0)
-          ) *
-            1) /
-          element.power;
+        element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / element.power;
       }
 
       setBars(updatedArray);
@@ -579,21 +449,9 @@ const Editor = ({ id }: EditorProps) => {
       element.power = parseFloat((element.power - 1 / ftp).toFixed(3));
 
       if (durationType === "time") {
-        element.length =
-          (calculateDistance(
-            element.time,
-            calculateSpeed(element.pace || 0)
-          ) *
-            1) /
-          element.power;
+        element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / element.power;
       } else {
-        element.time =
-          (calculateTime(
-            element.length,
-            calculateSpeed(element.pace || 0)
-          ) *
-            1) /
-          element.power;
+        element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / element.power;
       }
 
       setBars(updatedArray);
@@ -605,15 +463,8 @@ const Editor = ({ id }: EditorProps) => {
     const element = [...bars][index];
 
     if (element.type === "bar")
-      addBar(
-        element.power || 80,
-        element.time,
-        element.cadence,
-        element.pace,
-        element.length
-      );
-    if (element.type === "freeRide")
-      addFreeRide(element.time, element.cadence, element.length);
+      addBar(element.power || 80, element.time, element.cadence, element.pace, element.length);
+    if (element.type === "freeRide") addFreeRide(element.time, element.cadence, element.length);
     if (element.type === "trapeze")
       addTrapeze(
         element.startPower || 80,
@@ -621,7 +472,7 @@ const Editor = ({ id }: EditorProps) => {
         element.time,
         element.pace || 0,
         element.length,
-        element.cadence
+        element.cadence,
       );
     if (element.type === "interval")
       addInterval(
@@ -634,7 +485,7 @@ const Editor = ({ id }: EditorProps) => {
         element.restingCadence,
         element.pace,
         element.onLength,
-        element.offLength
+        element.offLength,
       );
 
     setActionId(undefined);
@@ -686,7 +537,7 @@ const Editor = ({ id }: EditorProps) => {
     const tempFile = save();
     const url = window.URL.createObjectURL(tempFile);
 
-    var a = document.createElement("a");
+    const a = document.createElement("a");
     document.body.appendChild(a);
     a.style.display = "none";
     a.href = url;
@@ -730,40 +581,28 @@ const Editor = ({ id }: EditorProps) => {
 
         if (workout_file.name === "workout_file") {
           // file is valid
-          const authorIndex = workout_file.elements.findIndex(
-            (element: { name: string }) => element.name === "author"
-          );
-          if (
-            authorIndex !== -1 &&
-            workout_file.elements[authorIndex].elements
-          ) {
+          const authorIndex = workout_file.elements.findIndex((element: { name: string }) => element.name === "author");
+          if (authorIndex !== -1 && workout_file.elements[authorIndex].elements) {
             setAuthor(workout_file.elements[authorIndex].elements[0].text);
           }
 
-          const nameIndex = workout_file.elements.findIndex(
-            (element: { name: string }) => element.name === "name"
-          );
+          const nameIndex = workout_file.elements.findIndex((element: { name: string }) => element.name === "name");
           if (nameIndex !== -1 && workout_file.elements[nameIndex].elements) {
             setName(workout_file.elements[nameIndex].elements[0].text);
           }
 
           const descriptionIndex = workout_file.elements.findIndex(
-            (element: { name: string }) => element.name === "description"
+            (element: { name: string }) => element.name === "description",
           );
-          if (
-            descriptionIndex !== -1 &&
-            workout_file.elements[descriptionIndex].elements
-          ) {
-            setDescription(
-              workout_file.elements[descriptionIndex].elements[0].text
-            );
+          if (descriptionIndex !== -1 && workout_file.elements[descriptionIndex].elements) {
+            setDescription(workout_file.elements[descriptionIndex].elements[0].text);
           }
 
           const workoutIndex = workout_file.elements.findIndex(
-            (element: { name: string }) => element.name === "workout"
+            (element: { name: string }) => element.name === "workout",
           );
 
-          var totalTime = 0;
+          let totalTime = 0;
 
           workout_file.elements[workoutIndex].elements.map(
             (w: {
@@ -791,21 +630,17 @@ const Editor = ({ id }: EditorProps) => {
                   parseFloat(w.attributes.Power || w.attributes.PowerLow),
                   parseFloat(w.attributes.Duration),
                   parseFloat(w.attributes.Cadence || "0"),
-                  parseInt(w.attributes.Pace || "0")
+                  parseInt(w.attributes.Pace || "0"),
                 );
 
-              if (
-                w.name === "Ramp" ||
-                w.name === "Warmup" ||
-                w.name === "Cooldown"
-              )
+              if (w.name === "Ramp" || w.name === "Warmup" || w.name === "Cooldown")
                 addTrapeze(
                   parseFloat(w.attributes.PowerLow),
                   parseFloat(w.attributes.PowerHigh),
                   parseFloat(w.attributes.Duration),
                   parseInt(w.attributes.Pace || "0"),
                   undefined,
-                  parseInt(w.attributes.Cadence)
+                  parseInt(w.attributes.Cadence),
                 );
 
               if (w.name === "IntervalsT") {
@@ -817,19 +652,14 @@ const Editor = ({ id }: EditorProps) => {
                   parseFloat(w.attributes.OffPower),
                   parseInt(w.attributes.Cadence || "0"),
                   parseInt(w.attributes.CadenceResting),
-                  parseInt(w.attributes.Pace || "0")
+                  parseInt(w.attributes.Pace || "0"),
                 );
                 duration =
-                  (parseFloat(w.attributes.OnDuration) +
-                    parseFloat(w.attributes.OffDuration)) *
+                  (parseFloat(w.attributes.OnDuration) + parseFloat(w.attributes.OffDuration)) *
                   parseFloat(w.attributes.Repeat);
               }
 
-              if (w.name === "FreeRide")
-                addFreeRide(
-                  parseFloat(w.attributes.Duration),
-                  parseInt(w.attributes.Cadence)
-                );
+              if (w.name === "FreeRide") addFreeRide(parseFloat(w.attributes.Duration), parseInt(w.attributes.Cadence));
 
               // check for instructions
               const textElements = w.elements;
@@ -843,20 +673,17 @@ const Editor = ({ id }: EditorProps) => {
                     };
                   }) => {
                     if (t.name.toLowerCase() === "textevent")
-                      addInstruction(
-                        t.attributes.message,
-                        totalTime + parseFloat(t.attributes.timeoffset)
-                      );
+                      addInstruction(t.attributes.message, totalTime + parseFloat(t.attributes.timeoffset));
 
                     return false;
-                  }
+                  },
                 );
               }
 
               totalTime = totalTime + duration;
               // map functions expect return value
               return false;
-            }
+            },
           );
         }
       })
@@ -907,7 +734,7 @@ const Editor = ({ id }: EditorProps) => {
   );
 
   const renderTrapeze = (bar: BarType) => (
-    <Trapeze
+    <RightTrapezoid
       key={bar.id}
       id={bar.id}
       time={bar.time}
@@ -961,9 +788,7 @@ const Editor = ({ id }: EditorProps) => {
       durationType={durationType}
       pace={bar.pace || 0}
       speed={calculateSpeed(bar.pace || 0)}
-      handleIntervalChange={(id: string, value: any) =>
-        handleOnChange(id, value)
-      }
+      handleIntervalChange={(id: string, value: any) => handleOnChange(id, value)}
       handleIntervalClick={(id: string) => handleOnClick(id)}
       selected={bar.id === actionId}
     />
@@ -979,16 +804,11 @@ const Editor = ({ id }: EditorProps) => {
           ? parseInt(getWorkoutDistance(bars)) * 100
           : getWorkoutLength(bars, durationType) / 3
       }
-      onChange={(id: string, values: Instruction) =>
-        changeInstruction(id, values)
-      }
-      onClick={(id: string) =>
-        setSelectedInstruction(instructions.find((i) => i.id === id))
-      }
+      onChange={(id: string, values: Instruction) => changeInstruction(id, values)}
+      onClick={(id: string) => setSelectedInstruction(instructions.find((i) => i.id === id))}
       index={index}
     />
   );
-
 
   function setPace(value: string, id: string) {
     const index = bars.findIndex((bar) => bar.id === id);
@@ -1000,20 +820,9 @@ const Editor = ({ id }: EditorProps) => {
 
       if (durationType === "time") {
         element.length =
-          (calculateDistance(
-            element.time,
-            calculateSpeed(element.pace || 0)
-          ) *
-            1) /
-          (element.power || 1);
+          (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
       } else {
-        element.time =
-          (calculateTime(
-            element.length,
-            calculateSpeed(element.pace || 0)
-          ) *
-            1) /
-          (element.power || 1);
+        element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
       }
 
       setBars(updatedArray);
@@ -1036,11 +845,7 @@ const Editor = ({ id }: EditorProps) => {
 
   function toggleTextEditor() {
     if (bars.length > 0 && !textEditorIsVisible) {
-      if (
-        window.confirm(
-          "Editing a workout from the text editor will overwrite current workout"
-        )
-      )
+      if (window.confirm("Editing a workout from the text editor will overwrite current workout"))
         setTextEditorIsVisible(!textEditorIsVisible);
     } else {
       setTextEditorIsVisible(!textEditorIsVisible);
@@ -1069,12 +874,8 @@ const Editor = ({ id }: EditorProps) => {
         const powerInPercentageFtp = workoutBlock.match(/([0-9]\d*%)/);
 
         let power = powerInWatts ? parseInt(powerInWatts[0]) / ftp : 1;
-        power = powerInWattsPerKg
-          ? (parseFloat(powerInWattsPerKg[0]) * weight) / ftp
-          : power;
-        power = powerInPercentageFtp
-          ? parseInt(powerInPercentageFtp[0]) / 100
-          : power;
+        power = powerInWattsPerKg ? (parseFloat(powerInWattsPerKg[0]) * weight) / ftp : power;
+        power = powerInPercentageFtp ? parseInt(powerInPercentageFtp[0]) / 100 : power;
 
         // extract duration in seconds
         const durationInSeconds = workoutBlock.match(/([0-9]\d*s)/);
@@ -1082,8 +883,7 @@ const Editor = ({ id }: EditorProps) => {
 
         let duration = durationInSeconds && parseInt(durationInSeconds[0]);
         duration = durationInMinutes
-          ? parseInt(durationInMinutes[0].split(":")[0]) * 60 +
-          (parseInt(durationInMinutes[0].split(":")[1]) || 0)
+          ? parseInt(durationInMinutes[0].split(":")[0]) * 60 + (parseInt(durationInMinutes[0].split(":")[1]) || 0)
           : duration;
 
         // extract cadence in rpm
@@ -1098,11 +898,7 @@ const Editor = ({ id }: EditorProps) => {
         addBar(power, duration || 300, rpm);
       }
 
-      if (
-        workoutBlock.includes("ramp") ||
-        workoutBlock.includes("warmup") ||
-        workoutBlock.includes("cooldown")
-      ) {
+      if (workoutBlock.includes("ramp") || workoutBlock.includes("warmup") || workoutBlock.includes("cooldown")) {
         // generate a steady ramp block
 
         // extract watts
@@ -1110,52 +906,32 @@ const Editor = ({ id }: EditorProps) => {
         const startPowerInWattsPerKg = workoutBlock.match(/([0-9]*.?[0-9]wkg)/);
         const startPowerInPercentageFtp = workoutBlock.match(/([0-9]\d*%)/);
 
-        let startPower = startPowerInWatts
-          ? parseInt(startPowerInWatts[0]) / ftp
-          : 1;
-        startPower = startPowerInWattsPerKg
-          ? (parseFloat(startPowerInWattsPerKg[0]) * weight) / ftp
-          : startPower;
-        startPower = startPowerInPercentageFtp
-          ? parseInt(startPowerInPercentageFtp[0]) / 100
-          : startPower;
+        let startPower = startPowerInWatts ? parseInt(startPowerInWatts[0]) / ftp : 1;
+        startPower = startPowerInWattsPerKg ? (parseFloat(startPowerInWattsPerKg[0]) * weight) / ftp : startPower;
+        startPower = startPowerInPercentageFtp ? parseInt(startPowerInPercentageFtp[0]) / 100 : startPower;
 
         // extract watts
         const endPowerInWatts = workoutBlock.match(/(-[0-9]\d*w)/);
         const endPowerInWattsPerKg = workoutBlock.match(/(-[0-9]*.?[0-9]wkg)/);
         const endPowerInPercentageFtp = workoutBlock.match(/-([0-9]\d*%)/);
 
-        let endPower = endPowerInWatts
-          ? Math.abs(parseInt(endPowerInWatts[0])) / ftp
-          : 1;
-        endPower = endPowerInWattsPerKg
-          ? (Math.abs(parseFloat(endPowerInWattsPerKg[0])) * weight) / ftp
-          : endPower;
-        endPower = endPowerInPercentageFtp
-          ? Math.abs(parseInt(endPowerInPercentageFtp[0])) / 100
-          : endPower;
+        let endPower = endPowerInWatts ? Math.abs(parseInt(endPowerInWatts[0])) / ftp : 1;
+        endPower = endPowerInWattsPerKg ? (Math.abs(parseFloat(endPowerInWattsPerKg[0])) * weight) / ftp : endPower;
+        endPower = endPowerInPercentageFtp ? Math.abs(parseInt(endPowerInPercentageFtp[0])) / 100 : endPower;
 
         const durationInSeconds = workoutBlock.match(/([0-9]\d*s)/);
         const durationInMinutes = workoutBlock.match(/([0-9]*:?[0-9][0-9]*m)/);
 
         let duration = durationInSeconds && parseInt(durationInSeconds[0]);
         duration = durationInMinutes
-          ? parseInt(durationInMinutes[0].split(":")[0]) * 60 +
-          (parseInt(durationInMinutes[0].split(":")[1]) || 0)
+          ? parseInt(durationInMinutes[0].split(":")[0]) * 60 + (parseInt(durationInMinutes[0].split(":")[1]) || 0)
           : duration;
 
         // extract cadence in rpm
         const cadence = workoutBlock.match(/([0-9]\d*rpm)/);
         const rpm = cadence ? parseInt(cadence[0]) : undefined;
 
-        addTrapeze(
-          startPower,
-          endPower,
-          duration || 300,
-          undefined,
-          undefined,
-          rpm
-        );
+        addTrapeze(startPower, endPower, duration || 300, undefined, undefined, rpm);
       }
 
       if (workoutBlock.includes("freeride")) {
@@ -1164,8 +940,7 @@ const Editor = ({ id }: EditorProps) => {
 
         let duration = durationInSeconds && parseInt(durationInSeconds[0]);
         duration = durationInMinutes
-          ? parseInt(durationInMinutes[0].split(":")[0]) * 60 +
-          (parseInt(durationInMinutes[0].split(":")[1]) || 0)
+          ? parseInt(durationInMinutes[0].split(":")[0]) * 60 + (parseInt(durationInMinutes[0].split(":")[1]) || 0)
           : duration;
 
         // extract cadence in rpm
@@ -1184,20 +959,16 @@ const Editor = ({ id }: EditorProps) => {
 
         let duration = durationInSeconds && parseInt(durationInSeconds[0]);
         duration = durationInMinutes
-          ? parseInt(durationInMinutes[0].split(":")[0]) * 60 +
-          (parseInt(durationInMinutes[0].split(":")[1]) || 0)
+          ? parseInt(durationInMinutes[0].split(":")[0]) * 60 + (parseInt(durationInMinutes[0].split(":")[1]) || 0)
           : duration;
 
         const offDurationInSeconds = workoutBlock.match(/(-[0-9]\d*s)/);
-        const offDurationInMinutes = workoutBlock.match(
-          /(-[0-9]*:?[0-9][0-9]*m)/
-        );
+        const offDurationInMinutes = workoutBlock.match(/(-[0-9]*:?[0-9][0-9]*m)/);
 
-        let offDuration =
-          offDurationInSeconds && Math.abs(parseInt(offDurationInSeconds[0]));
+        let offDuration = offDurationInSeconds && Math.abs(parseInt(offDurationInSeconds[0]));
         offDuration = offDurationInMinutes
           ? Math.abs(parseInt(offDurationInMinutes[0].split(":")[0])) * 60 +
-          (parseInt(offDurationInMinutes[0].split(":")[1]) || 0)
+            (parseInt(offDurationInMinutes[0].split(":")[1]) || 0)
           : offDuration;
 
         // extract watts
@@ -1205,49 +976,27 @@ const Editor = ({ id }: EditorProps) => {
         const startPowerInWattsPerKg = workoutBlock.match(/([0-9]*.?[0-9]wkg)/);
         const startPowerInPercentageFtp = workoutBlock.match(/([0-9]\d*%)/);
 
-        let startPower = startPowerInWatts
-          ? parseInt(startPowerInWatts[0]) / ftp
-          : 1;
-        startPower = startPowerInWattsPerKg
-          ? (parseFloat(startPowerInWattsPerKg[0]) * weight) / ftp
-          : startPower;
-        startPower = startPowerInPercentageFtp
-          ? parseInt(startPowerInPercentageFtp[0]) / 100
-          : startPower;
+        let startPower = startPowerInWatts ? parseInt(startPowerInWatts[0]) / ftp : 1;
+        startPower = startPowerInWattsPerKg ? (parseFloat(startPowerInWattsPerKg[0]) * weight) / ftp : startPower;
+        startPower = startPowerInPercentageFtp ? parseInt(startPowerInPercentageFtp[0]) / 100 : startPower;
 
         // extract watts
         const endPowerInWatts = workoutBlock.match(/(-[0-9]\d*w)/);
         const endPowerInWattsPerKg = workoutBlock.match(/(-[0-9]*.?[0-9]wkg)/);
         const endPowerInPercentageFtp = workoutBlock.match(/-([0-9]\d*%)/);
 
-        let endPower = endPowerInWatts
-          ? Math.abs(parseInt(endPowerInWatts[0])) / ftp
-          : 0.5;
-        endPower = endPowerInWattsPerKg
-          ? (Math.abs(parseFloat(endPowerInWattsPerKg[0])) * weight) / ftp
-          : endPower;
-        endPower = endPowerInPercentageFtp
-          ? Math.abs(parseInt(endPowerInPercentageFtp[0])) / 100
-          : endPower;
+        let endPower = endPowerInWatts ? Math.abs(parseInt(endPowerInWatts[0])) / ftp : 0.5;
+        endPower = endPowerInWattsPerKg ? (Math.abs(parseFloat(endPowerInWattsPerKg[0])) * weight) / ftp : endPower;
+        endPower = endPowerInPercentageFtp ? Math.abs(parseInt(endPowerInPercentageFtp[0])) / 100 : endPower;
 
         // extract cadence in rpm
         const cadence = workoutBlock.match(/([0-9]\d*rpm)/);
         const rpm = cadence ? parseInt(cadence[0]) : undefined;
 
         const restingCadence = workoutBlock.match(/(-[0-9]\d*rpm)/);
-        const restingRpm = restingCadence
-          ? Math.abs(parseInt(restingCadence[0]))
-          : undefined;
+        const restingRpm = restingCadence ? Math.abs(parseInt(restingCadence[0])) : undefined;
 
-        addInterval(
-          nTimes,
-          duration || 30,
-          offDuration || 120,
-          startPower,
-          endPower,
-          rpm,
-          restingRpm
-        );
+        addInterval(nTimes, duration || 30, offDuration || 120, startPower, endPower, rpm, restingRpm);
       }
 
       if (workoutBlock.includes("message")) {
@@ -1260,8 +1009,7 @@ const Editor = ({ id }: EditorProps) => {
 
         let duration = durationInSeconds && parseInt(durationInSeconds[0]);
         duration = durationInMinutes
-          ? parseInt(durationInMinutes[0].split(":")[0]) * 60 +
-          (parseInt(durationInMinutes[0].split(":")[1]) || 0)
+          ? parseInt(durationInMinutes[0].split(":")[0]) * 60 + (parseInt(durationInMinutes[0].split(":")[1]) || 0)
           : duration;
 
         addInstruction(text, duration || 0);
@@ -1277,10 +1025,7 @@ const Editor = ({ id }: EditorProps) => {
       {message?.visible && (
         <div className={`message ${message.class}`}>
           {message.text}
-          <button
-            className="close"
-            onClick={() => setMessage({ visible: false })}
-          >
+          <button className="close" onClick={() => setMessage({ visible: false })}>
             <FontAwesomeIcon icon={faTimesCircle} size="lg" />
           </button>
         </div>
@@ -1310,42 +1055,24 @@ const Editor = ({ id }: EditorProps) => {
         <div className="workout">
           <div className="form-input">
             <label>Workout Time</label>
-            <input
-              className="textInput"
-              value={formatTime(
-                getWorkoutLength(bars, durationType)
-              )}
-              disabled
-            />
+            <input className="textInput" value={formatTime(getWorkoutLength(bars, durationType))} disabled />
           </div>
           {sportType === "run" && (
             <div className="form-input">
               <label>Workout Distance</label>
-              <input
-                className="textInput"
-                value={getWorkoutDistance(bars)}
-                disabled
-              />
+              <input className="textInput" value={getWorkoutDistance(bars)} disabled />
             </div>
           )}
           {sportType === "bike" && (
             <div className="form-input">
               <label title="Training Load">Training Load</label>
-              <input
-                className="textInput"
-                value={getStressScore(bars, ftp)}
-                disabled
-              />
+              <input className="textInput" value={getStressScore(bars, ftp)} disabled />
             </div>
           )}
           {sportType === "run" && (
             <div className="form-input">
               <label>Avg. Workout Pace</label>
-              <input
-                className="textInput"
-                value={getWorkoutPace(bars, durationType, paceUnitType)}
-                disabled
-              />
+              <input className="textInput" value={getWorkoutPace(bars, durationType, paceUnitType)} disabled />
             </div>
           )}
           {sportType === "run" && (
@@ -1381,9 +1108,7 @@ const Editor = ({ id }: EditorProps) => {
           />
         </div>
       </div>
-      {sportType === "run" && (
-        <RunningTimesEditor times={runningTimes} onChange={setRunningTimes} />
-      )}
+      {sportType === "run" && <RunningTimesEditor times={runningTimes} onChange={setRunningTimes} />}
       {textEditorIsVisible && sportType === "bike" && (
         <div className="text-editor">
           <textarea
@@ -1395,15 +1120,11 @@ const Editor = ({ id }: EditorProps) => {
           ></textarea>
           <div className="text-editor-instructions">
             <h2>Instructions</h2>
-            <p>
-              Every row correspond to a workout block. Scroll down to see some
-              examples.
-            </p>
+            <p>Every row correspond to a workout block. Scroll down to see some examples.</p>
             <h3>Blocks</h3>
             <p>
-              <span>steady</span> <span>warmup</span> <span>cooldown</span>{" "}
-              <span>ramp</span> <span>intervals</span> <span>freeride</span>{" "}
-              <span>message</span>
+              <span>steady</span> <span>warmup</span> <span>cooldown</span> <span>ramp</span> <span>intervals</span>{" "}
+              <span>freeride</span> <span>message</span>
             </p>
             <h3>Time</h3>
             <p>
@@ -1500,17 +1221,9 @@ const Editor = ({ id }: EditorProps) => {
             })}
           </div>
 
-          <div className="slider">
-            {instructions.map((instruction, index) =>
-              renderComment(instruction, index)
-            )}
-          </div>
+          <div className="slider">{instructions.map((instruction, index) => renderComment(instruction, index))}</div>
 
-          {durationType === "time" ? (
-            <TimeAxis width={segmentsWidth} />
-          ) : (
-            <DistanceAxis width={segmentsWidth} />
-          )}
+          {durationType === "time" ? <TimeAxis width={segmentsWidth} /> : <DistanceAxis width={segmentsWidth} />}
         </div>
 
         <ZoneAxis />
@@ -1527,11 +1240,7 @@ const Editor = ({ id }: EditorProps) => {
             >
               <FontAwesomeIcon icon={faPen} />
             </button>
-            <button
-              className="btn btn-square"
-              onClick={() => addBar(0.5)}
-              style={{ backgroundColor: Colors.GRAY }}
-            >
+            <button className="btn btn-square" onClick={() => addBar(0.5)} style={{ backgroundColor: Colors.GRAY }}>
               Z1
             </button>
             <button
@@ -1571,53 +1280,25 @@ const Editor = ({ id }: EditorProps) => {
             </button>
           </div>
         ) : (
-          <button
-            className="btn"
-            onClick={() => addBar(1, 300, 0, 0, 1000)}
-            style={{ backgroundColor: Colors.WHITE }}
-          >
+          <button className="btn" onClick={() => addBar(1, 300, 0, 0, 1000)} style={{ backgroundColor: Colors.WHITE }}>
             <SteadyLogo className="btn-icon" /> Steady Pace
           </button>
         )}
 
-        <button
-          className="btn"
-          onClick={() => addTrapeze(0.25, 0.75)}
-          style={{ backgroundColor: Colors.WHITE }}
-        >
+        <button className="btn" onClick={() => addTrapeze(0.25, 0.75)} style={{ backgroundColor: Colors.WHITE }}>
           <WarmupLogo className="btn-icon" /> Warm up
         </button>
-        <button
-          className="btn"
-          onClick={() => addTrapeze(0.75, 0.25)}
-          style={{ backgroundColor: Colors.WHITE }}
-        >
+        <button className="btn" onClick={() => addTrapeze(0.75, 0.25)} style={{ backgroundColor: Colors.WHITE }}>
           <CooldownLogo className="btn-icon" /> Cool down
         </button>
-        <button
-          className="btn"
-          onClick={() => addInterval()}
-          style={{ backgroundColor: Colors.WHITE }}
-        >
+        <button className="btn" onClick={() => addInterval()} style={{ backgroundColor: Colors.WHITE }}>
           <IntervalLogo className="btn-icon" /> Interval
         </button>
-        <button
-          className="btn"
-          onClick={() => addFreeRide()}
-          style={{ backgroundColor: Colors.WHITE }}
-        >
-          <FontAwesomeIcon
-            icon={sportType === "bike" ? faBicycle : faRunning}
-            size="lg"
-
-          />
+        <button className="btn" onClick={() => addFreeRide()} style={{ backgroundColor: Colors.WHITE }}>
+          <FontAwesomeIcon icon={sportType === "bike" ? faBicycle : faRunning} size="lg" />
           Free {sportType === "bike" ? "Ride" : "Run"}
         </button>
-        <button
-          className="btn"
-          onClick={() => addInstruction()}
-          style={{ backgroundColor: Colors.WHITE }}
-        >
+        <button className="btn" onClick={() => addInstruction()} style={{ backgroundColor: Colors.WHITE }}>
           <FontAwesomeIcon icon={faComment} size="lg" /> Text Event
         </button>
         {sportType === "bike" && (
@@ -1649,15 +1330,12 @@ const Editor = ({ id }: EditorProps) => {
         <button
           className="btn"
           onClick={() => {
-            if (
-              window.confirm("Are you sure you want to create a new workout?")
-            )
-              newWorkout();
+            if (window.confirm("Are you sure you want to create a new workout?")) newWorkout();
           }}
         >
           <FontAwesomeIcon icon={faFile} size="lg" /> New
         </button>
-        <button className="btn" >
+        <button className="btn">
           <FontAwesomeIcon icon={faTrash} size="lg" /> Delete
         </button>
         <button className="btn" onClick={() => downloadWorkout()}>
@@ -1670,12 +1348,7 @@ const Editor = ({ id }: EditorProps) => {
           style={{ display: "none" }}
           onChange={(e) => handleUpload(e.target.files![0])}
         />
-        <button
-          className="btn"
-          onClick={() =>
-            document.getElementById("contained-button-file")!.click()
-          }
-        >
+        <button className="btn" onClick={() => document.getElementById("contained-button-file")!.click()}>
           <FontAwesomeIcon icon={faUpload} size="lg" /> Upload
         </button>
         <button className="btn" onClick={() => setShowWorkouts(true)}>

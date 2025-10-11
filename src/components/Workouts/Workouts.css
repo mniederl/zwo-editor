@@ -7,17 +7,17 @@
   padding: 10px 0;
 }
 
-.workouts > a {  
+.workouts > a {
   display: block;
   padding: 20px;
 }
 
-.workouts > a > .title{  
+.workouts > a > .title {
   color: black;
   font-weight: bold;
 }
 
-.workouts > a > .description{  
+.workouts > a > .description {
   color: gray;
   font-weight: bold;
 }

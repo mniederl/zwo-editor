@@ -39,29 +39,14 @@ const EditComment = (props: {
           onBlur={() => setShowInput(!showInput)}
         />
         <div className={styles.cta}>
-          <button
-            className={styles.btnPrimary}
-            type="button"
-            onClick={() => save()}
-          >
+          <button className={styles.btnPrimary} type="button" onClick={() => save()}>
             Save
           </button>
-          <button
-            className={styles.btnSecondary}            
-            type="button"
-            onClick={() => props.dismiss()}
-          >
+          <button className={styles.btnSecondary} type="button" onClick={() => props.dismiss()}>
             Dismiss
           </button>
-          <button            
-            className={styles.btnIcon}
-            type="button"
-            onClick={() => props.onDelete(props.instruction.id)}
-          >
-            <FontAwesomeIcon
-              icon={faTrashAlt}
-              className="delete"
-            />
+          <button className={styles.btnIcon} type="button" onClick={() => props.onDelete(props.instruction.id)}>
+            <FontAwesomeIcon icon={faTrashAlt} className="delete" />
           </button>
         </div>
       </div>

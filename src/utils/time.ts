@@ -29,9 +29,11 @@ export function parseTime(s: string): number {
     return Number(p);
   });
 
-  let h = 0, m = 0, sec = 0;
+  let h = 0,
+    m = 0,
+    sec = 0;
   if (nums.length === 3) [h, m, sec] = nums;
-  else[m, sec] = nums;
+  else [m, sec] = nums;
 
   if (m > 59 || sec > 59) throw new Error("Minutes/seconds must be 0-59");
   return h * 3600 + m * 60 + sec;
@@ -65,10 +67,7 @@ export function parseTime(s: string): number {
  * formatTime(-5.9); // -> "00:00:00"
  * formatTime(125.7, "mm:ss"); // -> "02:05"
  */
-export function formatTime(
-  totalSeconds: number,
-  format: "hh:mm:ss" | "mm:ss" = "hh:mm:ss"
-): string {
+export function formatTime(totalSeconds: number, format: "hh:mm:ss" | "mm:ss" = "hh:mm:ss"): string {
   if (!Number.isFinite(totalSeconds)) throw new TypeError("Expected finite number");
   const s = Math.max(0, Math.floor(totalSeconds));
   const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
