@@ -43,17 +43,14 @@ import {
   round
 } from "../helpers";
 
-import {
-  formatTime,
-  parseTime
-} from '../../utils/time'
+import { formatTime, parseTime } from "@utils/time";
+import { genId, genShortId } from "@utils/id";
 
 // helmet removed; we update document head directly via useEffect
 import RunningTimesEditor, { type RunningTimes } from "./RunningTimesEditor";
 import LeftRightToggle from "./LeftRightToggle";
 import createWorkoutXml from "./createWorkoutXml";
 import { Tooltip } from "react-tooltip";
-import { genId, genShortId } from "../../utils/id";
 
 export interface BarType {
   id: string;

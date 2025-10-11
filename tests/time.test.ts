@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  parseTime,
-  formatTime,
-} from "../src/utils/time";
+import { parseTime, formatTime } from "../src/utils/time";
 
 describe("time utils", () => {
   describe("parseHhMmSsToSeconds", () => {

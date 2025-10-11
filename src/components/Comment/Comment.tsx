@@ -3,7 +3,7 @@ import Draggable from "react-draggable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faComment, faCommentDots } from "@fortawesome/free-solid-svg-icons";
 import "./Comment.css";
-import { formatTime } from "../../utils/time";
+import { formatTime } from "@utils/time";
 
 interface Instruction {
   id: string;

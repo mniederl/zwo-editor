@@ -4,7 +4,7 @@ import { Colors, Zones } from "../constants";
 import { Resizable } from "re-resizable";
 import Label from "../Label/Label";
 import { type PaceUnitType } from "../Editor/Editor";
-import { formatTime } from "../../utils/time";
+import { formatTime } from "@utils/time";
 import { calculateDistance, calculateTime, round } from "../helpers";
 
 const Bar = (props: {

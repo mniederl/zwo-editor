@@ -2,7 +2,7 @@ import { useState } from "react";
 import "./FreeRide.css";
 import { Resizable } from "re-resizable";
 import Label from "../Label/Label";
-import { formatTime } from "../../utils/time";
+import { formatTime } from "@utils/time";
 import { round } from "../helpers";
 
 const FreeRide = (props: {
