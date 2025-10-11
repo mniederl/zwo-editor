@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { genId } from "@utils/id";
 import Bar from "../Bar/Bar";
 import type { BarType } from "../Editor/Editor";
 
@@ -26,8 +27,6 @@ const Interval = (props: {
   handleIntervalClick: Function;
   selected: boolean;
 }) => {
-  const { v4: uuidv4 } = require("uuid");
-
   const [bars, setBars] = useState<Array<BarType>>([]);
   const [nIntervals, setNIntervals] = useState(props.repeat);
 
@@ -37,10 +36,11 @@ const Interval = (props: {
   const [onLength, setOnLength] = useState(props.onLength);
   const [offLength, setOffLength] = useState(props.offLength);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     const bars = [];
 
-    for (var i = 0; i < nIntervals; i++) {
+    for (let i = 0; i < nIntervals; i++) {
       bars.push({
         time: onDuration || 0,
         length: onLength || 0,
@@ -48,7 +48,7 @@ const Interval = (props: {
         cadence: props.cadence,
         type: "bar",
         pace: props.pace,
-        id: uuidv4(),
+        id: genId(),
       });
 
       bars.push({
@@ -58,12 +58,10 @@ const Interval = (props: {
         cadence: props.restingCadence,
         type: "bar",
         pace: props.pace,
-        id: uuidv4(),
+        id: genId(),
       });
     }
     setBars(bars);
-
-    // eslint-disable-next-line
   }, [nIntervals]);
 
   function handleOnChange(id: string, values: BarType) {
@@ -77,7 +75,7 @@ const Interval = (props: {
       setOnLength(values.length);
     }
 
-    for (var i = 0; i < bars.length; i++) {
+    for (let i = 0; i < bars.length; i++) {
       if (index % 2 === i % 2) {
         bars[i].time = values.time;
         bars[i].power = values.power;
@@ -85,11 +83,9 @@ const Interval = (props: {
         bars[i].cadence = values.cadence;
       }
     }
-    var time = 0;
-    bars.map((bar) => (time += bar.time));
 
-    var length = 0;
-    bars.map((bar) => (length += bar.length || 0));
+    const time = bars.reduce((sum, bar) => sum + bar.time, 0);
+    const length = bars.reduce((sum, bar) => sum + (bar.length || 0), 0); // TODO: check why length can be undefined
 
     props.handleIntervalChange(props.id, {
       time: time,
@@ -111,9 +107,6 @@ const Interval = (props: {
 
   function handleAddInterval() {
     setNIntervals(nIntervals + 1);
-    var time = 0;
-    bars.map((bar) => (time += bar.time));
-
     props.handleIntervalChange(props.id, {
       time: ((props.onDuration || 0) + (props.offDuration || 0)) * (nIntervals + 1),
       length: ((props.onLength || 0) + (props.offLength || 0)) * (nIntervals + 1),
@@ -133,28 +126,25 @@ const Interval = (props: {
   }
 
   function handleRemoveInterval() {
-    if (nIntervals > 1) {
-      setNIntervals(nIntervals - 1);
-      var time = 0;
-      bars.map((bar) => (time += bar.time));
+    if (nIntervals <= 1) return;
 
-      props.handleIntervalChange(props.id, {
-        time: ((props.onDuration || 0) + (props.offDuration || 0)) * (nIntervals - 1),
-        length: ((props.onLength || 0) + (props.offLength || 0)) * (nIntervals - 1),
-        id: props.id,
-        type: "interval",
-        cadence: props.cadence,
-        restingCadence: props.restingCadence,
-        pace: props.pace,
-        repeat: props.repeat - 1,
-        onDuration: props.onDuration,
-        offDuration: props.offDuration,
-        onPower: props.onPower,
-        offPower: props.offPower,
-        onLength: props.onLength,
-        offLength: props.offLength,
-      });
-    }
+    setNIntervals(nIntervals - 1);
+    props.handleIntervalChange(props.id, {
+      time: ((props.onDuration || 0) + (props.offDuration || 0)) * (nIntervals - 1),
+      length: ((props.onLength || 0) + (props.offLength || 0)) * (nIntervals - 1),
+      id: props.id,
+      type: "interval",
+      cadence: props.cadence,
+      restingCadence: props.restingCadence,
+      pace: props.pace,
+      repeat: props.repeat - 1,
+      onDuration: props.onDuration,
+      offDuration: props.offDuration,
+      onPower: props.onPower,
+      offPower: props.offPower,
+      onLength: props.onLength,
+      offLength: props.offLength,
+    });
   }
 
   const renderBar = (bar: BarType, withLabel: boolean) => (
@@ -181,8 +171,8 @@ const Interval = (props: {
   return (
     <div>
       <div className="buttons">
-        <button onClick={handleAddInterval}>+</button>
-        <button onClick={handleRemoveInterval}>-</button>
+        <button type="button" onClick={handleAddInterval}>+</button>
+        <button type="button" onClick={handleRemoveInterval}>-</button>
       </div>
       <div className="intervals">
         {bars.map((bar, index) => renderBar(bar, index === 0 || index === bars.length - 1))}

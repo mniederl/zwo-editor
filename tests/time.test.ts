@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { parseTime, formatTime } from "../src/utils/time";
+import { describe, expect, it } from "vitest";
+
+import { formatTime, parseTime } from "../src/utils/time";
 
 describe("time utils", () => {
   describe("parseHhMmSsToSeconds", () => {
@@ -116,10 +117,13 @@ describe("basic invariants", () => {
   });
 
   it("monotonicity: increasing seconds should not decrease formatted strings numerically", () => {
-    const a = 3723, b = 3724;
-    expect(Number(formatTime(a, "mm:ss").replace(":", "")))
-      .toBeLessThanOrEqual(Number(formatTime(b, "mm:ss").replace(":", "")));
-    expect(Number(formatTime(a, "hh:mm:ss").replaceAll(":", "")))
-      .toBeLessThanOrEqual(Number(formatTime(b, "hh:mm:ss").replaceAll(":", "")));
+    const a = 3723,
+      b = 3724;
+    expect(Number(formatTime(a, "mm:ss").replace(":", ""))).toBeLessThanOrEqual(
+      Number(formatTime(b, "mm:ss").replace(":", "")),
+    );
+    expect(Number(formatTime(a, "hh:mm:ss").replaceAll(":", ""))).toBeLessThanOrEqual(
+      Number(formatTime(b, "hh:mm:ss").replaceAll(":", "")),
+    );
   });
 });

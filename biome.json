@@ -19,7 +19,11 @@
     "rules": {
       "recommended": true,
       "correctness": {
-        "useParseIntRadix": "off"
+        "useParseIntRadix": "off",
+        "useUniqueElementIds": "off"
+      },
+      "a11y": {
+        "noLabelWithoutControl": "info"
       }
     },
     "includes": ["**", "!dist"]

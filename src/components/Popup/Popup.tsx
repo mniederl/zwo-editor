@@ -7,7 +7,7 @@ const Popup = (props: { width: string; height?: string; dismiss: Function; child
   return (
     <div className="popup-background">
       <div className="popup" style={{ width: props.width, height: props.height }}>
-        <button className="close" onClick={() => props.dismiss()}>
+        <button type="button" className="close" onClick={() => props.dismiss()}>
           <FontAwesomeIcon icon={faTimesCircle} size="lg" />
         </button>
         {props.children}

@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import "./Workouts.css";
+import { useState } from "react";
 import { faClock, faRuler } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+import "./Workouts.css";
 
 interface Workout {
   id: string;

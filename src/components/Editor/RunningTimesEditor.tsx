@@ -1,7 +1,6 @@
 import type React from "react";
 import { useCallback } from "react";
-import TimePicker from "rc-time-picker";
-import "rc-time-picker/assets/index.css";
+import TimePicker from "react-time-picker";
 
 import { calculateEstimatedTimes } from "../helpers";
 
@@ -59,7 +58,7 @@ export default function RunningTimesEditor({ times, onChange }: RunningTimesEdit
         Marathon Time
       </RunTimeInput>
       <div className="form-input">
-        <button onClick={estimateRunningTimes} className="btn">
+        <button type="button" onClick={estimateRunningTimes} className="btn">
           Estimate missing times
         </button>
       </div>
@@ -75,12 +74,20 @@ const RunTimeInput: React.FC<{
     <label>
       <abbr title="hh:mm:ss">{children}</abbr>
     </label>
-    <TimePicker
+    {/* <TimePicker
       value={time === "" ? undefined : moment(time, "HH:mm:ss")}
       placeholder="00:00:00"
       defaultOpenValue={moment("00:00:00")}
       className="timePicker"
       onChange={(value) => onChange(value ? value.format("HH:mm:ss") : "")}
+    /> */}
+
+        <TimePicker
+      value={time}       // "HH:mm"
+      onChange={(value) => onChange(value || "")}
+      format="HH:mm:ss"
+      disableClock
+      clearIcon={null}
     />
   </div>
 );

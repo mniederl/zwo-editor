@@ -215,41 +215,21 @@ const Editor = ({ id }: EditorProps) => {
   }
 
   function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>) {
-    if (event.target instanceof HTMLInputElement) {
-      // Ignore key presses coming from input elements
-      return;
-    }
+    if (event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement
+    ) return;
 
-    if (event.target instanceof HTMLTextAreaElement) {
-      // Ignore key presses coming from textarea elements
-      return;
-    }
+    // TODO: allow to combine with shift key for bigger steps (10s, 10W etc.)
+    const actionDict: { [key: string]: () => void } = {
+      "Backspace": () => removeBar(actionId || ""),
+      "ArrowLeft": () => removeTimeFromBar(actionId || ""),
+      "ArrowRight": () => addTimeToBar(actionId || ""),
+      "ArrowUp": () => addPowerToBar(actionId || ""),
+      "ArrowDown": () => removePowerFromBar(actionId || ""),
+    };
 
-    switch (event.keyCode) {
-      case 8:
-        removeBar(actionId || "");
-        // Prevent navigation to previous page
-        event.preventDefault();
-        break;
-      case 37:
-        // reduce time
-        removeTimeFromBar(actionId || "");
-        break;
-      case 39:
-        // add time
-        addTimeToBar(actionId || "");
-        break;
-      case 38:
-        // add power
-        addPowerToBar(actionId || "");
-        break;
-      case 40:
-        // add power
-        removePowerFromBar(actionId || "");
-        break;
-      default:
-        //console.log(event.keyCode);
-        break;
+    if (event.key in actionDict) {
+      actionDict[event.key]();
     }
   }
 
@@ -1025,7 +1005,7 @@ const Editor = ({ id }: EditorProps) => {
       {message?.visible && (
         <div className={`message ${message.class}`}>
           {message.text}
-          <button className="close" onClick={() => setMessage({ visible: false })}>
+          <button type="button" className="close" onClick={() => setMessage({ visible: false })}>
             <FontAwesomeIcon icon={faTimesCircle} size="lg" />
           </button>
         </div>
@@ -1169,16 +1149,16 @@ const Editor = ({ id }: EditorProps) => {
       <div id="editor" className="editor">
         {actionId && (
           <div className="actions">
-            <button onClick={() => moveLeft(actionId)} title="Move Left">
+            <button type="button" onClick={() => moveLeft(actionId)} title="Move Left">
               <FontAwesomeIcon icon={faArrowLeft} size="lg" />
             </button>
-            <button onClick={() => moveRight(actionId)} title="Move Right">
+            <button type="button" onClick={() => moveRight(actionId)} title="Move Right">
               <FontAwesomeIcon icon={faArrowRight} size="lg" />
             </button>
-            <button onClick={() => removeBar(actionId)} title="Delete">
+            <button type="button" onClick={() => removeBar(actionId)} title="Delete">
               <FontAwesomeIcon icon={faTrash} size="lg" />
             </button>
-            <button onClick={() => duplicateBar(actionId)} title="Duplicate">
+            <button type="button" onClick={() => duplicateBar(actionId)} title="Duplicate">
               <FontAwesomeIcon icon={faCopy} size="lg" />
             </button>
             {sportType === "run" && (
@@ -1232,7 +1212,7 @@ const Editor = ({ id }: EditorProps) => {
         {sportType === "bike" ? (
           <div>
             <Tooltip id="my-tooltip" />
-            <button
+            <button type="button"
               className="btn btn-square"
               onClick={() => toggleTextEditor()}
               style={{ backgroundColor: "palevioletred" }}
@@ -1240,38 +1220,38 @@ const Editor = ({ id }: EditorProps) => {
             >
               <FontAwesomeIcon icon={faPen} />
             </button>
-            <button className="btn btn-square" onClick={() => addBar(0.5)} style={{ backgroundColor: Colors.GRAY }}>
+            <button type="button" className="btn btn-square" onClick={() => addBar(0.5)} style={{ backgroundColor: Colors.GRAY }}>
               Z1
             </button>
-            <button
+            <button type="button"
               className="btn btn-square"
               onClick={() => addBar(Zones.Z2.min)}
               style={{ backgroundColor: Colors.BLUE }}
             >
               Z2
             </button>
-            <button
+            <button type="button"
               className="btn btn-square"
               onClick={() => addBar(Zones.Z3.min)}
               style={{ backgroundColor: Colors.GREEN }}
             >
               Z3
             </button>
-            <button
+            <button type="button"
               className="btn btn-square"
               onClick={() => addBar(Zones.Z4.min)}
               style={{ backgroundColor: Colors.YELLOW }}
             >
               Z4
             </button>
-            <button
+            <button type="button"
               className="btn btn-square"
               onClick={() => addBar(Zones.Z5.min)}
               style={{ backgroundColor: Colors.ORANGE }}
             >
               Z5
             </button>
-            <button
+            <button type="button"
               className="btn btn-square"
               onClick={() => addBar(Zones.Z6.min)}
               style={{ backgroundColor: Colors.RED }}
@@ -1280,25 +1260,25 @@ const Editor = ({ id }: EditorProps) => {
             </button>
           </div>
         ) : (
-          <button className="btn" onClick={() => addBar(1, 300, 0, 0, 1000)} style={{ backgroundColor: Colors.WHITE }}>
+          <button type="button" className="btn" onClick={() => addBar(1, 300, 0, 0, 1000)} style={{ backgroundColor: Colors.WHITE }}>
             <SteadyLogo className="btn-icon" /> Steady Pace
           </button>
         )}
 
-        <button className="btn" onClick={() => addTrapeze(0.25, 0.75)} style={{ backgroundColor: Colors.WHITE }}>
+        <button type="button" className="btn" onClick={() => addTrapeze(0.25, 0.75)} style={{ backgroundColor: Colors.WHITE }}>
           <WarmupLogo className="btn-icon" /> Warm up
         </button>
-        <button className="btn" onClick={() => addTrapeze(0.75, 0.25)} style={{ backgroundColor: Colors.WHITE }}>
+        <button type="button" className="btn" onClick={() => addTrapeze(0.75, 0.25)} style={{ backgroundColor: Colors.WHITE }}>
           <CooldownLogo className="btn-icon" /> Cool down
         </button>
-        <button className="btn" onClick={() => addInterval()} style={{ backgroundColor: Colors.WHITE }}>
+        <button type="button" className="btn" onClick={() => addInterval()} style={{ backgroundColor: Colors.WHITE }}>
           <IntervalLogo className="btn-icon" /> Interval
         </button>
-        <button className="btn" onClick={() => addFreeRide()} style={{ backgroundColor: Colors.WHITE }}>
+        <button type="button" className="btn" onClick={() => addFreeRide()} style={{ backgroundColor: Colors.WHITE }}>
           <FontAwesomeIcon icon={sportType === "bike" ? faBicycle : faRunning} size="lg" />
           Free {sportType === "bike" ? "Ride" : "Run"}
         </button>
-        <button className="btn" onClick={() => addInstruction()} style={{ backgroundColor: Colors.WHITE }}>
+        <button type="button" className="btn" onClick={() => addInstruction()} style={{ backgroundColor: Colors.WHITE }}>
           <FontAwesomeIcon icon={faComment} size="lg" /> Text Event
         </button>
         {sportType === "bike" && (
@@ -1327,7 +1307,7 @@ const Editor = ({ id }: EditorProps) => {
           </div>
         )}
 
-        <button
+        <button type="button"
           className="btn"
           onClick={() => {
             if (window.confirm("Are you sure you want to create a new workout?")) newWorkout();
@@ -1335,10 +1315,10 @@ const Editor = ({ id }: EditorProps) => {
         >
           <FontAwesomeIcon icon={faFile} size="lg" /> New
         </button>
-        <button className="btn">
+        <button type="button" className="btn">
           <FontAwesomeIcon icon={faTrash} size="lg" /> Delete
         </button>
-        <button className="btn" onClick={() => downloadWorkout()}>
+        <button type="button" className="btn" onClick={() => downloadWorkout()}>
           <FontAwesomeIcon icon={faDownload} size="lg" /> Download
         </button>
         <input
@@ -1348,10 +1328,10 @@ const Editor = ({ id }: EditorProps) => {
           style={{ display: "none" }}
           onChange={(e) => handleUpload(e.target.files![0])}
         />
-        <button className="btn" onClick={() => document.getElementById("contained-button-file")!.click()}>
+        <button type="button" className="btn" onClick={() => document.getElementById("contained-button-file")!.click()}>
           <FontAwesomeIcon icon={faUpload} size="lg" /> Upload
         </button>
-        <button className="btn" onClick={() => setShowWorkouts(true)}>
+        <button type="button" className="btn" onClick={() => setShowWorkouts(true)}>
           <FontAwesomeIcon icon={faList} size="lg" /> Workouts
         </button>
       </div>

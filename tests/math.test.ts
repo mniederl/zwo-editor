@@ -1,9 +1,14 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+
 import {
-  round, getWorkoutLength, getWorkoutDistance, getStressScore,
-  calculateEstimatedTimes, speedToPace
+  calculateEstimatedTimes,
+  getStressScore,
+  getWorkoutDistance,
+  getWorkoutLength,
+  round,
+  speedToPace,
 } from "../src/components/helpers";
-import { paced, allBars } from "./fixtures";
+import { allBars, paced } from "./fixtures";
 
 describe("workout math", () => {
   it("round: rounds to nearest", () => {
@@ -48,11 +53,11 @@ describe("workout math", () => {
   });
 
   it("speedToPace: formats mm:ss", () => {
-    expect(speedToPace(12, "metric")).toBe("05:00");   // 12 kph -> 5:00/km
+    expect(speedToPace(12, "metric")).toBe("05:00"); // 12 kph -> 5:00/km
     expect(speedToPace(12, "imperial")).toMatch(/^\d{2}:\d{2}$/);
   });
 
   it("speedToPace handles invalid speed", () => {
-    expect(speedToPace(0, "metric")).toBe("00:00")
-  })
+    expect(speedToPace(0, "metric")).toBe("00:00");
+  });
 });

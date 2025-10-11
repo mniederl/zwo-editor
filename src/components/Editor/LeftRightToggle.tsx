@@ -1,7 +1,7 @@
-import React from "react";
 import type { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Switch from "react-switch";
+// import Switch from "react-switch";
+
 import "./LeftRightToggle.css";
 
 interface LeftRightToggleProps<TLeft, TRight> {
@@ -36,14 +36,14 @@ const LeftRightToggle = <TLeft, TRight>({
         <FontAwesomeIcon className={`icon ${selected === leftValue ? "active" : ""}`} icon={leftIcon} size="lg" />
       )}
       {leftLabel && <div className={`icon ${selected === leftValue ? "active" : ""}`}>{leftLabel}</div>}
-      <Switch
+      {/* <Switch
         onChange={() => onChange(selected === leftValue ? rightValue : leftValue)}
         checked={selected === rightValue}
         checkedIcon={false}
         uncheckedIcon={false}
         onColor={COLOR}
         offColor={COLOR}
-      />
+      /> */}
       {rightIcon && (
         <FontAwesomeIcon className={`icon ${selected === rightValue ? "active" : ""}`} icon={rightIcon} size="lg" />
       )}
