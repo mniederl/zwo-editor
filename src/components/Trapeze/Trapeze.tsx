@@ -1,15 +1,17 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "./Trapeze.css";
 import { Colors, Zones, ZonesArray } from "../constants";
 import { Resizable } from "re-resizable";
 import Label from "../Label/Label";
-import helpers from "../helpers";
-import { PaceUnitType } from "../Editor/Editor";
+import { calculateDistance, calculateTime, round } from "../helpers";
+import { type PaceUnitType } from "../Editor/Editor";
+import { formatTime } from "../../utils/time";
 
 interface IDictionary {
   [index: string]: number;
 }
 
+// TODO: rename to RightTrapezoid? - a bit of a misnomer otherwise
 const Trapeze = (props: {
   id: string;
   time?: number;
@@ -36,7 +38,7 @@ const Trapeze = (props: {
 
   const avgPower = Math.abs((props.endPower + props.startPower) / 2);
 
-  const durationLabel = helpers.formatDuration(props.time);
+  const durationLabel = formatTime(props.time!);
 
   const [showLabel, setShowLabel] = useState(false);
 
@@ -101,20 +103,20 @@ const Trapeze = (props: {
   const handleResize1 = (dHeight: number) => {
     const time =
       props.durationType === "time"
-        ? helpers.round(width * timeMultiplier * 3, 5)
-        : helpers.round(
-          (helpers.calculateTime(props.length, props.speed) * 1) / avgPower,
+        ? round(width * timeMultiplier * 3, 5)
+        : round(
+          (calculateTime(props.length, props.speed) * 1) / avgPower,
           1
         );
     const length =
       props.durationType === "time"
-        ? helpers.round(
-          (helpers.calculateDistance(width * timeMultiplier, props.speed) *
+        ? round(
+          (calculateDistance(width * timeMultiplier, props.speed) *
             1) /
           avgPower,
           1
         )
-        : helpers.round(width * lengthMultiplier * 3, 200);
+        : round(width * lengthMultiplier * 3, 200);
 
     props.onChange(props.id, {
       time: time,
@@ -130,20 +132,20 @@ const Trapeze = (props: {
   const handleResize2 = (dHeight: number) => {
     const time =
       props.durationType === "time"
-        ? helpers.round(width * timeMultiplier * 3, 5)
-        : helpers.round(
-          (helpers.calculateTime(props.length, props.speed) * 1) / avgPower,
+        ? round(width * timeMultiplier * 3, 5)
+        : round(
+          (calculateTime(props.length, props.speed) * 1) / avgPower,
           1
         );
     const length =
       props.durationType === "time"
-        ? helpers.round(
-          (helpers.calculateDistance(width * timeMultiplier, props.speed) *
+        ? round(
+          (calculateDistance(width * timeMultiplier, props.speed) *
             1) /
           avgPower,
           1
         )
-        : helpers.round(width * lengthMultiplier * 3, 200);
+        : round(width * lengthMultiplier * 3, 200);
 
     props.onChange(props.id, {
       time: time,
@@ -161,18 +163,18 @@ const Trapeze = (props: {
 
     const length =
       props.durationType === "time"
-        ? helpers.round(
-          (helpers.calculateDistance(newWidth * timeMultiplier * 3, props.speed) *
+        ? round(
+          (calculateDistance(newWidth * timeMultiplier * 3, props.speed) *
             1) /
           avgPower,
           1
         )
-        : helpers.round(newWidth * lengthMultiplier * 3, 200);
+        : round(newWidth * lengthMultiplier * 3, 200);
     const time =
       props.durationType === "time"
-        ? helpers.round(newWidth * timeMultiplier * 3, 5)
-        : helpers.round(
-          (helpers.calculateTime(props.length, props.speed) * 1) / avgPower,
+        ? round(newWidth * timeMultiplier * 3, 5)
+        : round(
+          (calculateTime(props.length, props.speed) * 1) / avgPower,
           1
         );
 

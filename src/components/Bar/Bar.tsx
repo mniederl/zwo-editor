@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import "./Bar.css";
 import { Colors, Zones } from "../constants";
 import { Resizable } from "re-resizable";
 import Label from "../Label/Label";
-import helpers from "../helpers";
-import { PaceUnitType } from "../Editor/Editor";
+import { type PaceUnitType } from "../Editor/Editor";
+import { formatTime } from "../../utils/time";
+import { calculateDistance, calculateTime, round } from "../helpers";
 
 const Bar = (props: {
   id: string;
@@ -31,7 +32,7 @@ const Bar = (props: {
   const powerLabel = Math.round(props.power * props.ftp);
 
   // TIME
-  const duration = helpers.formatDuration(props.time);
+  const duration = formatTime(props.time!);
 
   // DISTANCE
   const distance = props.length;
@@ -59,7 +60,7 @@ const Bar = (props: {
 
   const speed =
     distance !== undefined && props.time !== undefined
-      ? helpers.calculateSpeed(distance, props.time)
+      ? calculateSpeed(distance, props.time)
       : 0;
 
   useEffect(() => {
@@ -84,19 +85,19 @@ const Bar = (props: {
 
     const length =
       props.durationType === "time"
-        ? helpers.round(
-          helpers.calculateDistance(
+        ? round(
+          calculateDistance(
             (width + dWidth) * timeMultiplier * props.power,
             props.speed
           ),
           1
         )
-        : helpers.round((width + dWidth) * lengthMultiplier, 200);
+        : round((width + dWidth) * lengthMultiplier, 200);
     const time =
       props.durationType === "time"
-        ? helpers.round((width + dWidth) * timeMultiplier, 5)
-        : helpers.round(
-          (helpers.calculateTime(props.length, props.speed) * 1) /
+        ? round((width + dWidth) * timeMultiplier, 5)
+        : round(
+          (calculateTime(props.length, props.speed) * 1) /
           props.power,
           1
         );
@@ -115,19 +116,19 @@ const Bar = (props: {
   const handleResize = (dWidth: number, dHeight: number) => {
     const length =
       props.durationType === "time"
-        ? helpers.round(
-          helpers.calculateDistance(
+        ? round(
+          calculateDistance(
             (width + dWidth) * timeMultiplier * props.power,
             props.speed
           ),
           1
         )
-        : helpers.round((width + dWidth) * lengthMultiplier, 200);
+        : round((width + dWidth) * lengthMultiplier, 200);
     const time =
       props.durationType === "time"
-        ? helpers.round((width + dWidth) * timeMultiplier, 5)
-        : helpers.round(
-          (helpers.calculateTime(props.length, props.speed) * 1) /
+        ? round((width + dWidth) * timeMultiplier, 5)
+        : round(
+          (calculateTime(props.length, props.speed) * 1) /
           props.power,
           1
         );

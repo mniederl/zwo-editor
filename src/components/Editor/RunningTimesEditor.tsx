@@ -1,9 +1,9 @@
 import React, { useCallback } from 'react';
-import './RunningTimesEditor.css';
 import TimePicker from 'rc-time-picker';
 import 'rc-time-picker/assets/index.css'
-import helpers from '../helpers';
-import moment from 'moment'
+import { calculateEstimatedTimes } from '../helpers';
+
+import './RunningTimesEditor.css';
 
 export interface RunningTimes {
   oneMile: string;
@@ -21,8 +21,8 @@ interface RunningTimesEditorProps {
 export default function RunningTimesEditor({ times, onChange }: RunningTimesEditorProps) {
   const estimateRunningTimes = useCallback(() => {
     const distances = [1.60934, 5, 10, 21.0975, 42.195, 1.60934]
-    const estimatedTimes = helpers.calculateEstimatedTimes(distances, [times.oneMile, times.fiveKm, times.tenKm, times.halfMarathon, times.marathon, '00:11:20'])
-  
+    const estimatedTimes = calculateEstimatedTimes(distances, [times.oneMile, times.fiveKm, times.tenKm, times.halfMarathon, times.marathon, '00:11:20'])
+
     onChange({
       oneMile: times.oneMile || estimatedTimes[0],
       fiveKm: times.fiveKm || estimatedTimes[1],
@@ -56,7 +56,7 @@ export default function RunningTimesEditor({ times, onChange }: RunningTimesEdit
   );
 }
 
-const RunTimeInput: React.FC<{time: string, onChange: (time: string) => void}> = ({time, onChange, children}) => (
+const RunTimeInput: React.FC<{ time: string, onChange: (time: string) => void }> = ({ time, onChange, children }) => (
   <div className="form-input">
     <label><abbr title="hh:mm:ss">{children}</abbr></label>
     <TimePicker

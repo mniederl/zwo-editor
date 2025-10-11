@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Draggable from "react-draggable";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faComment,faCommentDots } from "@fortawesome/free-solid-svg-icons";
+import { faComment, faCommentDots } from "@fortawesome/free-solid-svg-icons";
 import "./Comment.css";
-import helpers from "../helpers";
+import { formatTime } from "../../utils/time";
 
 interface Instruction {
   id: string;
@@ -17,7 +17,7 @@ const Comment = (props: {
   durationType: string;
   width: number;
   onChange: Function;
-  onClick: Function;  
+  onClick: Function;
   index: number;
 }) => {
   const timeMultiplier = 3;
@@ -35,19 +35,19 @@ const Comment = (props: {
 
     setIsDragging(false);
 
-    if(isDragging){
+    if (isDragging) {
       props.onChange(props.instruction.id, {
-        id: props.instruction.id,      
+        id: props.instruction.id,
         time: position * timeMultiplier,
         length: position * lengthMultiplier,
-        text: props.instruction.text,      
+        text: props.instruction.text,
       });
-    }else{
+    } else {
       props.onClick(props.instruction.id)
-    }    
+    }
   }
 
-  function handleDragging(position: number) {    
+  function handleDragging(position: number) {
     setIsDragging(true);
     setTime(position);
     setLength(position);
@@ -61,21 +61,20 @@ const Comment = (props: {
       bounds={{ left: 0, right: props.width }}
       scale={1}
       onStop={(e, data) => handleTouch(data.x)}
-      onDrag={(e, data) => handleDragging(data.x)}      
+      onDrag={(e, data) => handleDragging(data.x)}
     >
       <div>
         <FontAwesomeIcon
           style={{ display: "block", opacity: 0.7 }}
           icon={props.instruction.text !== "" ? faCommentDots : faComment}
           size="lg"
-          fixedWidth
           className="handle"
         />
         {isDragging && (
           <div className="edit">
             {props.durationType === "time" ? (
               <span style={{ fontSize: "13px" }} data-testid="time">
-                {helpers.formatDuration(time * timeMultiplier)}
+                {formatTime(time * timeMultiplier)}
               </span>
             ) : (
               <span style={{ fontSize: "13px" }} data-testid="time">

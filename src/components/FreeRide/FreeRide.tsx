@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "./FreeRide.css";
 import { Resizable } from "re-resizable";
-import "moment-duration-format";
 import Label from "../Label/Label";
-import helpers from "../helpers";
+import { formatTime } from "../../utils/time";
+import { round } from "../helpers";
 
 const FreeRide = (props: {
   id: string;
@@ -19,7 +19,7 @@ const FreeRide = (props: {
   const timeMultiplier = 3;
   const lengthMultiplier = 10;
 
-  const durationLabel = helpers.formatDuration(props.time);
+  const durationLabel: string = formatTime(props.time!);
 
   // RUN WORKOUTS ON DISTANCE - BIKE WORKOUTS ON TIME
   const [width, setWidth] = useState(
@@ -51,10 +51,10 @@ const FreeRide = (props: {
     const length =
       props.durationType === "time"
         ? 0
-        : helpers.round((width + dWidth) * lengthMultiplier, 200);
+        : round((width + dWidth) * lengthMultiplier, 200);
     const time =
       props.durationType === "time"
-        ? helpers.round((width + dWidth) * timeMultiplier, 5)
+        ? round((width + dWidth) * timeMultiplier, 5)
         : 0;
 
     props.onChange(props.id, {
@@ -70,10 +70,10 @@ const FreeRide = (props: {
     const length =
       props.durationType === "time"
         ? 0
-        : helpers.round((width + dWidth) * lengthMultiplier, 200);
+        : round((width + dWidth) * lengthMultiplier, 200);
     const time =
       props.durationType === "time"
-        ? helpers.round((width + dWidth) * timeMultiplier, 5)
+        ? round((width + dWidth) * timeMultiplier, 5)
         : 0;
 
     props.onChange(props.id, {

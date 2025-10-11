@@ -36,14 +36,18 @@ import { CooldownLogo, IntervalLogo, SteadyLogo, WarmupLogo } from "../../assets
 import {
   calculateDistance,
   calculateTime,
-  formatDuration,
   getStressScore,
-  getTimeInSeconds,
   getWorkoutDistance,
   getWorkoutLength,
   getWorkoutPace,
   round
 } from "../helpers";
+
+import {
+  formatTime,
+  parseTime
+} from '../../utils/time'
+
 // helmet removed; we update document head directly via useEffect
 import RunningTimesEditor, { type RunningTimes } from "./RunningTimesEditor";
 import LeftRightToggle from "./LeftRightToggle";
@@ -879,7 +883,7 @@ const Editor = ({ id }: EditorProps) => {
         runningTimes.marathon,
       ];
 
-      return (distances[pace] * 1000) / getTimeInSeconds(times[pace]);
+      return (distances[pace] * 1000) / parseTime(times[pace]);
     }
   }
 
@@ -1311,7 +1315,7 @@ const Editor = ({ id }: EditorProps) => {
             <label>Workout Time</label>
             <input
               className="textInput"
-              value={formatDuration(
+              value={formatTime(
                 getWorkoutLength(bars, durationType)
               )}
               disabled

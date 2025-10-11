@@ -108,18 +108,6 @@ export const paceToSpeed = (pace: string, unit: PaceUnitType): number => {
   return unit === "metric" ? 3600 / totalSec : 1.60934 * 3600 / totalSec
 }
 
-export const formatDuration = (seconds: number): string => {
-  const h = Math.floor(seconds / 3600)
-  const m = Math.floor((seconds % 3600) / 60)
-  const s = Math.floor(seconds % 60)
-  return [h, m, s].map(v => v.toString().padStart(2, "0")).join(":")
-}
-
-export const getTimeInSeconds = (time: string): number => {
-  const [h = 0, m = 0, s = 0] = time.split(":").map(Number)
-  return h * 3600 + m * 60 + s
-}
-
 export const useWorkoutMetrics = (
   bars: WorkoutBar[],
   ftp: number,
