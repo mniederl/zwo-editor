@@ -215,12 +215,11 @@ const Editor = ({ id }: EditorProps) => {
   }
 
   function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>) {
-    if (event.target instanceof HTMLInputElement ||
-        event.target instanceof HTMLTextAreaElement
-    ) return;
+    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
 
     // TODO: allow to combine with shift key for bigger steps (10s, 10W etc.)
-    const actionDict: { [key: string]: () => void } = {
+    // TODO: when pressing alt key with left/right, move bar instead of changing time
+    const actionDict: Record<string, () => void> = {
       "Backspace": () => removeBar(actionId || ""),
       "ArrowLeft": () => removeTimeFromBar(actionId || ""),
       "ArrowRight": () => addTimeToBar(actionId || ""),
@@ -425,7 +424,7 @@ const Editor = ({ id }: EditorProps) => {
 
     const index = updatedArray.findIndex((bar) => bar.id === id);
     const element = updatedArray[index];
-    if (element && element.power && element.power >= Zones.Z1.min) {
+    if (element?.power && element.power >= Zones.Z1.min) {
       element.power = parseFloat((element.power - 1 / ftp).toFixed(3));
 
       if (durationType === "time") {
@@ -442,31 +441,38 @@ const Editor = ({ id }: EditorProps) => {
     const index = bars.findIndex((bar) => bar.id === id);
     const element = [...bars][index];
 
-    if (element.type === "bar")
-      addBar(element.power || 80, element.time, element.cadence, element.pace, element.length);
-    if (element.type === "freeRide") addFreeRide(element.time, element.cadence, element.length);
-    if (element.type === "trapeze")
-      addTrapeze(
-        element.startPower || 80,
-        element.endPower || 160,
-        element.time,
-        element.pace || 0,
-        element.length,
-        element.cadence,
-      );
-    if (element.type === "interval")
-      addInterval(
-        element.repeat,
-        element.onDuration,
-        element.offDuration,
-        element.onPower,
-        element.offPower,
-        element.cadence,
-        element.restingCadence,
-        element.pace,
-        element.onLength,
-        element.offLength,
-      );
+    switch (element.type) {
+      case "bar":
+        addBar(element.power || 80, element.time, element.cadence, element.pace, element.length);
+        break;
+      case "freeRide":
+        addFreeRide(element.time, element.cadence, element.length);
+        break;
+      case "trapeze":
+        addTrapeze(
+          element.startPower || 80,
+          element.endPower || 160,
+          element.time,
+          element.pace || 0,
+          element.length,
+          element.cadence,
+        );
+        break;
+      case "interval":
+        addInterval(
+          element.repeat,
+          element.onDuration,
+          element.offDuration,
+          element.onPower,
+          element.offPower,
+          element.cadence,
+          element.restingCadence,
+          element.pace,
+          element.onLength,
+          element.offLength,
+        );
+        break;
+    }
 
     setActionId(undefined);
   }
@@ -673,22 +679,20 @@ const Editor = ({ id }: EditorProps) => {
   }
 
   function calculateSpeed(pace: number = 0) {
-    if (sportType === "bike") {
-      return 0;
-    } else {
-      // return speed in m/s
-      // speed  = distance / time
-      const distances = [1.60934, 5, 10, 21.0975, 42.195];
-      const times = [
-        runningTimes.oneMile,
-        runningTimes.fiveKm,
-        runningTimes.tenKm,
-        runningTimes.halfMarathon,
-        runningTimes.marathon,
-      ];
+    if (sportType === "bike") return 0;
 
-      return (distances[pace] * 1000) / parseTime(times[pace]);
-    }
+    // return speed in m/s
+    // speed  = distance / time
+    const distances = [1.60934, 5, 10, 21.0975, 42.195];
+    const times = [
+      runningTimes.oneMile,
+      runningTimes.fiveKm,
+      runningTimes.tenKm,
+      runningTimes.halfMarathon,
+      runningTimes.marathon,
+    ];
+
+    return (distances[pace] * 1000) / parseTime(times[pace]!);
   }
 
   const renderBar = (bar: BarType) => (
@@ -1046,7 +1050,7 @@ const Editor = ({ id }: EditorProps) => {
           {sportType === "bike" && (
             <div className="form-input">
               <label title="Training Load">Training Load</label>
-              <input className="textInput" value={getStressScore(bars, ftp)} disabled />
+              <input className="textInput" value={round(getStressScore(bars, ftp), 1)} disabled />
             </div>
           )}
           {sportType === "run" && (
@@ -1189,15 +1193,17 @@ const Editor = ({ id }: EditorProps) => {
             {bars.map((bar) => {
               if (bar.type === "bar") {
                 return renderBar(bar);
-              } else if (bar.type === "trapeze") {
-                return renderTrapeze(bar);
-              } else if (bar.type === "freeRide") {
-                return renderFreeRide(bar);
-              } else if (bar.type === "interval") {
-                return renderInterval(bar);
-              } else {
-                return false;
               }
+              if (bar.type === "trapeze") {
+                return renderTrapeze(bar);
+              }
+              if (bar.type === "freeRide") {
+                return renderFreeRide(bar);
+              }
+              if (bar.type === "interval") {
+                return renderInterval(bar);
+              }
+              return false;
             })}
           </div>
 
@@ -1212,7 +1218,8 @@ const Editor = ({ id }: EditorProps) => {
         {sportType === "bike" ? (
           <div>
             <Tooltip id="my-tooltip" />
-            <button type="button"
+            <button
+              type="button"
               className="btn btn-square"
               onClick={() => toggleTextEditor()}
               style={{ backgroundColor: "palevioletred" }}
@@ -1220,38 +1227,48 @@ const Editor = ({ id }: EditorProps) => {
             >
               <FontAwesomeIcon icon={faPen} />
             </button>
-            <button type="button" className="btn btn-square" onClick={() => addBar(0.5)} style={{ backgroundColor: Colors.GRAY }}>
+            <button
+              type="button"
+              className="btn btn-square"
+              onClick={() => addBar(0.5)}
+              style={{ backgroundColor: Colors.GRAY }}
+            >
               Z1
             </button>
-            <button type="button"
+            <button
+              type="button"
               className="btn btn-square"
               onClick={() => addBar(Zones.Z2.min)}
               style={{ backgroundColor: Colors.BLUE }}
             >
               Z2
             </button>
-            <button type="button"
+            <button
+              type="button"
               className="btn btn-square"
               onClick={() => addBar(Zones.Z3.min)}
               style={{ backgroundColor: Colors.GREEN }}
             >
               Z3
             </button>
-            <button type="button"
+            <button
+              type="button"
               className="btn btn-square"
               onClick={() => addBar(Zones.Z4.min)}
               style={{ backgroundColor: Colors.YELLOW }}
             >
               Z4
             </button>
-            <button type="button"
+            <button
+              type="button"
               className="btn btn-square"
               onClick={() => addBar(Zones.Z5.min)}
               style={{ backgroundColor: Colors.ORANGE }}
             >
               Z5
             </button>
-            <button type="button"
+            <button
+              type="button"
               className="btn btn-square"
               onClick={() => addBar(Zones.Z6.min)}
               style={{ backgroundColor: Colors.RED }}
@@ -1260,15 +1277,30 @@ const Editor = ({ id }: EditorProps) => {
             </button>
           </div>
         ) : (
-          <button type="button" className="btn" onClick={() => addBar(1, 300, 0, 0, 1000)} style={{ backgroundColor: Colors.WHITE }}>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => addBar(1, 300, 0, 0, 1000)}
+            style={{ backgroundColor: Colors.WHITE }}
+          >
             <SteadyLogo className="btn-icon" /> Steady Pace
           </button>
         )}
 
-        <button type="button" className="btn" onClick={() => addTrapeze(0.25, 0.75)} style={{ backgroundColor: Colors.WHITE }}>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => addTrapeze(0.25, 0.75)}
+          style={{ backgroundColor: Colors.WHITE }}
+        >
           <WarmupLogo className="btn-icon" /> Warm up
         </button>
-        <button type="button" className="btn" onClick={() => addTrapeze(0.75, 0.25)} style={{ backgroundColor: Colors.WHITE }}>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => addTrapeze(0.75, 0.25)}
+          style={{ backgroundColor: Colors.WHITE }}
+        >
           <CooldownLogo className="btn-icon" /> Cool down
         </button>
         <button type="button" className="btn" onClick={() => addInterval()} style={{ backgroundColor: Colors.WHITE }}>
@@ -1278,7 +1310,12 @@ const Editor = ({ id }: EditorProps) => {
           <FontAwesomeIcon icon={sportType === "bike" ? faBicycle : faRunning} size="lg" />
           Free {sportType === "bike" ? "Ride" : "Run"}
         </button>
-        <button type="button" className="btn" onClick={() => addInstruction()} style={{ backgroundColor: Colors.WHITE }}>
+        <button
+          type="button"
+          className="btn"
+          onClick={() => addInstruction()}
+          style={{ backgroundColor: Colors.WHITE }}
+        >
           <FontAwesomeIcon icon={faComment} size="lg" /> Text Event
         </button>
         {sportType === "bike" && (
@@ -1307,7 +1344,8 @@ const Editor = ({ id }: EditorProps) => {
           </div>
         )}
 
-        <button type="button"
+        <button
+          type="button"
           className="btn"
           onClick={() => {
             if (window.confirm("Are you sure you want to create a new workout?")) newWorkout();

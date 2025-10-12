@@ -6,12 +6,13 @@ import { calculateEstimatedTimes } from "../helpers";
 
 import "./RunningTimesEditor.css";
 
+// TODO: undefined?
 export interface RunningTimes {
-  oneMile: string;
-  fiveKm: string;
-  tenKm: string;
-  halfMarathon: string;
-  marathon: string;
+  oneMile: string | undefined;
+  fiveKm: string | undefined;
+  tenKm: string | undefined;
+  halfMarathon: string | undefined;
+  marathon: string | undefined;
 }
 
 interface RunningTimesEditorProps {
@@ -58,7 +59,7 @@ export default function RunningTimesEditor({ times, onChange }: RunningTimesEdit
         Marathon Time
       </RunTimeInput>
       <div className="form-input">
-        <button type="button" onClick={estimateRunningTimes} className="btn">
+        <button type="button" onClick={estimateRunningTimes} className="btn-estimate">
           Estimate missing times
         </button>
       </div>
@@ -67,27 +68,24 @@ export default function RunningTimesEditor({ times, onChange }: RunningTimesEdit
 }
 
 const RunTimeInput: React.FC<{
-  time: string;
+  time: string | undefined;
   onChange: (time: string) => void;
+  children: React.ReactNode;
 }> = ({ time, onChange, children }) => (
   <div className="form-input">
-    <label>
+    <label htmlFor="time">
       <abbr title="hh:mm:ss">{children}</abbr>
     </label>
-    {/* <TimePicker
-      value={time === "" ? undefined : moment(time, "HH:mm:ss")}
-      placeholder="00:00:00"
-      defaultOpenValue={moment("00:00:00")}
-      className="timePicker"
-      onChange={(value) => onChange(value ? value.format("HH:mm:ss") : "")}
-    /> */}
 
-        <TimePicker
+    <TimePicker
       value={time}       // "HH:mm"
       onChange={(value) => onChange(value || "")}
       format="HH:mm:ss"
+      maxDetail="second"
       disableClock
-      clearIcon={null}
+      hourPlaceholder="hh"
+      minutePlaceholder="mm"
+      secondPlaceholder="ss"
     />
   </div>
 );

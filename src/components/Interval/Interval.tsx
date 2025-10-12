@@ -171,8 +171,12 @@ const Interval = (props: {
   return (
     <div>
       <div className="buttons">
-        <button type="button" onClick={handleAddInterval}>+</button>
-        <button type="button" onClick={handleRemoveInterval}>-</button>
+        <button type="button" onClick={handleAddInterval} title="Add interval">
+          +
+        </button>
+        <button type="button" onClick={handleRemoveInterval} title="Remove interval">
+          -
+        </button>
       </div>
       <div className="intervals">
         {bars.map((bar, index) => renderBar(bar, index === 0 || index === bars.length - 1))}

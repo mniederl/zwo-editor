@@ -24,13 +24,17 @@
       },
       "a11y": {
         "noLabelWithoutControl": "info"
+      },
+      "style": {
+        "noUselessElse": "warn"
       }
     },
     "includes": ["**", "!dist"]
   },
   "javascript": {
     "formatter": {
-      "quoteStyle": "double"
+      "quoteStyle": "double",
+      "quoteProperties": "preserve"
     }
   },
   "assist": {

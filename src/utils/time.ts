@@ -20,6 +20,8 @@
  * ```
  */
 export function parseTime(s: string): number {
+  if (s.trim() === "") return 0;
+
   if (typeof s !== "string") throw new TypeError("Expected string");
   const parts = s.trim().split(":");
   if (parts.length < 2 || parts.length > 3) throw new Error("Use HH:MM:SS or MM:SS");

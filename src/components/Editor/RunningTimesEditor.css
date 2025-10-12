@@ -11,22 +11,42 @@
   align-self: flex-end;
 }
 
-.timePicker {
-  width: 120px;
+.react-time-picker {
+  background-color: white;
+  border: none;
+  border-radius: 8px;
 }
 
-.timePicker > input {
-  font-size: 18px;
-  font-family: monospace;
-  color: black;
+.react-time-picker__wrapper {
+  border-radius: 8px;
+  padding: 0px 4px;
 }
 
-.rc-time-picker-panel-input {
-  font-size: 18px;
-  font-family: monospace;
+.react-time-picker__inputGroup__input {
+  border: none;
+  outline: none;
+  box-shadow: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
-.rc-time-picker-panel-select > ul > li {
-  font-size: 16px;
-  font-family: monospace;
+.react-time-picker__inputGroup__input::selection {
+  background: aliceblue;
+}
+
+.btn-estimate {
+  background-color: rgb(0, 196, 106);
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-estimate:hover {
+  background-color: rgb(0, 150, 81);
 }
