@@ -25,8 +25,8 @@
       "a11y": {
         "noLabelWithoutControl": "off",
         "noStaticElementInteractions": "off",
-        "noNoninteractiveTabindex": "info",
-        "useKeyWithClickEvents": "info"
+        "noNoninteractiveTabindex": "off",
+        "useKeyWithClickEvents": "off"
       },
       "style": {
         "noUselessElse": "warn"

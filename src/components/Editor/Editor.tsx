@@ -1083,11 +1083,11 @@ const Editor = ({ id }: EditorProps) => {
               />
             </div>
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-              <h2 className="font-[var(--font-display)] text-xl font-semibold text-slate-900">Syntax Guide</h2>
+              <h2 className="text-xl font-semibold text-slate-900">Syntax Guide</h2>
               <p className="mt-2">Each line maps to one workout block.</p>
               <div className="mt-4 space-y-3">
                 <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Blocks</h3>
+                  <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-500">Blocks</h3>
                   <p className="mt-1 flex flex-wrap gap-1">
                     {["steady", "warmup", "cooldown", "ramp", "intervals", "freeride", "message"].map((item) => (
                       <span
@@ -1100,7 +1100,7 @@ const Editor = ({ id }: EditorProps) => {
                   </p>
                 </div>
                 <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Examples</h3>
+                  <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-500">Examples</h3>
                   <div className="mt-1 space-y-1">
                     <code className="block rounded-md bg-slate-900 px-2 py-1 text-xs text-emerald-200">
                       steady 3.0wkg 30s
@@ -1123,8 +1123,8 @@ const Editor = ({ id }: EditorProps) => {
 
         <section className="rounded-3xl border border-white/50 bg-white/95 p-3 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-4">
           <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-800">Build Workout</p>
-          <div className="flex flex-col gap-3 xl:flex-row">
-            <aside className="flex shrink-0 flex-col gap-2 xl:w-[180px]">
+          <div className="flex flex-col gap-3 xl:flex-row xl:gap-6">
+            <aside className="flex shrink-0 flex-col gap-2 xl:w-36">
               {sportType === "bike" ? (
                 <>
                   <Tooltip id="text-editor-tooltip" />
