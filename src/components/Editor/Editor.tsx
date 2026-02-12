@@ -154,6 +154,7 @@ const Editor = ({ id }: EditorProps) => {
 
   const [textEditorIsVisible, setTextEditorIsVisible] = useState(false);
   const [selectedInstruction, setSelectedInstruction] = useState<Instruction>();
+  const [isMetaEditing, setIsMetaEditing] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("currentWorkout", JSON.stringify(bars));
@@ -777,6 +778,8 @@ const Editor = ({ id }: EditorProps) => {
     }
   }
 
+  const normalizeEditableText = (value: string) => value.replace(/\u00A0/g, " ").trim();
+
   const barsForMetrics = bars as Parameters<typeof getWorkoutLength>[0];
   const barsForDistance = bars.filter((bar) => bar.type !== "freeRide") as Parameters<typeof getWorkoutDistance>[0];
   const workoutTime = formatTime(getWorkoutLength(barsForMetrics, durationType));
@@ -809,8 +812,9 @@ const Editor = ({ id }: EditorProps) => {
     "inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400 hover:text-slate-900";
   const topSectionClass =
     sportType === "run"
-      ? "grid gap-3 xl:grid-cols-[230px_280px_minmax(0,1fr)]"
+      ? "grid gap-3 xl:grid-cols-[230px_196px_minmax(0,1fr)]"
       : "grid gap-3 xl:grid-cols-[230px_minmax(0,1fr)]";
+  const setupStackClass = sportType === "run" ? "space-y-5" : "space-y-3";
 
   return (
     // Adding tabIndex allows div element to receive keyboard events
@@ -834,9 +838,7 @@ const Editor = ({ id }: EditorProps) => {
             <button
               type="button"
               className={`rounded-full p-1 transition ${
-                message.class === "loading"
-                  ? "text-slate-100 hover:bg-white/15"
-                  : "text-current hover:bg-black/10"
+                message.class === "loading" ? "text-slate-100 hover:bg-white/15" : "text-current hover:bg-black/10"
               }`}
               onClick={() => setMessage({ visible: false })}
               aria-label="Dismiss message"
@@ -864,7 +866,7 @@ const Editor = ({ id }: EditorProps) => {
         <section className={topSectionClass}>
           <aside className="rounded-3xl border border-white/50 bg-white/85 p-3 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-4">
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-800">Workout Setup</p>
-            <div className="space-y-3">
+            <div className={setupStackClass}>
               <LeftRightToggle<"bike", "run">
                 label="Sport Type"
                 leftValue="bike"
@@ -923,95 +925,118 @@ const Editor = ({ id }: EditorProps) => {
             </div>
           </aside>
 
-          {sportType === "run" && <RunningTimesEditor times={runningTimes} onChange={setRunningTimes} layout="vertical" />}
+          {sportType === "run" && <RunningTimesEditor times={runningTimes} onChange={setRunningTimes} />}
 
-          <header className="rounded-3xl border border-white/50 bg-white/85 p-4 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-5">
+          <header className="flex h-full flex-col rounded-3xl border border-white/50 bg-white/85 p-4 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-5">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div className="w-full max-w-3xl">
-                <p className="mb-2 inline-flex rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
-                  ZWO Composer
-                </p>
-                <h1 className="font-[var(--font-display)] text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">
+                <div className="mb-2 flex items-center gap-2">
+                  <p className="inline-flex rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
+                    ZWO Composer
+                  </p>
+                  <button
+                    type="button"
+                    className={`inline-flex h-7 w-7 items-center justify-center rounded-full border text-xs transition ${
+                      isMetaEditing
+                        ? "border-cyan-300 bg-cyan-100 text-cyan-700"
+                        : "border-slate-300 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-700"
+                    }`}
+                    onClick={() => setIsMetaEditing((value) => !value)}
+                    aria-label={isMetaEditing ? "Stop editing workout details" : "Edit workout details"}
+                    title={isMetaEditing ? "Stop editing" : "Edit title, description, and author"}
+                  >
+                    <FontAwesomeIcon icon={faPen} />
+                  </button>
+                </div>
+
+                <h1
+                  contentEditable={isMetaEditing}
+                  suppressContentEditableWarning
+                  onBlur={(event) => {
+                    const value = normalizeEditableText(event.currentTarget.textContent || "");
+                    setName(value === "Untitled workout" ? "" : value);
+                  }}
+                  className="font-[var(--font-display)] text-3xl font-semibold tracking-tight text-slate-900 outline-none md:text-4xl"
+                >
                   {name || "Untitled workout"}
                 </h1>
-                <p className="mt-2 max-w-2xl text-sm text-slate-600">
-                  {description || "Shape your workout flow, then fine-tune intervals directly in the editor canvas."}
+
+                {(description || isMetaEditing) && (
+                  <p
+                    contentEditable={isMetaEditing}
+                    suppressContentEditableWarning
+                    onBlur={(event) => {
+                      const value = normalizeEditableText(event.currentTarget.textContent || "");
+                      setDescription(value === "Add workout description" ? "" : value);
+                    }}
+                    className="mt-2 max-w-2xl text-sm text-slate-600 outline-none"
+                  >
+                    {description || "Add workout description"}
+                  </p>
+                )}
+
+                <p
+                  contentEditable={isMetaEditing}
+                  suppressContentEditableWarning
+                  onBlur={(event) => {
+                    const value = normalizeEditableText(event.currentTarget.textContent || "");
+                    const withoutBy = value.toLowerCase().startsWith("by ") ? value.slice(3) : value;
+                    setAuthor(withoutBy);
+                  }}
+                  className="mt-3 text-sm font-medium text-slate-500 outline-none"
+                >
+                  {author ? `By ${author}` : isMetaEditing ? "By " : "No author set"}
                 </p>
-                <p className="mt-3 text-sm font-medium text-slate-500">{author ? `By ${author}` : "No author set"}</p>
               </div>
 
-              <div
-                className={
-                  sportType === "run"
-                    ? "grid w-full gap-3 sm:grid-cols-2 lg:grid-cols-5 xl:max-w-3xl"
-                    : "grid w-full gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:max-w-3xl"
-                }
-              >
+              <div className="grid w-full gap-2 [grid-template-columns:repeat(auto-fit,minmax(132px,1fr))] xl:max-w-[720px]">
                 <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Workout Time</p>
-                  <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{workoutTime}</p>
+                  <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
+                    {workoutTime}
+                  </p>
                 </div>
                 {sportType === "run" ? (
                   <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Distance</p>
-                    <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{workoutDistance} km</p>
+                    <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
+                      {workoutDistance} km
+                    </p>
                   </div>
                 ) : (
                   <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Training Load</p>
-                    <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{trainingLoad}</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                      Training Load
+                    </p>
+                    <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
+                      {trainingLoad}
+                    </p>
                   </div>
                 )}
                 {sportType === "run" && (
                   <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Avg Pace</p>
-                    <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{averagePace}</p>
+                    <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
+                      {averagePace}
+                    </p>
                   </div>
                 )}
                 <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Segments</p>
-                  <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{bars.length}</p>
+                  <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
+                    {bars.length}
+                  </p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Text Events</p>
-                  <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{instructions.length}</p>
+                  <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
+                    {instructions.length}
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-slate-200 bg-white/70 p-3">
-              <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-                <label className="block">
-                  <span className={fieldLabelClass}>Workout Name</span>
-                  <input
-                    className={inputClass}
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    placeholder="Morning Threshold Builder"
-                  />
-                </label>
-                <label className="block">
-                  <span className={fieldLabelClass}>Author</span>
-                  <input
-                    className={inputClass}
-                    value={author}
-                    onChange={(event) => setAuthor(event.target.value)}
-                    placeholder="Coach name"
-                  />
-                </label>
-                <label className="block md:col-span-2 xl:col-span-1">
-                  <span className={fieldLabelClass}>Description</span>
-                  <input
-                    className={inputClass}
-                    value={description}
-                    onChange={(event) => setDescription(event.target.value)}
-                    placeholder="Short workout summary"
-                  />
-                </label>
-              </div>
-            </div>
-
-            <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 pt-3">
+            <div className="mt-auto flex flex-wrap items-center justify-end gap-2 pt-3">
               <button
                 type="button"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
@@ -1065,7 +1090,10 @@ const Editor = ({ id }: EditorProps) => {
                   <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Blocks</h3>
                   <p className="mt-1 flex flex-wrap gap-1">
                     {["steady", "warmup", "cooldown", "ramp", "intervals", "freeride", "message"].map((item) => (
-                      <span key={item} className="rounded-md bg-cyan-100 px-2 py-0.5 text-xs font-semibold text-cyan-700">
+                      <span
+                        key={item}
+                        className="rounded-md bg-cyan-100 px-2 py-0.5 text-xs font-semibold text-cyan-700"
+                      >
                         {item}
                       </span>
                     ))}
@@ -1094,7 +1122,7 @@ const Editor = ({ id }: EditorProps) => {
         )}
 
         <section className="rounded-3xl border border-white/50 bg-white/95 p-3 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-4">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Build Workout</p>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-800">Build Workout</p>
           <div className="flex flex-col gap-3 xl:flex-row">
             <aside className="flex shrink-0 flex-col gap-2 xl:w-[180px]">
               {sportType === "bike" ? (
@@ -1228,9 +1256,15 @@ const Editor = ({ id }: EditorProps) => {
                     })}
                   </div>
 
-                  <div className="slider">{instructions.map((instruction, index) => renderComment(instruction, index))}</div>
+                  <div className="slider">
+                    {instructions.map((instruction, index) => renderComment(instruction, index))}
+                  </div>
 
-                  {durationType === "time" ? <TimeAxis width={segmentsWidth} /> : <DistanceAxis width={segmentsWidth} />}
+                  {durationType === "time" ? (
+                    <TimeAxis width={segmentsWidth} />
+                  ) : (
+                    <DistanceAxis width={segmentsWidth} />
+                  )}
                 </div>
 
                 <ZoneAxis />

@@ -21,10 +21,47 @@
   box-shadow: none;
   font-size: 0.95rem;
   color: #0f172a;
+  font-family: "JetBrains Mono", "Cascadia Code", "Fira Code", Consolas, monospace;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+.react-time-picker__inputGroup {
+  font-family: "JetBrains Mono", "Cascadia Code", "Fira Code", Consolas, monospace;
+  font-size: 0.95rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+.react-time-picker__inputGroup__divider,
+.react-time-picker__inputGroup__leadingZero {
+  font-family: "JetBrains Mono", "Cascadia Code", "Fira Code", Consolas, monospace;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.react-time-picker__inputGroup__leadingZero {
+  opacity: 0.78;
 }
 
 .react-time-picker__button {
   color: #64748b;
+}
+
+.react-time-picker__clear-button {
+  color: #94a3b8;
+  opacity: 0.6;
+  transition: opacity 120ms ease;
+}
+
+.react-time-picker__clear-button:hover {
+  opacity: 0.9;
+}
+
+.react-time-picker__clear-button svg {
+  width: 14px;
+  height: 14px;
 }
 
 .react-time-picker__clock-button {
@@ -54,16 +91,29 @@
 
 .run-times-compact .react-time-picker__wrapper {
   border-radius: 0.65rem;
-  padding: 0.3rem 0.5rem;
+  padding: 0.25rem 0.45rem;
 }
 
 .run-times-compact .react-time-picker__inputGroup__input {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
+}
+
+.run-times-compact .react-time-picker__inputGroup {
+  font-size: 0.8rem;
+}
+
+.run-times-compact .react-time-picker__clear-button {
+  opacity: 0.45;
+}
+
+.run-times-compact .react-time-picker__clear-button svg {
+  width: 12px;
+  height: 12px;
 }
 
 .btn-estimate-compact {
   border-radius: 0.65rem;
-  padding: 0.45rem 0.55rem;
-  font-size: 0.72rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.69rem;
   letter-spacing: 0.06em;
 }
