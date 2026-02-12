@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import {
   faArrowLeft,
   faArrowRight,
@@ -9,7 +9,6 @@ import {
   faCopy,
   faDownload,
   faFile,
-  faList,
   faPen,
   faRuler,
   faRunning,
@@ -133,11 +132,10 @@ const Editor = ({ id }: EditorProps) => {
 
   const canvasRef = useRef<HTMLInputElement>(null);
   const segmentsRef = useRef<HTMLInputElement>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
   const [segmentsWidth, setSegmentsWidth] = useState(1320);
 
   const [message, setMessage] = useState<Message>();
-
-  const [_, setShowWorkouts] = useState(false);
 
   // bike or run
   const [sportType, setSportType] = useState<SportType>((localStorage.getItem("sportType") as SportType) || "bike");
@@ -781,385 +779,458 @@ const Editor = ({ id }: EditorProps) => {
 
   const barsForMetrics = bars as Parameters<typeof getWorkoutLength>[0];
   const barsForDistance = bars.filter((bar) => bar.type !== "freeRide") as Parameters<typeof getWorkoutDistance>[0];
+  const workoutTime = formatTime(getWorkoutLength(barsForMetrics, durationType));
+  const workoutDistance = getWorkoutDistance(barsForDistance);
+  const trainingLoad = round(getStressScore(barsForMetrics, ftp), 1);
+  const averagePace = getWorkoutPace(barsForMetrics, durationType, paceUnitType);
+
+  const zoneButtons = [
+    { label: "Z1", color: Colors.GRAY, zone: 0.5, textColor: "#ffffff" },
+    { label: "Z2", color: Colors.BLUE, zone: Zones.Z2.min, textColor: "#ffffff" },
+    { label: "Z3", color: Colors.GREEN, zone: Zones.Z3.min, textColor: "#ffffff" },
+    { label: "Z4", color: Colors.YELLOW, zone: Zones.Z4.min, textColor: "#111827" },
+    { label: "Z5", color: Colors.ORANGE, zone: Zones.Z5.min, textColor: "#ffffff" },
+    { label: "Z6", color: Colors.RED, zone: Zones.Z6.min, textColor: "#ffffff" },
+  ];
+
+  const messageToneClass =
+    message?.class === "error"
+      ? "border-rose-200 bg-rose-50 text-rose-700"
+      : message?.class === "loading"
+        ? "border-slate-800 bg-slate-900 text-slate-100"
+        : "border-emerald-200 bg-emerald-50 text-emerald-700";
+
+  const fieldLabelClass = "mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500";
+  const inputClass =
+    "w-full rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200";
+  const metricClass = `${inputClass} cursor-default bg-slate-100/90 font-semibold`;
+  const segmentToolButtonClass =
+    "inline-flex items-center justify-start gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900";
 
   return (
     // Adding tabIndex allows div element to receive keyboard events
-    <div className="container" onKeyDown={handleKeyPress} tabIndex={0}>
-      {/* react-helmet removed; head updated via useEffect earlier */}
+    <div
+      className="relative h-full overflow-y-auto overflow-x-hidden px-3 py-3 md:px-5 md:py-5"
+      onKeyDown={handleKeyPress}
+      tabIndex={0}
+    >
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-28 left-[-120px] h-80 w-80 rounded-full bg-[radial-gradient(circle,_rgba(8,145,178,0.25)_0%,_rgba(8,145,178,0)_70%)]" />
+        <div className="absolute top-24 right-[-140px] h-96 w-96 rounded-full bg-[radial-gradient(circle,_rgba(14,165,133,0.26)_0%,_rgba(14,165,133,0)_70%)]" />
+        <div className="absolute bottom-[-110px] left-1/3 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(2,132,199,0.22)_0%,_rgba(2,132,199,0)_70%)]" />
+      </div>
 
-      {message?.visible && (
-        <div className={`message ${message.class}`}>
-          {message.text}
-          <button type="button" className="close" onClick={() => setMessage({ visible: false })}>
-            <FontAwesomeIcon icon={faTimesCircle} size="lg" />
-          </button>
-        </div>
-      )}
-
-      {selectedInstruction && (
-        <EditComment
-          instruction={selectedInstruction}
-          onChange={(id: string, values: Instruction) => {
-            changeInstruction(id, values);
-            setSelectedInstruction(undefined);
-          }}
-          dismiss={() => setSelectedInstruction(undefined)}
-          onDelete={(id: string) => {
-            deleteInstruction(id);
-            setSelectedInstruction(undefined);
-          }}
-        />
-      )}
-
-      <div className="info">
-        <div className="title">
-          <h1>{name}</h1>
-          <div className="description">{description}</div>
-          <p>{author ? `by ${author}` : ""}</p>
-        </div>
-        <div className="workout">
-          <div className="form-input">
-            <label>Workout Time</label>
-            <input className="textInput" value={formatTime(getWorkoutLength(barsForMetrics, durationType))} disabled />
+      <div className="mx-auto flex w-full max-w-[1520px] flex-col gap-3">
+        {message?.visible && (
+          <div
+            className={`fixed left-1/2 top-6 z-[1000] flex w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 items-center justify-between rounded-2xl border px-4 py-3 shadow-lg ${messageToneClass}`}
+          >
+            <p className="pr-3 text-sm font-semibold">{message.text}</p>
+            <button
+              type="button"
+              className={`rounded-full p-1 transition ${
+                message.class === "loading"
+                  ? "text-slate-100 hover:bg-white/15"
+                  : "text-current hover:bg-black/10"
+              }`}
+              onClick={() => setMessage({ visible: false })}
+              aria-label="Dismiss message"
+            >
+              <FontAwesomeIcon icon={faTimesCircle} />
+            </button>
           </div>
-          {sportType === "run" && (
-            <div className="form-input">
-              <label>Workout Distance</label>
-              <input className="textInput" value={getWorkoutDistance(barsForDistance)} disabled />
+        )}
+
+        {selectedInstruction && (
+          <EditComment
+            instruction={selectedInstruction}
+            onChange={(instructionId: string, values: Instruction) => {
+              changeInstruction(instructionId, values);
+              setSelectedInstruction(undefined);
+            }}
+            dismiss={() => setSelectedInstruction(undefined)}
+            onDelete={(instructionId: string) => {
+              deleteInstruction(instructionId);
+              setSelectedInstruction(undefined);
+            }}
+          />
+        )}
+
+        <header className="rounded-3xl border border-white/50 bg-white/85 p-4 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-5">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+            <div className="w-full max-w-3xl">
+              <p className="mb-2 inline-flex rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
+                ZWO Composer
+              </p>
+              <h1 className="font-[var(--font-display)] text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">
+                {name || "Untitled workout"}
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm text-slate-600">
+                {description || "Shape your workout flow, then fine-tune intervals directly in the editor canvas."}
+              </p>
+              <p className="mt-3 text-sm font-medium text-slate-500">{author ? `By ${author}` : "No author set"}</p>
             </div>
-          )}
-          {sportType === "bike" && (
-            <div className="form-input">
-              <label title="Training Load">Training Load</label>
-              <input className="textInput" value={round(getStressScore(barsForMetrics, ftp), 1)} disabled />
+
+            <div className="grid w-full gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:max-w-3xl">
+              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Workout Time</p>
+                <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{workoutTime}</p>
+              </div>
+              {sportType === "run" ? (
+                <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Distance</p>
+                  <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{workoutDistance} km</p>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Training Load</p>
+                  <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{trainingLoad}</p>
+                </div>
+              )}
+              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Segments</p>
+                <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{bars.length}</p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Text Events</p>
+                <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{instructions.length}</p>
+              </div>
             </div>
-          )}
-          {sportType === "run" && (
-            <div className="form-input">
-              <label>Avg. Workout Pace</label>
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <label className="rounded-2xl border border-slate-200 bg-white/70 p-3">
+              <span className={fieldLabelClass}>Workout Name</span>
               <input
-                className="textInput"
-                value={getWorkoutPace(barsForMetrics, durationType, paceUnitType)}
-                disabled
+                className={inputClass}
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder="Morning Threshold Builder"
+              />
+            </label>
+            <label className="rounded-2xl border border-slate-200 bg-white/70 p-3">
+              <span className={fieldLabelClass}>Author</span>
+              <input
+                className={inputClass}
+                value={author}
+                onChange={(event) => setAuthor(event.target.value)}
+                placeholder="Coach name"
+              />
+            </label>
+            <label className="rounded-2xl border border-slate-200 bg-white/70 p-3 md:col-span-2 xl:col-span-1">
+              <span className={fieldLabelClass}>Description</span>
+              <input
+                className={inputClass}
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Short workout summary"
+              />
+            </label>
+            <div className="rounded-2xl border border-slate-200 bg-white/70 p-3">
+              <LeftRightToggle<"bike", "run">
+                label="Sport Type"
+                leftValue="bike"
+                rightValue="run"
+                leftIcon={faBiking}
+                rightIcon={faRunning}
+                selected={sportType}
+                onChange={switchSportType}
               />
             </div>
-          )}
-          {sportType === "run" && (
-            <LeftRightToggle<"time", "distance">
-              label="Duration Type"
-              leftValue="time"
-              rightValue="distance"
-              leftIcon={faClock}
-              rightIcon={faRuler}
-              selected={durationType}
-              onChange={setDurationType}
-            />
-          )}
-          {sportType === "run" && (
-            <LeftRightToggle<"metric", "imperial">
-              label="Pace Unit"
-              leftValue="metric"
-              rightValue="imperial"
-              leftLabel="min/km"
-              rightLabel="min/mi"
-              selected={paceUnitType}
-              onChange={setPaceUnitType}
-            />
-          )}
-          <LeftRightToggle<"bike", "run">
-            label="Sport Type"
-            leftValue="bike"
-            rightValue="run"
-            leftIcon={faBiking}
-            rightIcon={faRunning}
-            selected={sportType}
-            onChange={switchSportType}
-          />
-        </div>
-      </div>
-      {sportType === "run" && <RunningTimesEditor times={runningTimes} onChange={setRunningTimes} />}
-      {textEditorIsVisible && sportType === "bike" && (
-        <div className="text-editor">
-          <textarea
-            onChange={(e) => transformTextToWorkout(e.target.value)}
-            rows={10}
-            spellCheck={false}
-            className="text-editor-textarea"
-            placeholder="Add one block per line here: &#10;steady 3.0wkg 30s"
-          ></textarea>
-          <div className="text-editor-instructions">
-            <h2>Instructions</h2>
-            <p>Every row correspond to a workout block. Scroll down to see some examples.</p>
-            <h3>Blocks</h3>
-            <p>
-              <span>steady</span> <span>warmup</span> <span>cooldown</span> <span>ramp</span> <span>intervals</span>{" "}
-              <span>freeride</span> <span>message</span>
-            </p>
-            <h3>Time</h3>
-            <p>
-              <span>30s</span> or <span>0:30m</span>
-            </p>
-            <h3>Power</h3>
-            <p>
-              <span>250w</span> or <span>3.0wkg</span> or <span>75%</span> (FTP)
-            </p>
-            <h3>Cadence</h3>
-            <p>
-              <span>120rpm</span>
-            </p>
-            <h2>Examples</h2>
-            <h3>Steady block</h3>
-            <p>
-              <code>steady 3.0wkg 30s</code>
-              <code>steady 120w 10m 85rpm</code>
-            </p>
-            <h3>Warmup / Cooldown / Ramp block</h3>
-            <p>
-              <code>warmup 2.0wkg-3.5wkg 10m</code>
-              <code>cooldown 180w-100w 5m 110rpm</code>
-            </p>
-            <h3>Intervals</h3>
-            <p>
-              <code>interval 10x 30s-30s 4.0wkg-1.0wkg 110rpm-85rpm</code>
-              <code>interval 3x 1:00m-5:00m 300w-180w</code>
-            </p>
-            <h3>Free Ride</h3>
-            <p>
-              <code>freeride 10m 85rpm</code>
-            </p>
-            <h3>Text Event</h3>
-            <p>
-              <code>message "Get ready to your first set!" 30s</code>
-              <code>message "Last one!" 20:00m</code>
-            </p>
-          </div>
-        </div>
-      )}
-      <div id="editor" className="editor">
-        {actionId && (
-          <div className="actions">
-            <button type="button" onClick={() => moveLeft(actionId)} title="Move Left">
-              <FontAwesomeIcon icon={faArrowLeft} size="lg" />
-            </button>
-            <button type="button" onClick={() => moveRight(actionId)} title="Move Right">
-              <FontAwesomeIcon icon={faArrowRight} size="lg" />
-            </button>
-            <button type="button" onClick={() => removeBar(actionId)} title="Delete">
-              <FontAwesomeIcon icon={faTrash} size="lg" />
-            </button>
-            <button type="button" onClick={() => duplicateBar(actionId)} title="Duplicate">
-              <FontAwesomeIcon icon={faCopy} size="lg" />
-            </button>
             {sportType === "run" && (
-              <select
-                name="pace"
-                value={getPace(actionId)}
-                onChange={(e) => setPace(e.target?.value, actionId)}
-                className="selectInput"
-              >
-                <option value="0">1 Mile Pace</option>
-                <option value="1">5K Pace</option>
-                <option value="2">10K Pace</option>
-                <option value="3">Half Marathon Pace</option>
-                <option value="4">Marathon Pace</option>
-              </select>
+              <div className="rounded-2xl border border-slate-200 bg-white/70 p-3">
+                <LeftRightToggle<"time", "distance">
+                  label="Duration Type"
+                  leftValue="time"
+                  rightValue="distance"
+                  leftIcon={faClock}
+                  rightIcon={faRuler}
+                  selected={durationType}
+                  onChange={setDurationType}
+                />
+              </div>
+            )}
+            {sportType === "run" && (
+              <div className="rounded-2xl border border-slate-200 bg-white/70 p-3">
+                <LeftRightToggle<"metric", "imperial">
+                  label="Pace Unit"
+                  leftValue="metric"
+                  rightValue="imperial"
+                  leftLabel="min/km"
+                  rightLabel="min/mi"
+                  selected={paceUnitType}
+                  onChange={setPaceUnitType}
+                />
+              </div>
+            )}
+            {sportType === "run" && (
+              <label className="rounded-2xl border border-slate-200 bg-white/70 p-3">
+                <span className={fieldLabelClass}>Average Pace</span>
+                <input className={metricClass} value={averagePace} disabled />
+              </label>
+            )}
+            {sportType === "bike" && (
+              <label className="rounded-2xl border border-slate-200 bg-white/70 p-3">
+                <span className={fieldLabelClass}>FTP (W)</span>
+                <input
+                  className={inputClass}
+                  type="number"
+                  name="ftp"
+                  value={ftp}
+                  onChange={(event) => setFtp(Math.max(1, Number.parseInt(event.target.value, 10) || 0))}
+                />
+              </label>
+            )}
+            {sportType === "bike" && (
+              <label className="rounded-2xl border border-slate-200 bg-white/70 p-3">
+                <span className={fieldLabelClass}>Body Weight (kg)</span>
+                <input
+                  className={inputClass}
+                  type="number"
+                  name="weight"
+                  value={weight}
+                  onChange={(event) => setWeight(Math.max(1, Number.parseInt(event.target.value, 10) || 0))}
+                />
+              </label>
             )}
           </div>
-        )}
-        <div className="canvas" ref={canvasRef}>
-          {actionId && (
-            <div
-              className="fader"
-              style={{ width: canvasRef.current?.scrollWidth }}
-              onClick={() => setActionId(undefined)}
-            ></div>
-          )}
-          <div className="segments" ref={segmentsRef}>
-            {bars.map((bar) => {
-              if (bar.type === "bar") {
-                return renderBar(bar);
-              }
-              if (bar.type === "trapeze") {
-                return renderTrapeze(bar);
-              }
-              if (bar.type === "freeRide") {
-                return renderFreeRide(bar);
-              }
-              if (bar.type === "interval") {
-                return renderInterval(bar);
-              }
-              return false;
-            })}
-          </div>
 
-          <div className="slider">{instructions.map((instruction, index) => renderComment(instruction, index))}</div>
-
-          {durationType === "time" ? <TimeAxis width={segmentsWidth} /> : <DistanceAxis width={segmentsWidth} />}
-        </div>
-
-        <ZoneAxis />
-      </div>
-      <div className="cta">
-        {sportType === "bike" ? (
-          <div>
-            <Tooltip id="my-tooltip" />
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3">
             <button
               type="button"
-              className="btn btn-square"
-              onClick={() => toggleTextEditor()}
-              style={{ backgroundColor: "palevioletred" }}
-              data-tip="New! Workout text editor!"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+              onClick={() => {
+                if (window.confirm("Are you sure you want to create a new workout?")) newWorkout();
+              }}
             >
-              <FontAwesomeIcon icon={faPen} />
+              <FontAwesomeIcon icon={faFile} /> New Workout
             </button>
             <button
               type="button"
-              className="btn btn-square"
-              onClick={() => addBar(0.5)}
-              style={{ backgroundColor: Colors.GRAY }}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900"
+              onClick={() => downloadWorkout()}
             >
-              Z1
+              <FontAwesomeIcon icon={faDownload} /> Download .zwo
             </button>
-            <button
-              type="button"
-              className="btn btn-square"
-              onClick={() => addBar(Zones.Z2.min)}
-              style={{ backgroundColor: Colors.BLUE }}
-            >
-              Z2
-            </button>
-            <button
-              type="button"
-              className="btn btn-square"
-              onClick={() => addBar(Zones.Z3.min)}
-              style={{ backgroundColor: Colors.GREEN }}
-            >
-              Z3
-            </button>
-            <button
-              type="button"
-              className="btn btn-square"
-              onClick={() => addBar(Zones.Z4.min)}
-              style={{ backgroundColor: Colors.YELLOW }}
-            >
-              Z4
-            </button>
-            <button
-              type="button"
-              className="btn btn-square"
-              onClick={() => addBar(Zones.Z5.min)}
-              style={{ backgroundColor: Colors.ORANGE }}
-            >
-              Z5
-            </button>
-            <button
-              type="button"
-              className="btn btn-square"
-              onClick={() => addBar(Zones.Z6.min)}
-              style={{ backgroundColor: Colors.RED }}
-            >
-              Z6
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            className="btn"
-            onClick={() => addBar(1, 300, 0, 0, 1000)}
-            style={{ backgroundColor: Colors.WHITE }}
-          >
-            <SteadyLogo className="btn-icon" /> Steady Pace
-          </button>
-        )}
-
-        <button
-          type="button"
-          className="btn"
-          onClick={() => addTrapeze(0.25, 0.75)}
-          style={{ backgroundColor: Colors.WHITE }}
-        >
-          <WarmupLogo className="btn-icon" /> Warm up
-        </button>
-        <button
-          type="button"
-          className="btn"
-          onClick={() => addTrapeze(0.75, 0.25)}
-          style={{ backgroundColor: Colors.WHITE }}
-        >
-          <CooldownLogo className="btn-icon" /> Cool down
-        </button>
-        <button type="button" className="btn" onClick={() => addInterval()} style={{ backgroundColor: Colors.WHITE }}>
-          <IntervalLogo className="btn-icon" /> Interval
-        </button>
-        <button type="button" className="btn" onClick={() => addFreeRide()} style={{ backgroundColor: Colors.WHITE }}>
-          <FontAwesomeIcon icon={sportType === "bike" ? faBicycle : faRunning} size="lg" />
-          Free {sportType === "bike" ? "Ride" : "Run"}
-        </button>
-        <button
-          type="button"
-          className="btn"
-          onClick={() => addInstruction()}
-          style={{ backgroundColor: Colors.WHITE }}
-        >
-          <FontAwesomeIcon icon={faComment} size="lg" /> Text Event
-        </button>
-        {sportType === "bike" && (
-          <div className="form-input">
-            <label htmlFor="ftp">FTP (W)</label>
             <input
-              className="textInput"
-              type="number"
-              name="ftp"
-              value={ftp}
-              onChange={(e) => setFtp(parseInt(e.target.value))}
+              accept=".xml,.zwo"
+              ref={uploadInputRef}
+              type="file"
+              className="hidden"
+              onChange={(event) => {
+                const selectedFile = event.target.files?.[0];
+                if (selectedFile) void handleUpload(selectedFile);
+              }}
             />
+            <button
+              type="button"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-300 bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-700 shadow-sm transition hover:border-cyan-400 hover:bg-cyan-100"
+              onClick={() => uploadInputRef.current?.click()}
+            >
+              <FontAwesomeIcon icon={faUpload} /> Upload Workout
+            </button>
           </div>
+        </header>
+
+        {sportType === "run" && <RunningTimesEditor times={runningTimes} onChange={setRunningTimes} />}
+
+        {textEditorIsVisible && sportType === "bike" && (
+          <section className="grid gap-3 rounded-3xl border border-white/50 bg-white/85 p-4 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md lg:grid-cols-[1.5fr_1fr]">
+            <div>
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Text Composer</p>
+              <textarea
+                onChange={(event) => transformTextToWorkout(event.target.value)}
+                rows={10}
+                spellCheck={false}
+                className="h-full min-h-[210px] w-full resize-y rounded-2xl border border-slate-200 bg-slate-950 px-4 py-3 font-mono text-sm text-slate-100 shadow-inner outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-300/40"
+                placeholder="Add one block per line here:&#10;steady 3.0wkg 30s"
+              />
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+              <h2 className="font-[var(--font-display)] text-xl font-semibold text-slate-900">Syntax Guide</h2>
+              <p className="mt-2">Each line maps to one workout block.</p>
+              <div className="mt-4 space-y-3">
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Blocks</h3>
+                  <p className="mt-1 flex flex-wrap gap-1">
+                    {["steady", "warmup", "cooldown", "ramp", "intervals", "freeride", "message"].map((item) => (
+                      <span key={item} className="rounded-md bg-cyan-100 px-2 py-0.5 text-xs font-semibold text-cyan-700">
+                        {item}
+                      </span>
+                    ))}
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Examples</h3>
+                  <div className="mt-1 space-y-1">
+                    <code className="block rounded-md bg-slate-900 px-2 py-1 text-xs text-emerald-200">
+                      steady 3.0wkg 30s
+                    </code>
+                    <code className="block rounded-md bg-slate-900 px-2 py-1 text-xs text-emerald-200">
+                      warmup 2.0wkg-3.5wkg 10m
+                    </code>
+                    <code className="block rounded-md bg-slate-900 px-2 py-1 text-xs text-emerald-200">
+                      interval 10x 30s-30s 4.0wkg-1.0wkg 110rpm-85rpm
+                    </code>
+                    <code className="block rounded-md bg-slate-900 px-2 py-1 text-xs text-emerald-200">
+                      message "Last one!" 20:00m
+                    </code>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
         )}
 
-        {sportType === "bike" && (
-          <div className="form-input">
-            <label htmlFor="weight">Body Weight (Kg)</label>
-            <input
-              className="textInput"
-              type="number"
-              name="weight"
-              value={weight}
-              onChange={(e) => setWeight(parseInt(e.target.value))}
-            />
-          </div>
-        )}
+        <section className="rounded-3xl border border-white/50 bg-white/95 p-3 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-4">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Build Workout</p>
+          <div className="flex flex-col gap-3 xl:flex-row">
+            <aside className="flex shrink-0 flex-col gap-2 xl:w-[180px]">
+              {sportType === "bike" ? (
+                <>
+                  <Tooltip id="text-editor-tooltip" />
+                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-8 xl:grid-cols-2">
+                    <button
+                      type="button"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500 text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-rose-600"
+                      onClick={() => toggleTextEditor()}
+                      data-tooltip-id="text-editor-tooltip"
+                      data-tooltip-content="Open text workout composer"
+                      aria-label="Open text editor"
+                    >
+                      <FontAwesomeIcon icon={faPen} />
+                    </button>
+                    {zoneButtons.map((zoneButton) => (
+                      <button
+                        key={zoneButton.label}
+                        type="button"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold shadow-sm transition hover:-translate-y-0.5"
+                        onClick={() => addBar(zoneButton.zone)}
+                        style={{ backgroundColor: zoneButton.color, color: zoneButton.textColor }}
+                      >
+                        {zoneButton.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <button type="button" className={segmentToolButtonClass} onClick={() => addBar(1, 300, 0, 0, 1000)}>
+                  <SteadyLogo className="h-5 w-5" /> Steady Pace
+                </button>
+              )}
 
-        <button
-          type="button"
-          className="btn"
-          onClick={() => {
-            if (window.confirm("Are you sure you want to create a new workout?")) newWorkout();
-          }}
-        >
-          <FontAwesomeIcon icon={faFile} size="lg" /> New
-        </button>
-        <button type="button" className="btn">
-          <FontAwesomeIcon icon={faTrash} size="lg" /> Delete
-        </button>
-        <button type="button" className="btn" onClick={() => downloadWorkout()}>
-          <FontAwesomeIcon icon={faDownload} size="lg" /> Download
-        </button>
-        <input
-          accept=".xml,.zwo"
-          id="contained-button-file"
-          type="file"
-          style={{ display: "none" }}
-          onChange={(e) => handleUpload(e.target.files![0])}
-        />
-        <button type="button" className="btn" onClick={() => document.getElementById("contained-button-file")!.click()}>
-          <FontAwesomeIcon icon={faUpload} size="lg" /> Upload
-        </button>
-        <button type="button" className="btn" onClick={() => setShowWorkouts(true)}>
-          <FontAwesomeIcon icon={faList} size="lg" /> Workouts
-        </button>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-1">
+                <button type="button" className={segmentToolButtonClass} onClick={() => addTrapeze(0.25, 0.75)}>
+                  <WarmupLogo className="h-5 w-5" /> Warm Up
+                </button>
+                <button type="button" className={segmentToolButtonClass} onClick={() => addTrapeze(0.75, 0.25)}>
+                  <CooldownLogo className="h-5 w-5" /> Cool Down
+                </button>
+                <button type="button" className={segmentToolButtonClass} onClick={() => addInterval()}>
+                  <IntervalLogo className="h-5 w-5" /> Interval
+                </button>
+                <button type="button" className={segmentToolButtonClass} onClick={() => addFreeRide()}>
+                  <FontAwesomeIcon icon={sportType === "bike" ? faBicycle : faRunning} /> Free{" "}
+                  {sportType === "bike" ? "Ride" : "Run"}
+                </button>
+                <button type="button" className={segmentToolButtonClass} onClick={() => addInstruction()}>
+                  <FontAwesomeIcon icon={faComment} /> Text Event
+                </button>
+              </div>
+            </aside>
+
+            <div className="min-w-0 flex-1">
+              <div id="editor" className="editor-shell">
+                {actionId && (
+                  <div className="editor-actions">
+                    <button
+                      type="button"
+                      onClick={() => moveLeft(actionId)}
+                      title="Move Left"
+                      className="editor-action-button"
+                    >
+                      <FontAwesomeIcon icon={faArrowLeft} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveRight(actionId)}
+                      title="Move Right"
+                      className="editor-action-button"
+                    >
+                      <FontAwesomeIcon icon={faArrowRight} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeBar(actionId)}
+                      title="Delete"
+                      className="editor-action-button"
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => duplicateBar(actionId)}
+                      title="Duplicate"
+                      className="editor-action-button"
+                    >
+                      <FontAwesomeIcon icon={faCopy} />
+                    </button>
+                    {sportType === "run" && (
+                      <select
+                        name="pace"
+                        value={getPace(actionId)}
+                        onChange={(event) => setPace(event.target.value, actionId)}
+                        className="rounded-full border border-slate-600 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-100 outline-none transition focus:border-cyan-400"
+                      >
+                        <option value="0">1 Mile Pace</option>
+                        <option value="1">5K Pace</option>
+                        <option value="2">10K Pace</option>
+                        <option value="3">Half Marathon Pace</option>
+                        <option value="4">Marathon Pace</option>
+                      </select>
+                    )}
+                  </div>
+                )}
+                <div className="canvas" ref={canvasRef}>
+                  {actionId && (
+                    <div
+                      className="fader"
+                      style={{ width: canvasRef.current?.scrollWidth }}
+                      onClick={() => setActionId(undefined)}
+                    ></div>
+                  )}
+                  <div className="segments" ref={segmentsRef}>
+                    {bars.map((bar) => {
+                      if (bar.type === "bar") {
+                        return renderBar(bar);
+                      }
+                      if (bar.type === "trapeze") {
+                        return renderTrapeze(bar);
+                      }
+                      if (bar.type === "freeRide") {
+                        return renderFreeRide(bar);
+                      }
+                      if (bar.type === "interval") {
+                        return renderInterval(bar);
+                      }
+                      return false;
+                    })}
+                  </div>
+
+                  <div className="slider">{instructions.map((instruction, index) => renderComment(instruction, index))}</div>
+
+                  {durationType === "time" ? <TimeAxis width={segmentsWidth} /> : <DistanceAxis width={segmentsWidth} />}
+                </div>
+
+                <ZoneAxis />
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );
 };
 
 export default Editor;
+

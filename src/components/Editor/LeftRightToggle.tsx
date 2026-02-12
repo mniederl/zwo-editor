@@ -2,8 +2,6 @@ import type { IconProp } from "@fortawesome/fontawesome-svg-core";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Switch from "react-switch";
 
-import "./LeftRightToggle.css";
-
 interface LeftRightToggleProps<TLeft, TRight> {
   label: string;
   leftValue: TLeft;
@@ -29,13 +27,21 @@ const LeftRightToggle = <TLeft, TRight>({
   selected,
   onChange,
 }: LeftRightToggleProps<TLeft, TRight>) => (
-  <div className="form-input">
-    <label>{label}</label>
-    <div className="left-right-toggle">
+  <div className="flex flex-col">
+    <label className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{label}</label>
+    <div className="flex items-center gap-2 text-slate-400">
       {leftIcon && (
-        <FontAwesomeIcon className={`icon ${selected === leftValue ? "active" : ""}`} icon={leftIcon} size="lg" />
+        <FontAwesomeIcon
+          className={selected === leftValue ? "text-emerald-600" : "text-slate-400"}
+          icon={leftIcon}
+          size="lg"
+        />
       )}
-      {leftLabel && <div className={`icon ${selected === leftValue ? "active" : ""}`}>{leftLabel}</div>}
+      {leftLabel && (
+        <span className={`text-sm font-semibold ${selected === leftValue ? "text-emerald-600" : "text-slate-500"}`}>
+          {leftLabel}
+        </span>
+      )}
       <Switch
         onChange={() => onChange(selected === leftValue ? rightValue : leftValue)}
         checked={selected === rightValue}
@@ -43,11 +49,22 @@ const LeftRightToggle = <TLeft, TRight>({
         uncheckedIcon={false}
         onColor={COLOR}
         offColor={COLOR}
+        height={20}
+        width={40}
+        handleDiameter={16}
       />
       {rightIcon && (
-        <FontAwesomeIcon className={`icon ${selected === rightValue ? "active" : ""}`} icon={rightIcon} size="lg" />
+        <FontAwesomeIcon
+          className={selected === rightValue ? "text-emerald-600" : "text-slate-400"}
+          icon={rightIcon}
+          size="lg"
+        />
       )}
-      {rightLabel && <div className={`icon ${selected === rightValue ? "active" : ""}`}>{rightLabel}</div>}
+      {rightLabel && (
+        <span className={`text-sm font-semibold ${selected === rightValue ? "text-emerald-600" : "text-slate-500"}`}>
+          {rightLabel}
+        </span>
+      )}
     </div>
   </div>
 );

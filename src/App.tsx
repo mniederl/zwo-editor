@@ -1,7 +1,6 @@
 import Editor from "./components/Editor/Editor";
 
 import 'react-time-picker/dist/TimePicker.css';
-import "./App.css";
 
 export default function App() {
   const pathname = window.location.pathname || "/";

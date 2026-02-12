@@ -2,15 +2,19 @@
   position: absolute;
   bottom: 0px;
 
-  border-top: 1px solid gray;
+  border-top: 1px solid rgba(100, 116, 139, 0.5);
   overflow: hidden;
   min-width: 1320px;
+  color: #64748b;
+  font-size: 0.73rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .x-axis > span {
   position: relative;
   display: inline-block;
-  margin-top: 20px;
+  margin-top: 14px;
   padding: 0;
 }
 
@@ -25,8 +29,8 @@
   content: "";
   position: absolute;
   width: 1px;
-  height: 10px;
-  top: -20px;
+  height: 8px;
+  top: -14px;
   left: 0;
-  background-color: gray;
+  background-color: rgba(100, 116, 139, 0.65);
 }

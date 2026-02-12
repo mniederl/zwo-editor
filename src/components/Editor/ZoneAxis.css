@@ -1,8 +1,13 @@
 .zone-axis {
   position: absolute;
   bottom: 50px;
-  left: 2px;
-  color: gray;
+  left: 8px;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
 }
 .zone-axis > div {
   position: absolute;
@@ -10,5 +15,5 @@
   left: 0;
 }
 .zone-axis > div:not(:first-child) {
-  border-top: 1px solid gray;
+  border-top: 1px solid rgba(100, 116, 139, 0.35);
 }

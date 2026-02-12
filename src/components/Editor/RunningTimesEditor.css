@@ -1,52 +1,53 @@
-.run-workout {
-  display: flex;
-  margin: 0 auto;
-  flex-direction: row;
-  width: 100%;
-  max-width: 1360px;
-}
-
-.run-workout > .form-input {
-  padding-right: 10px;
-  align-self: flex-end;
-}
-
 .react-time-picker {
-  background-color: white;
-  border: none;
-  border-radius: 8px;
+  width: 100%;
+  border-radius: 0.75rem;
+  background-color: #ffffff;
 }
 
 .react-time-picker__wrapper {
-  border-radius: 8px;
-  padding: 0px 4px;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem 0.7rem;
+  transition: border-color 120ms ease;
+}
+
+.react-time-picker__wrapper:focus-within {
+  border-color: #10b981;
 }
 
 .react-time-picker__inputGroup__input {
   border: none;
   outline: none;
   box-shadow: none;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
+  font-size: 0.95rem;
+  color: #0f172a;
 }
 
-.react-time-picker__inputGroup__input::selection {
-  background: aliceblue;
+.react-time-picker__button {
+  color: #64748b;
+}
+
+.react-time-picker__clock-button {
+  display: none;
 }
 
 .btn-estimate {
-  background-color: rgb(0, 196, 106);
-  color: white;
-  border: none;
-  padding: 6px 10px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  border-radius: 8px;
+  border: 1px solid #a5f3fc;
+  border-radius: 0.75rem;
+  background-color: #ecfeff;
+  color: #155e75;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
 }
 
 .btn-estimate:hover {
-  background-color: rgb(0, 150, 81);
+  background-color: #cffafe;
+  border-color: #67e8f9;
 }
