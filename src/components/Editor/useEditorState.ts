@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import type { RefObject } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
+import type { RefObject, SetStateAction } from "react";
 
 import { genShortId } from "@utils/id";
 
@@ -17,15 +17,55 @@ interface UseEditorStateProps {
   segmentsRef: RefObject<HTMLDivElement | null>;
 }
 
+interface WorkoutState {
+  bars: BarType[];
+  instructions: Instruction[];
+  actionId: string | undefined;
+}
+
+type WorkoutStateAction =
+  | { type: "setBars"; value: SetStateAction<BarType[]> }
+  | { type: "setInstructions"; value: SetStateAction<Instruction[]> }
+  | { type: "setActionId"; value: SetStateAction<string | undefined> };
+
+const resolveStateAction = <T>(value: SetStateAction<T>, previous: T): T =>
+  typeof value === "function" ? (value as (prev: T) => T)(previous) : value;
+
+function workoutReducer(state: WorkoutState, action: WorkoutStateAction): WorkoutState {
+  switch (action.type) {
+    case "setBars":
+      return { ...state, bars: resolveStateAction(action.value, state.bars) };
+    case "setInstructions":
+      return { ...state, instructions: resolveStateAction(action.value, state.instructions) };
+    case "setActionId":
+      return { ...state, actionId: resolveStateAction(action.value, state.actionId) };
+    default:
+      return state;
+  }
+}
+
 export default function useEditorState({ id, segmentsRef }: UseEditorStateProps) {
   const [workoutId, setWorkoutId] = useState(id === "new" ? localStorage.getItem("id") || genShortId() : id);
-  const [bars, setBars] = useState<Array<BarType>>(JSON.parse(localStorage.getItem("currentWorkout") || "[]"));
-  const [actionId, setActionId] = useState<string | undefined>(undefined);
+  const [workoutState, dispatchWorkout] = useReducer(workoutReducer, {
+    bars: JSON.parse(localStorage.getItem("currentWorkout") || "[]"),
+    instructions: JSON.parse(localStorage.getItem("instructions") || "[]"),
+    actionId: undefined,
+  } as WorkoutState);
+  const { bars, instructions, actionId } = workoutState;
+  const setBars = useCallback(
+    (value: SetStateAction<BarType[]>) => dispatchWorkout({ type: "setBars", value }),
+    [],
+  );
+  const setInstructions = useCallback(
+    (value: SetStateAction<Instruction[]>) => dispatchWorkout({ type: "setInstructions", value }),
+    [],
+  );
+  const setActionId = useCallback(
+    (value: SetStateAction<string | undefined>) => dispatchWorkout({ type: "setActionId", value }),
+    [],
+  );
   const [ftp, setFtp] = useState(Number.parseInt(localStorage.getItem("ftp") || "200", 10));
   const [weight, setWeight] = useState(Number.parseInt(localStorage.getItem("weight") || "75", 10));
-  const [instructions, setInstructions] = useState<Array<Instruction>>(
-    JSON.parse(localStorage.getItem("instructions") || "[]"),
-  );
   const [tags, setTags] = useState<string[]>(JSON.parse(localStorage.getItem("tags") || "[]"));
 
   const [name, setName] = useState(localStorage.getItem("name") || "");
