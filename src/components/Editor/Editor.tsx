@@ -800,12 +800,17 @@ const Editor = ({ id }: EditorProps) => {
         ? "border-slate-800 bg-slate-900 text-slate-100"
         : "border-emerald-200 bg-emerald-50 text-emerald-700";
 
-  const fieldLabelClass = "mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500";
+  const fieldLabelClass = "mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500";
   const inputClass =
-    "w-full rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200";
-  const metricClass = `${inputClass} cursor-default bg-slate-100/90 font-semibold`;
+    "w-full rounded-lg border border-slate-200 bg-white/90 px-2.5 py-1.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200";
   const segmentToolButtonClass =
     "inline-flex items-center justify-start gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900";
+  const composerActionButtonClass =
+    "inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400 hover:text-slate-900";
+  const topSectionClass =
+    sportType === "run"
+      ? "grid gap-3 xl:grid-cols-[230px_280px_minmax(0,1fr)]"
+      : "grid gap-3 xl:grid-cols-[230px_minmax(0,1fr)]";
 
   return (
     // Adding tabIndex allows div element to receive keyboard events
@@ -856,77 +861,10 @@ const Editor = ({ id }: EditorProps) => {
           />
         )}
 
-        <header className="rounded-3xl border border-white/50 bg-white/85 p-4 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-            <div className="w-full max-w-3xl">
-              <p className="mb-2 inline-flex rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
-                ZWO Composer
-              </p>
-              <h1 className="font-[var(--font-display)] text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">
-                {name || "Untitled workout"}
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm text-slate-600">
-                {description || "Shape your workout flow, then fine-tune intervals directly in the editor canvas."}
-              </p>
-              <p className="mt-3 text-sm font-medium text-slate-500">{author ? `By ${author}` : "No author set"}</p>
-            </div>
-
-            <div className="grid w-full gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:max-w-3xl">
-              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Workout Time</p>
-                <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{workoutTime}</p>
-              </div>
-              {sportType === "run" ? (
-                <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Distance</p>
-                  <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{workoutDistance} km</p>
-                </div>
-              ) : (
-                <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Training Load</p>
-                  <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{trainingLoad}</p>
-                </div>
-              )}
-              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Segments</p>
-                <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{bars.length}</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Text Events</p>
-                <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{instructions.length}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            <label className="rounded-2xl border border-slate-200 bg-white/70 p-3">
-              <span className={fieldLabelClass}>Workout Name</span>
-              <input
-                className={inputClass}
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="Morning Threshold Builder"
-              />
-            </label>
-            <label className="rounded-2xl border border-slate-200 bg-white/70 p-3">
-              <span className={fieldLabelClass}>Author</span>
-              <input
-                className={inputClass}
-                value={author}
-                onChange={(event) => setAuthor(event.target.value)}
-                placeholder="Coach name"
-              />
-            </label>
-            <label className="rounded-2xl border border-slate-200 bg-white/70 p-3 md:col-span-2 xl:col-span-1">
-              <span className={fieldLabelClass}>Description</span>
-              <input
-                className={inputClass}
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                placeholder="Short workout summary"
-              />
-            </label>
-            <div className="rounded-2xl border border-slate-200 bg-white/70 p-3">
+        <section className={topSectionClass}>
+          <aside className="rounded-3xl border border-white/50 bg-white/85 p-3 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-4">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-800">Workout Setup</p>
+            <div className="space-y-3">
               <LeftRightToggle<"bike", "run">
                 label="Sport Type"
                 leftValue="bike"
@@ -936,103 +874,176 @@ const Editor = ({ id }: EditorProps) => {
                 selected={sportType}
                 onChange={switchSportType}
               />
+              {sportType === "bike" && (
+                <>
+                  <label className="block">
+                    <span className={fieldLabelClass}>FTP (W)</span>
+                    <input
+                      className={inputClass}
+                      type="number"
+                      name="ftp"
+                      value={ftp}
+                      onChange={(event) => setFtp(Math.max(1, Number.parseInt(event.target.value, 10) || 0))}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className={fieldLabelClass}>Body Weight (kg)</span>
+                    <input
+                      className={inputClass}
+                      type="number"
+                      name="weight"
+                      value={weight}
+                      onChange={(event) => setWeight(Math.max(1, Number.parseInt(event.target.value, 10) || 0))}
+                    />
+                  </label>
+                </>
+              )}
+              {sportType === "run" && (
+                <>
+                  <LeftRightToggle<"time", "distance">
+                    label="Duration Type"
+                    leftValue="time"
+                    rightValue="distance"
+                    leftIcon={faClock}
+                    rightIcon={faRuler}
+                    selected={durationType}
+                    onChange={setDurationType}
+                  />
+                  <LeftRightToggle<"metric", "imperial">
+                    label="Pace Unit"
+                    leftValue="metric"
+                    rightValue="imperial"
+                    leftLabel="min/km"
+                    rightLabel="min/mi"
+                    selected={paceUnitType}
+                    onChange={setPaceUnitType}
+                  />
+                </>
+              )}
             </div>
-            {sportType === "run" && (
-              <div className="rounded-2xl border border-slate-200 bg-white/70 p-3">
-                <LeftRightToggle<"time", "distance">
-                  label="Duration Type"
-                  leftValue="time"
-                  rightValue="distance"
-                  leftIcon={faClock}
-                  rightIcon={faRuler}
-                  selected={durationType}
-                  onChange={setDurationType}
-                />
-              </div>
-            )}
-            {sportType === "run" && (
-              <div className="rounded-2xl border border-slate-200 bg-white/70 p-3">
-                <LeftRightToggle<"metric", "imperial">
-                  label="Pace Unit"
-                  leftValue="metric"
-                  rightValue="imperial"
-                  leftLabel="min/km"
-                  rightLabel="min/mi"
-                  selected={paceUnitType}
-                  onChange={setPaceUnitType}
-                />
-              </div>
-            )}
-            {sportType === "run" && (
-              <label className="rounded-2xl border border-slate-200 bg-white/70 p-3">
-                <span className={fieldLabelClass}>Average Pace</span>
-                <input className={metricClass} value={averagePace} disabled />
-              </label>
-            )}
-            {sportType === "bike" && (
-              <label className="rounded-2xl border border-slate-200 bg-white/70 p-3">
-                <span className={fieldLabelClass}>FTP (W)</span>
-                <input
-                  className={inputClass}
-                  type="number"
-                  name="ftp"
-                  value={ftp}
-                  onChange={(event) => setFtp(Math.max(1, Number.parseInt(event.target.value, 10) || 0))}
-                />
-              </label>
-            )}
-            {sportType === "bike" && (
-              <label className="rounded-2xl border border-slate-200 bg-white/70 p-3">
-                <span className={fieldLabelClass}>Body Weight (kg)</span>
-                <input
-                  className={inputClass}
-                  type="number"
-                  name="weight"
-                  value={weight}
-                  onChange={(event) => setWeight(Math.max(1, Number.parseInt(event.target.value, 10) || 0))}
-                />
-              </label>
-            )}
-          </div>
+          </aside>
 
-          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3">
-            <button
-              type="button"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
-              onClick={() => {
-                if (window.confirm("Are you sure you want to create a new workout?")) newWorkout();
-              }}
-            >
-              <FontAwesomeIcon icon={faFile} /> New Workout
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900"
-              onClick={() => downloadWorkout()}
-            >
-              <FontAwesomeIcon icon={faDownload} /> Download .zwo
-            </button>
-            <input
-              accept=".xml,.zwo"
-              ref={uploadInputRef}
-              type="file"
-              className="hidden"
-              onChange={(event) => {
-                const selectedFile = event.target.files?.[0];
-                if (selectedFile) void handleUpload(selectedFile);
-              }}
-            />
-            <button
-              type="button"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-300 bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-700 shadow-sm transition hover:border-cyan-400 hover:bg-cyan-100"
-              onClick={() => uploadInputRef.current?.click()}
-            >
-              <FontAwesomeIcon icon={faUpload} /> Upload Workout
-            </button>
-          </div>
-        </header>
+          {sportType === "run" && <RunningTimesEditor times={runningTimes} onChange={setRunningTimes} layout="vertical" />}
 
-        {sportType === "run" && <RunningTimesEditor times={runningTimes} onChange={setRunningTimes} />}
+          <header className="rounded-3xl border border-white/50 bg-white/85 p-4 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-5">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+              <div className="w-full max-w-3xl">
+                <p className="mb-2 inline-flex rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
+                  ZWO Composer
+                </p>
+                <h1 className="font-[var(--font-display)] text-3xl font-semibold tracking-tight text-slate-900 md:text-4xl">
+                  {name || "Untitled workout"}
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm text-slate-600">
+                  {description || "Shape your workout flow, then fine-tune intervals directly in the editor canvas."}
+                </p>
+                <p className="mt-3 text-sm font-medium text-slate-500">{author ? `By ${author}` : "No author set"}</p>
+              </div>
+
+              <div
+                className={
+                  sportType === "run"
+                    ? "grid w-full gap-3 sm:grid-cols-2 lg:grid-cols-5 xl:max-w-3xl"
+                    : "grid w-full gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:max-w-3xl"
+                }
+              >
+                <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Workout Time</p>
+                  <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{workoutTime}</p>
+                </div>
+                {sportType === "run" ? (
+                  <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Distance</p>
+                    <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{workoutDistance} km</p>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Training Load</p>
+                    <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{trainingLoad}</p>
+                  </div>
+                )}
+                {sportType === "run" && (
+                  <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Avg Pace</p>
+                    <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{averagePace}</p>
+                  </div>
+                )}
+                <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Segments</p>
+                  <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{bars.length}</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Text Events</p>
+                  <p className="mt-1 font-[var(--font-display)] text-2xl text-slate-900">{instructions.length}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-slate-200 bg-white/70 p-3">
+              <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                <label className="block">
+                  <span className={fieldLabelClass}>Workout Name</span>
+                  <input
+                    className={inputClass}
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    placeholder="Morning Threshold Builder"
+                  />
+                </label>
+                <label className="block">
+                  <span className={fieldLabelClass}>Author</span>
+                  <input
+                    className={inputClass}
+                    value={author}
+                    onChange={(event) => setAuthor(event.target.value)}
+                    placeholder="Coach name"
+                  />
+                </label>
+                <label className="block md:col-span-2 xl:col-span-1">
+                  <span className={fieldLabelClass}>Description</span>
+                  <input
+                    className={inputClass}
+                    value={description}
+                    onChange={(event) => setDescription(event.target.value)}
+                    placeholder="Short workout summary"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 pt-3">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to create a new workout?")) newWorkout();
+                }}
+              >
+                <FontAwesomeIcon icon={faFile} /> New Workout
+              </button>
+              <button type="button" className={composerActionButtonClass} onClick={() => downloadWorkout()}>
+                <FontAwesomeIcon icon={faDownload} /> Download .zwo
+              </button>
+              <input
+                accept=".xml,.zwo"
+                ref={uploadInputRef}
+                type="file"
+                className="hidden"
+                onChange={(event) => {
+                  const selectedFile = event.target.files?.[0];
+                  if (selectedFile) void handleUpload(selectedFile);
+                }}
+              />
+              <button
+                type="button"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-300 bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-700 shadow-sm transition hover:border-cyan-400 hover:bg-cyan-100"
+                onClick={() => uploadInputRef.current?.click()}
+              >
+                <FontAwesomeIcon icon={faUpload} /> Upload Workout
+              </button>
+            </div>
+          </header>
+        </section>
 
         {textEditorIsVisible && sportType === "bike" && (
           <section className="grid gap-3 rounded-3xl border border-white/50 bg-white/85 p-4 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md lg:grid-cols-[1.5fr_1fr]">
