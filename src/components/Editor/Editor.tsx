@@ -39,6 +39,8 @@ import {
 } from "../helpers";
 import Interval from "../Interval/Interval";
 import RightTrapezoid from "../Trapeze/Trapeze";
+import parseWorkoutText from "../../parsers/parseWorkoutText";
+import parseWorkoutXml from "../../parsers/parseWorkoutXml";
 import createWorkoutXml from "./createWorkoutXml";
 import DistanceAxis from "./DistanceAxis";
 import LeftRightToggle from "./LeftRightToggle";
@@ -188,6 +190,12 @@ const Editor = ({ id }: EditorProps) => {
     paceUnitType,
     runningTimes,
   ]);
+
+  useEffect(() => {
+    if (id !== "new") {
+      void fetchAndParse(id);
+    }
+  }, [id]);
 
   function newWorkout() {
     console.log("New workout");
@@ -412,7 +420,7 @@ const Editor = ({ id }: EditorProps) => {
       if (durationType === "time") {
         element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / element.power;
       } else {
-        element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / element.power;
+        element.time = (calculateTime(element.length || 0, calculateSpeed(element.pace || 0)) * 1) / element.power;
       }
 
       setBars(updatedArray);
@@ -430,7 +438,7 @@ const Editor = ({ id }: EditorProps) => {
       if (durationType === "time") {
         element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / element.power;
       } else {
-        element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / element.power;
+        element.time = (calculateTime(element.length || 0, calculateSpeed(element.pace || 0)) * 1) / element.power;
       }
 
       setBars(updatedArray);
@@ -532,150 +540,56 @@ const Editor = ({ id }: EditorProps) => {
     window.URL.revokeObjectURL(url);
   }
 
-  function handleUpload(file: Blob) {
-    // ask user if they want to overwrite current workout first
-    if (bars.length > 0) {
-      if (!window.confirm("Are you sure you want to create a new workout?")) {
-        return false;
-      }
+  function applyParsedWorkout(parsed: ReturnType<typeof parseWorkoutXml>) {
+    setBars(parsed.segments);
+    setInstructions(parsed.instructions);
+    setAuthor(parsed.meta.author || "");
+    setName(parsed.meta.name || "");
+    setDescription(parsed.meta.description || "");
+    setTags(parsed.meta.tags || []);
+    setSportType(parsed.meta.sportType || "bike");
+    setDurationType(parsed.meta.durationType || "time");
+  }
+
+  async function handleUpload(file: Blob) {
+    if (bars.length > 0 && !window.confirm("Are you sure you want to create a new workout?")) {
+      return false;
     }
 
-    newWorkout();
-    upload(file, true);
+    try {
+      const xml = await file.text();
+      const parsed = parseWorkoutXml(xml, { idGenerator: genId });
+      applyParsedWorkout(parsed);
+      setMessage({ visible: true, class: "success", text: "Workout imported." });
+      return true;
+    } catch (error) {
+      console.error(error);
+      setMessage({
+        visible: true,
+        class: "error",
+        text: error instanceof Error ? error.message : "Unable to parse workout XML",
+      });
+      return false;
+    }
   }
 
-  function upload(file: Blob, parse = false) {
-    // TODO: rewrite to instead "import" the file directly without uploading and downloading again
-  }
-
-  function fetchAndParse(id: string) {
-    // remove previous workout
-
-    // TODO fix for running distance based
+  async function fetchAndParse(id: string) {
     setBars([]);
     setInstructions([]);
 
-    fetch(`${S3_URL}/${id}.zwo`)
-      .then((response) => response.text())
-      .then((data) => {
-        // remove xml comments
-        data = data.replace(/<!--(.*?)-->/gm, "");
-
-        //now parse file
-        const workout = Converter.xml2js(data);
-        const workout_file = workout.elements[0];
-
-        if (workout_file.name === "workout_file") {
-          // file is valid
-          const authorIndex = workout_file.elements.findIndex((element: { name: string }) => element.name === "author");
-          if (authorIndex !== -1 && workout_file.elements[authorIndex].elements) {
-            setAuthor(workout_file.elements[authorIndex].elements[0].text);
-          }
-
-          const nameIndex = workout_file.elements.findIndex((element: { name: string }) => element.name === "name");
-          if (nameIndex !== -1 && workout_file.elements[nameIndex].elements) {
-            setName(workout_file.elements[nameIndex].elements[0].text);
-          }
-
-          const descriptionIndex = workout_file.elements.findIndex(
-            (element: { name: string }) => element.name === "description",
-          );
-          if (descriptionIndex !== -1 && workout_file.elements[descriptionIndex].elements) {
-            setDescription(workout_file.elements[descriptionIndex].elements[0].text);
-          }
-
-          const workoutIndex = workout_file.elements.findIndex(
-            (element: { name: string }) => element.name === "workout",
-          );
-
-          let totalTime = 0;
-
-          workout_file.elements[workoutIndex].elements.map(
-            (w: {
-              name: string;
-              attributes: {
-                Power: any;
-                PowerLow: string;
-                Duration: string;
-                PowerHigh: string;
-                Cadence: string;
-                CadenceResting: string;
-                Repeat: string;
-                OnDuration: string;
-                OffDuration: string;
-                OnPower: string;
-                OffPower: string;
-                Pace: string;
-              };
-              elements: any;
-            }) => {
-              let duration = parseFloat(w.attributes.Duration);
-
-              if (w.name === "SteadyState")
-                addBar(
-                  parseFloat(w.attributes.Power || w.attributes.PowerLow),
-                  parseFloat(w.attributes.Duration),
-                  parseFloat(w.attributes.Cadence || "0"),
-                  parseInt(w.attributes.Pace || "0"),
-                );
-
-              if (w.name === "Ramp" || w.name === "Warmup" || w.name === "Cooldown")
-                addTrapeze(
-                  parseFloat(w.attributes.PowerLow),
-                  parseFloat(w.attributes.PowerHigh),
-                  parseFloat(w.attributes.Duration),
-                  parseInt(w.attributes.Pace || "0"),
-                  undefined,
-                  parseInt(w.attributes.Cadence),
-                );
-
-              if (w.name === "IntervalsT") {
-                addInterval(
-                  parseFloat(w.attributes.Repeat),
-                  parseFloat(w.attributes.OnDuration),
-                  parseFloat(w.attributes.OffDuration),
-                  parseFloat(w.attributes.OnPower),
-                  parseFloat(w.attributes.OffPower),
-                  parseInt(w.attributes.Cadence || "0"),
-                  parseInt(w.attributes.CadenceResting),
-                  parseInt(w.attributes.Pace || "0"),
-                );
-                duration =
-                  (parseFloat(w.attributes.OnDuration) + parseFloat(w.attributes.OffDuration)) *
-                  parseFloat(w.attributes.Repeat);
-              }
-
-              if (w.name === "FreeRide") addFreeRide(parseFloat(w.attributes.Duration), parseInt(w.attributes.Cadence));
-
-              // check for instructions
-              const textElements = w.elements;
-              if (textElements && textElements.length > 0) {
-                textElements.map(
-                  (t: {
-                    name: string;
-                    attributes: {
-                      message: string | undefined;
-                      timeoffset: string;
-                    };
-                  }) => {
-                    if (t.name.toLowerCase() === "textevent")
-                      addInstruction(t.attributes.message, totalTime + parseFloat(t.attributes.timeoffset));
-
-                    return false;
-                  },
-                );
-              }
-
-              totalTime = totalTime + duration;
-              // map functions expect return value
-              return false;
-            },
-          );
-        }
-      })
-      .catch((error) => {
-        console.error(error);
+    try {
+      const response = await fetch(`${S3_URL}/${id}.zwo`);
+      const xml = await response.text();
+      const parsed = parseWorkoutXml(xml, { idGenerator: genId });
+      applyParsedWorkout(parsed);
+    } catch (error) {
+      console.error(error);
+      setMessage({
+        visible: true,
+        class: "error",
+        text: error instanceof Error ? error.message : "Unable to fetch workout",
       });
+    }
   }
 
   function calculateSpeed(pace: number = 0) {
@@ -691,8 +605,14 @@ const Editor = ({ id }: EditorProps) => {
       runningTimes.halfMarathon,
       runningTimes.marathon,
     ];
+    const selected = times[pace];
+    if (!selected) return 0;
 
-    return (distances[pace] * 1000) / parseTime(times[pace]!);
+    try {
+      return (distances[pace] * 1000) / parseTime(selected);
+    } catch {
+      return 0;
+    }
   }
 
   const renderBar = (bar: BarType) => (
@@ -785,8 +705,8 @@ const Editor = ({ id }: EditorProps) => {
       durationType={durationType}
       width={
         durationType === "distance"
-          ? parseInt(getWorkoutDistance(bars)) * 100
-          : getWorkoutLength(bars, durationType) / 3
+          ? getWorkoutDistance(barsForDistance) * 100
+          : getWorkoutLength(barsForMetrics, durationType) / 3
       }
       onChange={(id: string, values: Instruction) => changeInstruction(id, values)}
       onClick={(id: string) => setSelectedInstruction(instructions.find((i) => i.id === id))}
@@ -806,7 +726,7 @@ const Editor = ({ id }: EditorProps) => {
         element.length =
           (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
       } else {
-        element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
+        element.time = (calculateTime(element.length || 0, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
       }
 
       setBars(updatedArray);
@@ -837,169 +757,30 @@ const Editor = ({ id }: EditorProps) => {
   }
 
   function transformTextToWorkout(textValue: string) {
-    // reset each time
-    setBars([]);
-    setInstructions([]);
+    if (!textValue.trim()) {
+      setBars([]);
+      setInstructions([]);
+      return;
+    }
 
-    // 2 minutes block at 112% FTP
-    // 2 minutes block at 330 W
-    // 30 seconds block at ..
-
-    //console.log(textValue);
-
-    const workoutBlocks = textValue.split("\n");
-    workoutBlocks.forEach((workoutBlock) => {
-      if (workoutBlock.includes("steady")) {
-        // generate a steady state block
-
-        // extract watts
-        const powerInWatts = workoutBlock.match(/([0-9]\d*w)/);
-        const powerInWattsPerKg = workoutBlock.match(/([0-9]*.?[0-9]wkg)/);
-        const powerInPercentageFtp = workoutBlock.match(/([0-9]\d*%)/);
-
-        let power = powerInWatts ? parseInt(powerInWatts[0]) / ftp : 1;
-        power = powerInWattsPerKg ? (parseFloat(powerInWattsPerKg[0]) * weight) / ftp : power;
-        power = powerInPercentageFtp ? parseInt(powerInPercentageFtp[0]) / 100 : power;
-
-        // extract duration in seconds
-        const durationInSeconds = workoutBlock.match(/([0-9]\d*s)/);
-        const durationInMinutes = workoutBlock.match(/([0-9]*:?[0-9][0-9]*m)/);
-
-        let duration = durationInSeconds && parseInt(durationInSeconds[0]);
-        duration = durationInMinutes
-          ? parseInt(durationInMinutes[0].split(":")[0]) * 60 + (parseInt(durationInMinutes[0].split(":")[1]) || 0)
-          : duration;
-
-        // extract cadence in rpm
-        const cadence = workoutBlock.match(/([0-9]\d*rpm)/);
-        const rpm = cadence ? parseInt(cadence[0]) : undefined;
-
-        // extract multiplier
-        // const multiplier = workoutBlock.match(/([0-9]\d*x)/)
-        // const nTimes = multiplier ? Array(parseInt(multiplier[0])) : Array(1)
-        // for (var i = 0; i < nTimes.length; i++)
-
-        addBar(power, duration || 300, rpm);
-      }
-
-      if (workoutBlock.includes("ramp") || workoutBlock.includes("warmup") || workoutBlock.includes("cooldown")) {
-        // generate a steady ramp block
-
-        // extract watts
-        const startPowerInWatts = workoutBlock.match(/([0-9]\d*w)/);
-        const startPowerInWattsPerKg = workoutBlock.match(/([0-9]*.?[0-9]wkg)/);
-        const startPowerInPercentageFtp = workoutBlock.match(/([0-9]\d*%)/);
-
-        let startPower = startPowerInWatts ? parseInt(startPowerInWatts[0]) / ftp : 1;
-        startPower = startPowerInWattsPerKg ? (parseFloat(startPowerInWattsPerKg[0]) * weight) / ftp : startPower;
-        startPower = startPowerInPercentageFtp ? parseInt(startPowerInPercentageFtp[0]) / 100 : startPower;
-
-        // extract watts
-        const endPowerInWatts = workoutBlock.match(/(-[0-9]\d*w)/);
-        const endPowerInWattsPerKg = workoutBlock.match(/(-[0-9]*.?[0-9]wkg)/);
-        const endPowerInPercentageFtp = workoutBlock.match(/-([0-9]\d*%)/);
-
-        let endPower = endPowerInWatts ? Math.abs(parseInt(endPowerInWatts[0])) / ftp : 1;
-        endPower = endPowerInWattsPerKg ? (Math.abs(parseFloat(endPowerInWattsPerKg[0])) * weight) / ftp : endPower;
-        endPower = endPowerInPercentageFtp ? Math.abs(parseInt(endPowerInPercentageFtp[0])) / 100 : endPower;
-
-        const durationInSeconds = workoutBlock.match(/([0-9]\d*s)/);
-        const durationInMinutes = workoutBlock.match(/([0-9]*:?[0-9][0-9]*m)/);
-
-        let duration = durationInSeconds && parseInt(durationInSeconds[0]);
-        duration = durationInMinutes
-          ? parseInt(durationInMinutes[0].split(":")[0]) * 60 + (parseInt(durationInMinutes[0].split(":")[1]) || 0)
-          : duration;
-
-        // extract cadence in rpm
-        const cadence = workoutBlock.match(/([0-9]\d*rpm)/);
-        const rpm = cadence ? parseInt(cadence[0]) : undefined;
-
-        addTrapeze(startPower, endPower, duration || 300, undefined, undefined, rpm);
-      }
-
-      if (workoutBlock.includes("freeride")) {
-        const durationInSeconds = workoutBlock.match(/([0-9]\d*s)/);
-        const durationInMinutes = workoutBlock.match(/([0-9]*:?[0-9][0-9]*m)/);
-
-        let duration = durationInSeconds && parseInt(durationInSeconds[0]);
-        duration = durationInMinutes
-          ? parseInt(durationInMinutes[0].split(":")[0]) * 60 + (parseInt(durationInMinutes[0].split(":")[1]) || 0)
-          : duration;
-
-        // extract cadence in rpm
-        const cadence = workoutBlock.match(/([0-9]\d*rpm)/);
-        const rpm = cadence ? parseInt(cadence[0]) : undefined;
-
-        addFreeRide(duration || 600, rpm);
-      }
-
-      if (workoutBlock.includes("interval")) {
-        const multiplier = workoutBlock.match(/([0-9]\d*x)/);
-        const nTimes = multiplier ? parseInt(multiplier[0]) : 3;
-
-        const durationInSeconds = workoutBlock.match(/([0-9]\d*s)/);
-        const durationInMinutes = workoutBlock.match(/([0-9]*:?[0-9][0-9]*m)/);
-
-        let duration = durationInSeconds && parseInt(durationInSeconds[0]);
-        duration = durationInMinutes
-          ? parseInt(durationInMinutes[0].split(":")[0]) * 60 + (parseInt(durationInMinutes[0].split(":")[1]) || 0)
-          : duration;
-
-        const offDurationInSeconds = workoutBlock.match(/(-[0-9]\d*s)/);
-        const offDurationInMinutes = workoutBlock.match(/(-[0-9]*:?[0-9][0-9]*m)/);
-
-        let offDuration = offDurationInSeconds && Math.abs(parseInt(offDurationInSeconds[0]));
-        offDuration = offDurationInMinutes
-          ? Math.abs(parseInt(offDurationInMinutes[0].split(":")[0])) * 60 +
-            (parseInt(offDurationInMinutes[0].split(":")[1]) || 0)
-          : offDuration;
-
-        // extract watts
-        const startPowerInWatts = workoutBlock.match(/([0-9]\d*w)/);
-        const startPowerInWattsPerKg = workoutBlock.match(/([0-9]*.?[0-9]wkg)/);
-        const startPowerInPercentageFtp = workoutBlock.match(/([0-9]\d*%)/);
-
-        let startPower = startPowerInWatts ? parseInt(startPowerInWatts[0]) / ftp : 1;
-        startPower = startPowerInWattsPerKg ? (parseFloat(startPowerInWattsPerKg[0]) * weight) / ftp : startPower;
-        startPower = startPowerInPercentageFtp ? parseInt(startPowerInPercentageFtp[0]) / 100 : startPower;
-
-        // extract watts
-        const endPowerInWatts = workoutBlock.match(/(-[0-9]\d*w)/);
-        const endPowerInWattsPerKg = workoutBlock.match(/(-[0-9]*.?[0-9]wkg)/);
-        const endPowerInPercentageFtp = workoutBlock.match(/-([0-9]\d*%)/);
-
-        let endPower = endPowerInWatts ? Math.abs(parseInt(endPowerInWatts[0])) / ftp : 0.5;
-        endPower = endPowerInWattsPerKg ? (Math.abs(parseFloat(endPowerInWattsPerKg[0])) * weight) / ftp : endPower;
-        endPower = endPowerInPercentageFtp ? Math.abs(parseInt(endPowerInPercentageFtp[0])) / 100 : endPower;
-
-        // extract cadence in rpm
-        const cadence = workoutBlock.match(/([0-9]\d*rpm)/);
-        const rpm = cadence ? parseInt(cadence[0]) : undefined;
-
-        const restingCadence = workoutBlock.match(/(-[0-9]\d*rpm)/);
-        const restingRpm = restingCadence ? Math.abs(parseInt(restingCadence[0])) : undefined;
-
-        addInterval(nTimes, duration || 30, offDuration || 120, startPower, endPower, rpm, restingRpm);
-      }
-
-      if (workoutBlock.includes("message")) {
-        // extract message
-        const message = workoutBlock.match(/["'](.*?)["']/);
-        const text = message ? message[0] : "";
-
-        const durationInSeconds = workoutBlock.match(/([0-9]\d*s)/);
-        const durationInMinutes = workoutBlock.match(/([0-9]*:?[0-9][0-9]*m)/);
-
-        let duration = durationInSeconds && parseInt(durationInSeconds[0]);
-        duration = durationInMinutes
-          ? parseInt(durationInMinutes[0].split(":")[0]) * 60 + (parseInt(durationInMinutes[0].split(":")[1]) || 0)
-          : duration;
-
-        addInstruction(text, duration || 0);
-      }
-    });
+    try {
+      const parsed = parseWorkoutText(textValue, { durationType, ftp, weight, calculateSpeed });
+      setBars(parsed.segments);
+      setInstructions(parsed.instructions);
+      if (message?.class === "error") setMessage(undefined);
+    } catch (error) {
+      setBars([]);
+      setInstructions([]);
+      setMessage({
+        visible: true,
+        class: "error",
+        text: error instanceof Error ? error.message : "Unable to parse workout text",
+      });
+    }
   }
+
+  const barsForMetrics = bars as Parameters<typeof getWorkoutLength>[0];
+  const barsForDistance = bars.filter((bar) => bar.type !== "freeRide") as Parameters<typeof getWorkoutDistance>[0];
 
   return (
     // Adding tabIndex allows div element to receive keyboard events
@@ -1039,24 +820,24 @@ const Editor = ({ id }: EditorProps) => {
         <div className="workout">
           <div className="form-input">
             <label>Workout Time</label>
-            <input className="textInput" value={formatTime(getWorkoutLength(bars, durationType))} disabled />
+            <input className="textInput" value={formatTime(getWorkoutLength(barsForMetrics, durationType))} disabled />
           </div>
           {sportType === "run" && (
             <div className="form-input">
               <label>Workout Distance</label>
-              <input className="textInput" value={getWorkoutDistance(bars)} disabled />
+              <input className="textInput" value={getWorkoutDistance(barsForDistance)} disabled />
             </div>
           )}
           {sportType === "bike" && (
             <div className="form-input">
               <label title="Training Load">Training Load</label>
-              <input className="textInput" value={round(getStressScore(bars, ftp), 1)} disabled />
+              <input className="textInput" value={round(getStressScore(barsForMetrics, ftp), 1)} disabled />
             </div>
           )}
           {sportType === "run" && (
             <div className="form-input">
               <label>Avg. Workout Pace</label>
-              <input className="textInput" value={getWorkoutPace(bars, durationType, paceUnitType)} disabled />
+              <input className="textInput" value={getWorkoutPace(barsForMetrics, durationType, paceUnitType)} disabled />
             </div>
           )}
           {sportType === "run" && (

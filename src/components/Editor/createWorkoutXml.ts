@@ -1,4 +1,4 @@
-// import Builder from "xmlbuilder";
+import { XMLBuilder } from "fast-xml-parser";
 
 import type { BarType, DurationType, Instruction, SportType } from "./Editor";
 
@@ -23,121 +23,131 @@ export default function createWorkoutXml({
   bars,
   instructions,
 }: Workout): string {
-  var totalTime = 0;
-  var totalLength = 0;
+  let totalTime = 0;
+  let totalLength = 0;
+  const workoutNodes: Array<Record<string, unknown>> = [];
 
-  let xml = Builder.begin()
-    .ele("workout_file")
-    .ele("author", author)
-    .up()
-    .ele("name", name)
-    .up()
-    .ele("description", description)
-    .up()
-    .ele("sportType", sportType)
-    .up()
-    .ele("durationType", durationType)
-    .up()
-    .ele("tags");
-
-  tags.forEach((tag: string) => {
-    var t: Builder.XMLNode;
-    t = Builder.create("tag").att("name", tag);
-    xml.importDocument(t);
-  });
-
-  xml = xml.up().ele("workout");
-
-  bars.forEach((bar, index) => {
-    var segment: Builder.XMLNode;
-    var ramp;
-
-    if (bar.type === "bar") {
-      segment = Builder.create("SteadyState")
-        .att("Duration", durationType === "time" ? bar.time : bar.length)
-        .att("Power", bar.power)
-        .att("pace", bar.pace);
-
-      // add cadence if not zero
-      bar.cadence !== 0 && segment.att("Cadence", bar.cadence);
-    } else if (bar.type === "trapeze" && bar.startPower && bar.endPower) {
-      // index 0 is warmup
-      // last index is cooldown
-      // everything else is ramp
-
-      ramp = "Ramp";
-      if (index === 0) ramp = "Warmup";
-      if (index === bars.length - 1) ramp = "Cooldown";
-
-      if (bar.startPower < bar.endPower) {
-        // warmup
-        segment = Builder.create(ramp)
-          .att("Duration", durationType === "time" ? bar.time : bar.length)
-          .att("PowerLow", bar.startPower)
-          .att("PowerHigh", bar.endPower)
-          .att("pace", bar.pace);
-        // add cadence if not zero
-        bar.cadence !== 0 && segment.att("Cadence", bar.cadence);
-      } else {
-        // cooldown
-        segment = Builder.create(ramp)
-          .att("Duration", durationType === "time" ? bar.time : bar.length)
-          .att("PowerLow", bar.startPower) // these 2 values are inverted
-          .att("PowerHigh", bar.endPower) // looks like a bug on zwift editor
-          .att("pace", bar.pace);
-        // add cadence if not zero
-        bar.cadence !== 0 && segment.att("Cadence", bar.cadence);
-      }
-    } else if (bar.type === "interval") {
-      // <IntervalsT Repeat="5" OnDuration="60" OffDuration="300" OnPower="0.8844353" OffPower="0.51775455" pace="0"/>
-      segment = Builder.create("IntervalsT")
-        .att("Repeat", bar.repeat)
-        .att("OnDuration", durationType === "time" ? bar.onDuration : bar.onLength)
-        .att("OffDuration", durationType === "time" ? bar.offDuration : bar.offLength)
-        .att("OnPower", bar.onPower)
-        .att("OffPower", bar.offPower)
-        .att("pace", bar.pace);
-      // add cadence if not zero
-      bar.cadence !== 0 && segment.att("Cadence", bar.cadence);
-      // add cadence resting if not zero
-      bar.restingCadence !== 0 && segment.att("CadenceResting", bar.restingCadence);
-    } else {
-      // free ride
-      segment = Builder.create("FreeRide")
-        .att("Duration", durationType === "time" ? bar.time : bar.length)
-        .att("FlatRoad", 0); // Not sure what this is for
-      // add cadence if not zero
-      bar.cadence !== 0 && segment.att("Cadence", bar.cadence);
-    }
-
-    // add instructions if present
+  const addTextEvents = (nodeChildren: Array<Record<string, unknown>>, bar: BarType) => {
     if (durationType === "time") {
       instructions
         .filter((instruction) => instruction.time >= totalTime && instruction.time < totalTime + bar.time)
-        .forEach((i) => {
-          segment.ele("textevent", {
-            timeoffset: i.time - totalTime,
-            message: i.text,
+        .forEach((instruction) => {
+          nodeChildren.push({
+            textevent: [],
+            ":@": {
+              timeoffset: instruction.time - totalTime,
+              message: instruction.text,
+            },
           });
         });
-    } else {
-      instructions
-        .filter(
-          (instruction) => instruction.length >= totalLength && instruction.length < totalLength + (bar.length || 0),
-        )
-        .forEach((i) => {
-          segment.ele("textevent", {
-            distoffset: i.length - totalLength,
-            message: i.text,
-          });
-        });
+      totalTime += bar.time;
+      totalLength += bar.length || 0;
+      return;
     }
 
-    xml.importDocument(segment);
+    instructions
+      .filter((instruction) => instruction.length >= totalLength && instruction.length < totalLength + (bar.length || 0))
+      .forEach((instruction) => {
+        nodeChildren.push({
+          textevent: [],
+          ":@": {
+            distoffset: instruction.length - totalLength,
+            message: instruction.text,
+          },
+        });
+      });
+    totalTime += bar.time;
+    totalLength += bar.length || 0;
+  };
 
-    totalTime = totalTime + bar.time;
-    totalLength = totalLength + (bar.length || 0);
+  bars.forEach((bar, index) => {
+    const children: Array<Record<string, unknown>> = [];
+    let nodeName = "FreeRide";
+    let attrs: Record<string, unknown> = {};
+
+    if (bar.type === "bar") {
+      nodeName = "SteadyState";
+      attrs = {
+        Duration: durationType === "time" ? bar.time : bar.length,
+        Power: bar.power,
+        pace: bar.pace,
+      };
+      if (bar.cadence !== 0) attrs.Cadence = bar.cadence;
+    } else if (bar.type === "trapeze" && bar.startPower && bar.endPower) {
+      nodeName = "Ramp";
+      if (index === 0) nodeName = "Warmup";
+      if (index === bars.length - 1) nodeName = "Cooldown";
+      if (bar.startPower < bar.endPower) {
+        attrs = {
+          Duration: durationType === "time" ? bar.time : bar.length,
+          PowerLow: bar.startPower,
+          PowerHigh: bar.endPower,
+          pace: bar.pace,
+        };
+      } else {
+        attrs = {
+          Duration: durationType === "time" ? bar.time : bar.length,
+          // Keep legacy behavior for Zwift compatibility.
+          PowerLow: bar.startPower,
+          PowerHigh: bar.endPower,
+          pace: bar.pace,
+        };
+      }
+      if (bar.cadence !== 0) attrs.Cadence = bar.cadence;
+    } else if (bar.type === "interval") {
+      nodeName = "IntervalsT";
+      attrs = {
+        Repeat: bar.repeat,
+        OnDuration: durationType === "time" ? bar.onDuration : bar.onLength,
+        OffDuration: durationType === "time" ? bar.offDuration : bar.offLength,
+        OnPower: bar.onPower,
+        OffPower: bar.offPower,
+        pace: bar.pace,
+      };
+      if (bar.cadence !== 0) attrs.Cadence = bar.cadence;
+      if (bar.restingCadence !== 0) attrs.CadenceResting = bar.restingCadence;
+    } else {
+      nodeName = "FreeRide";
+      attrs = {
+        Duration: durationType === "time" ? bar.time : bar.length,
+        FlatRoad: 0,
+      };
+      if (bar.cadence !== 0) attrs.Cadence = bar.cadence;
+    }
+
+    addTextEvents(children, bar);
+    workoutNodes.push({
+      [nodeName]: children,
+      ":@": attrs,
+    });
   });
 
-  return xml.end({ pretty: true });
+  const root = [
+    {
+      workout_file: [
+        { author: [{ "#text": author }] },
+        { name: [{ "#text": name }] },
+        { description: [{ "#text": description }] },
+        { sportType: [{ "#text": sportType }] },
+        { durationType: [{ "#text": durationType }] },
+        {
+          tags: tags.map((tag) => ({
+            tag: [],
+            ":@": { name: tag },
+          })),
+        },
+        { workout: workoutNodes },
+      ],
+    },
+  ];
+
+  const builder = new XMLBuilder({
+    ignoreAttributes: false,
+    preserveOrder: true,
+    attributeNamePrefix: "",
+    format: true,
+    suppressEmptyNode: true,
+  });
+
+  return builder.build(root);
 }
