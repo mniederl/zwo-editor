@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef } from "react";
 import {
   faArrowLeft,
   faArrowRight,
@@ -19,7 +19,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Tooltip } from "react-tooltip";
 
-import { genId, genShortId } from "@utils/id";
+import { genId } from "@utils/id";
 import { formatTime, parseTime } from "@utils/time";
 import { CooldownLogo, IntervalLogo, SteadyLogo, WarmupLogo } from "../../assets";
 import parseWorkoutText from "../../parsers/parseWorkoutText";
@@ -29,166 +29,68 @@ import Comment from "../Comment/Comment";
 import EditComment from "../Comment/EditComment";
 import { Colors, Zones } from "../constants";
 import FreeRide from "../FreeRide/FreeRide";
-import {
-  calculateDistance,
-  calculateTime,
-  getStressScore,
-  getWorkoutDistance,
-  getWorkoutLength,
-  getWorkoutPace,
-  round,
-} from "../helpers";
+import { getStressScore, getWorkoutDistance, getWorkoutLength, getWorkoutPace, round } from "../helpers";
 import Interval from "../Interval/Interval";
 import RightTrapezoid from "../Trapeze/Trapeze";
 import createWorkoutXml from "./createWorkoutXml";
 import DistanceAxis from "./DistanceAxis";
+import type { BarType, Instruction, SportType } from "./editorTypes";
 import LeftRightToggle from "./LeftRightToggle";
-import RunningTimesEditor, { type RunningTimes } from "./RunningTimesEditor";
+import RunningTimesEditor from "./RunningTimesEditor";
 import TimeAxis from "./TimeAxis";
+import useEditorState from "./useEditorState";
+import useWorkoutActions from "./useWorkoutActions";
 import ZoneAxis from "./ZoneAxis";
 
 import "./Editor.css";
-
-export interface BarType {
-  id: string;
-  time: number;
-  length?: number;
-  type: string;
-  power?: number;
-  startPower?: number;
-  endPower?: number;
-  cadence: number;
-  restingCadence?: number;
-  onPower?: number;
-  offPower?: number;
-  onDuration?: number;
-  offDuration?: number;
-  repeat?: number;
-  pace?: number;
-  onLength?: number;
-  offLength?: number;
-}
-
-export interface Instruction {
-  id: string;
-  text: string;
-  time: number;
-  length: number;
-}
-
-interface Message {
-  visible: boolean;
-  class?: string;
-  text?: string;
-}
-
-const loadRunningTimes = (): RunningTimes => {
-  const missingRunningTimes: RunningTimes = {
-    oneMile: "",
-    fiveKm: "",
-    tenKm: "",
-    halfMarathon: "",
-    marathon: "",
-  };
-  const runningTimesJson = localStorage.getItem("runningTimes");
-  if (runningTimesJson) {
-    return JSON.parse(runningTimesJson);
-  }
-
-  // Fallback to old localStorage keys
-  const oneMile = localStorage.getItem("oneMileTime") || "";
-  const fiveKm = localStorage.getItem("fiveKmTime") || "";
-  const tenKm = localStorage.getItem("tenKmTime") || "";
-  const halfMarathon = localStorage.getItem("halfMarathonTime") || "";
-  const marathon = localStorage.getItem("marathonTime") || "";
-  if (oneMile || fiveKm || tenKm || halfMarathon || marathon) {
-    return { oneMile, fiveKm, tenKm, halfMarathon, marathon };
-  }
-
-  return missingRunningTimes;
-};
-export type SportType = "bike" | "run";
-export type DurationType = "time" | "distance";
-export type PaceUnitType = "metric" | "imperial";
 
 type EditorProps = { id: string };
 
 const Editor = ({ id }: EditorProps) => {
   const S3_URL = "https://zwift-workout.s3-eu-west-1.amazonaws.com";
 
-  const [workoutId, setId] = useState(id === "new" ? localStorage.getItem("id") || genShortId() : id);
-  const [bars, setBars] = useState<Array<BarType>>(JSON.parse(localStorage.getItem("currentWorkout") || "[]"));
-  const [actionId, setActionId] = useState<string | undefined>(undefined);
-  const [ftp, setFtp] = useState(parseInt(localStorage.getItem("ftp") || "200"));
-  const [weight, setWeight] = useState(parseInt(localStorage.getItem("weight") || "75"));
-  const [instructions, setInstructions] = useState<Array<Instruction>>(
-    JSON.parse(localStorage.getItem("instructions") || "[]"),
-  );
-  const [tags, setTags] = useState(JSON.parse(localStorage.getItem("tags") || "[]"));
-
-  const [name, setName] = useState(localStorage.getItem("name") || "");
-  const [description, setDescription] = useState(localStorage.getItem("description") || "");
-  const [author, setAuthor] = useState(localStorage.getItem("author") || "");
-
-  const canvasRef = useRef<HTMLInputElement>(null);
-  const segmentsRef = useRef<HTMLInputElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const segmentsRef = useRef<HTMLDivElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
-  const [segmentsWidth, setSegmentsWidth] = useState(1320);
-
-  const [message, setMessage] = useState<Message>();
-
-  // bike or run
-  const [sportType, setSportType] = useState<SportType>((localStorage.getItem("sportType") as SportType) || "bike");
-
-  // distance or time
-  const [durationType, setDurationType] = useState<DurationType>(
-    (localStorage.getItem("durationType") as DurationType) || "time",
-  );
-
-  // min / km or min / mi
-  const [paceUnitType, setPaceUnitType] = useState<PaceUnitType>(
-    (localStorage.getItem("paceUnitType") as PaceUnitType) || "metric",
-  );
-
-  const [runningTimes, setRunningTimes] = useState(loadRunningTimes());
-
-  const [textEditorIsVisible, setTextEditorIsVisible] = useState(false);
-  const [selectedInstruction, setSelectedInstruction] = useState<Instruction>();
-  const [isMetaEditing, setIsMetaEditing] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem("currentWorkout", JSON.stringify(bars));
-    localStorage.setItem("ftp", ftp.toString());
-
-    localStorage.setItem("instructions", JSON.stringify(instructions));
-    localStorage.setItem("weight", weight.toString());
-
-    localStorage.setItem("name", name);
-    localStorage.setItem("description", description);
-    localStorage.setItem("author", author);
-    localStorage.setItem("tags", JSON.stringify(tags));
-    localStorage.setItem("sportType", sportType);
-    localStorage.setItem("durationType", durationType);
-    localStorage.setItem("paceUnitType", paceUnitType);
-
-    localStorage.setItem("runningTimes", JSON.stringify(runningTimes));
-
-    setSegmentsWidth(segmentsRef.current?.scrollWidth || 1320);
-  }, [
-    segmentsRef,
+  const {
+    workoutId,
+    setWorkoutId,
     bars,
+    setBars,
+    actionId,
+    setActionId,
     ftp,
-    instructions,
+    setFtp,
     weight,
-    name,
-    description,
-    author,
+    setWeight,
+    instructions,
+    setInstructions,
     tags,
+    setTags,
+    name,
+    setName,
+    description,
+    setDescription,
+    author,
+    setAuthor,
+    segmentsWidth,
+    message,
+    setMessage,
     sportType,
+    setSportType,
     durationType,
+    setDurationType,
     paceUnitType,
+    setPaceUnitType,
     runningTimes,
-  ]);
+    setRunningTimes,
+    textEditorIsVisible,
+    setTextEditorIsVisible,
+    selectedInstruction,
+    setSelectedInstruction,
+    isMetaEditing,
+    setIsMetaEditing,
+  } = useEditorState({ id, segmentsRef });
 
   useEffect(() => {
     if (id !== "new") {
@@ -196,30 +98,43 @@ const Editor = ({ id }: EditorProps) => {
     }
   }, [id]);
 
-  function newWorkout() {
-    console.log("New workout");
-
-    setId(genShortId());
-    setBars([]);
-    setInstructions([]);
-    setName("");
-    setDescription("");
-    setAuthor("");
-    setTags([]);
-  }
-
-  function handleOnChange(id: string, values: BarType) {
-    const index = bars.findIndex((bar) => bar.id === id);
-
-    const updatedArray = [...bars];
-    updatedArray[index] = values;
-
-    setBars(updatedArray);
-  }
-
-  function handleOnClick(id: string) {
-    setActionId(id === actionId ? undefined : id);
-  }
+  const {
+    newWorkout,
+    handleOnChange,
+    handleOnClick,
+    addBar,
+    addTrapeze,
+    addFreeRide,
+    addInterval,
+    addInstruction,
+    changeInstruction,
+    deleteInstruction,
+    removeBar,
+    addTimeToBar,
+    removeTimeFromBar,
+    addPowerToBar,
+    removePowerFromBar,
+    duplicateBar,
+    moveLeft,
+    moveRight,
+    setPace,
+    getPace,
+  } = useWorkoutActions({
+    bars,
+    setBars,
+    instructions,
+    setInstructions,
+    actionId,
+    setActionId,
+    durationType,
+    ftp,
+    calculateSpeed,
+    setWorkoutId,
+    setName,
+    setDescription,
+    setAuthor,
+    setTags,
+  });
 
   function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
@@ -236,275 +151,6 @@ const Editor = ({ id }: EditorProps) => {
 
     if (event.key in actionDict) {
       actionDict[event.key]();
-    }
-  }
-
-  function addBar(zone: number, duration: number = 300, cadence: number = 0, pace: number = 0, length: number = 200) {
-    setBars((bars) => [
-      ...bars,
-      {
-        time: durationType === "time" ? duration : round(calculateTime(length, calculateSpeed(pace)), 1),
-        length: durationType === "time" ? round(calculateDistance(duration, calculateSpeed(pace)), 1) : length,
-        power: zone,
-        cadence: cadence,
-        type: "bar",
-        id: genId(),
-        pace: pace,
-      },
-    ]);
-  }
-
-  function addTrapeze(
-    zone1: number,
-    zone2: number,
-    duration: number = 300,
-    pace: number = 0,
-    length: number = 1000,
-    cadence: number = 0,
-  ) {
-    setBars((bars) => [
-      ...bars,
-      {
-        time: durationType === "time" ? duration : round(calculateTime(length, calculateSpeed(pace)), 1),
-        length: durationType === "time" ? round(calculateDistance(duration, calculateSpeed(pace)), 1) : length,
-        startPower: zone1,
-        endPower: zone2,
-        cadence: cadence,
-        pace: pace,
-        type: "trapeze",
-        id: genId(),
-      },
-    ]);
-  }
-
-  function addFreeRide(duration: number = 600, cadence: number = 0, length: number = 1000) {
-    setBars((bars) => [
-      ...bars,
-      {
-        time: durationType === "time" ? duration : 0,
-        length: durationType === "time" ? 0 : length,
-        cadence: cadence,
-        type: "freeRide",
-        id: genId(),
-      },
-    ]);
-  }
-
-  function addInterval(
-    repeat: number = 3,
-    onDuration: number = 30,
-    offDuration: number = 120,
-    onPower: number = 1,
-    offPower: number = 0.5,
-    cadence: number = 0,
-    restingCadence: number = 0,
-    pace: number = 0,
-    onLength: number = 200,
-    offLength: number = 200,
-  ) {
-    setBars((bars) => [
-      ...bars,
-      {
-        time:
-          durationType === "time"
-            ? (onDuration + offDuration) * repeat
-            : round(calculateTime((onLength + offLength) * repeat, calculateSpeed(pace)), 1),
-        length:
-          durationType === "time"
-            ? round(calculateDistance((onDuration + offDuration) * repeat, calculateSpeed(pace)), 1)
-            : (onLength + offLength) * repeat,
-        id: genId(),
-        type: "interval",
-        cadence: cadence,
-        restingCadence: restingCadence,
-        repeat: repeat,
-        onDuration:
-          durationType === "time"
-            ? onDuration
-            : round(calculateTime((onLength * 1) / onPower, calculateSpeed(pace)), 1),
-        offDuration:
-          durationType === "time"
-            ? offDuration
-            : round(calculateTime((offLength * 1) / offPower, calculateSpeed(pace)), 1),
-        onPower: onPower,
-        offPower: offPower,
-        pace: pace,
-        onLength:
-          durationType === "time"
-            ? round(calculateDistance((onDuration * 1) / onPower, calculateSpeed(pace)), 1)
-            : onLength,
-        offLength:
-          durationType === "time"
-            ? round(calculateDistance((offDuration * 1) / offPower, calculateSpeed(pace)), 1)
-            : offLength,
-      },
-    ]);
-  }
-
-  function addInstruction(text = "", time = 0, length = 0) {
-    setInstructions((instructions) => [
-      ...instructions,
-      {
-        text: text,
-        time: time,
-        length: length,
-        id: genId(),
-      },
-    ]);
-  }
-
-  function changeInstruction(id: string, values: Instruction) {
-    const index = instructions.findIndex((instructions) => instructions.id === id);
-
-    const updatedArray = [...instructions];
-    updatedArray[index] = values;
-    setInstructions(updatedArray);
-  }
-
-  function deleteInstruction(id: string) {
-    const updatedArray = [...instructions];
-    setInstructions(updatedArray.filter((item) => item.id !== id));
-  }
-
-  function removeBar(id: string) {
-    const updatedArray = [...bars];
-    setBars(updatedArray.filter((item) => item.id !== id));
-    setActionId(undefined);
-  }
-
-  function addTimeToBar(id: string) {
-    const updatedArray = [...bars];
-
-    const index = updatedArray.findIndex((bar) => bar.id === id);
-    const element = updatedArray[index];
-    if (element && durationType === "time") {
-      element.time = element.time + 5;
-      element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
-      setBars(updatedArray);
-    }
-
-    if (element && durationType === "distance") {
-      element.length = (element.length || 0) + 200;
-      element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
-      setBars(updatedArray);
-    }
-  }
-
-  function removeTimeFromBar(id: string) {
-    const updatedArray = [...bars];
-
-    const index = updatedArray.findIndex((bar) => bar.id === id);
-    const element = updatedArray[index];
-    if (element && element.time > 5 && durationType === "time") {
-      element.time = element.time - 5;
-      element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
-      setBars(updatedArray);
-    }
-
-    if (element && (element.length || 0) > 200 && durationType === "distance") {
-      element.length = (element.length || 0) - 200;
-      element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
-      setBars(updatedArray);
-    }
-  }
-
-  function addPowerToBar(id: string) {
-    const updatedArray = [...bars];
-
-    const index = updatedArray.findIndex((bar) => bar.id === id);
-    const element = updatedArray[index];
-    if (element?.power) {
-      element.power = parseFloat((element.power + 1 / ftp).toFixed(3));
-
-      if (durationType === "time") {
-        element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / element.power;
-      } else {
-        element.time = (calculateTime(element.length || 0, calculateSpeed(element.pace || 0)) * 1) / element.power;
-      }
-
-      setBars(updatedArray);
-    }
-  }
-
-  function removePowerFromBar(id: string) {
-    const updatedArray = [...bars];
-
-    const index = updatedArray.findIndex((bar) => bar.id === id);
-    const element = updatedArray[index];
-    if (element?.power && element.power >= Zones.Z1.min) {
-      element.power = parseFloat((element.power - 1 / ftp).toFixed(3));
-
-      if (durationType === "time") {
-        element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / element.power;
-      } else {
-        element.time = (calculateTime(element.length || 0, calculateSpeed(element.pace || 0)) * 1) / element.power;
-      }
-
-      setBars(updatedArray);
-    }
-  }
-
-  function duplicateBar(id: string) {
-    const index = bars.findIndex((bar) => bar.id === id);
-    const element = [...bars][index];
-
-    switch (element.type) {
-      case "bar":
-        addBar(element.power || 80, element.time, element.cadence, element.pace, element.length);
-        break;
-      case "freeRide":
-        addFreeRide(element.time, element.cadence, element.length);
-        break;
-      case "trapeze":
-        addTrapeze(
-          element.startPower || 80,
-          element.endPower || 160,
-          element.time,
-          element.pace || 0,
-          element.length,
-          element.cadence,
-        );
-        break;
-      case "interval":
-        addInterval(
-          element.repeat,
-          element.onDuration,
-          element.offDuration,
-          element.onPower,
-          element.offPower,
-          element.cadence,
-          element.restingCadence,
-          element.pace,
-          element.onLength,
-          element.offLength,
-        );
-        break;
-    }
-
-    setActionId(undefined);
-  }
-
-  function moveLeft(id: string) {
-    const index = bars.findIndex((bar) => bar.id === id);
-    // not first position of array
-    if (index > 0) {
-      const updatedArray = [...bars];
-      const element = [...bars][index];
-      updatedArray.splice(index, 1);
-      updatedArray.splice(index - 1, 0, element);
-      setBars(updatedArray);
-    }
-  }
-
-  function moveRight(id: string) {
-    const index = bars.findIndex((bar) => bar.id === id);
-    // not first position of array
-    if (index < bars.length - 1) {
-      const updatedArray = [...bars];
-      const element = [...bars][index];
-      updatedArray.splice(index, 1);
-      updatedArray.splice(index + 1, 0, element);
-      setBars(updatedArray);
     }
   }
 
@@ -712,34 +358,6 @@ const Editor = ({ id }: EditorProps) => {
       index={index}
     />
   );
-
-  function setPace(value: string, id: string) {
-    const index = bars.findIndex((bar) => bar.id === id);
-
-    if (index !== -1) {
-      const updatedArray = [...bars];
-      const element = [...updatedArray][index];
-      element.pace = parseInt(value);
-
-      if (durationType === "time") {
-        element.length =
-          (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
-      } else {
-        element.time = (calculateTime(element.length || 0, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
-      }
-
-      setBars(updatedArray);
-    }
-  }
-
-  function getPace(id: string) {
-    const index = bars.findIndex((bar) => bar.id === id);
-
-    if (index !== -1) {
-      const element = [...bars][index];
-      return element.pace;
-    }
-  }
 
   function switchSportType(newSportType: SportType) {
     setSportType(newSportType);
@@ -1278,4 +896,5 @@ const Editor = ({ id }: EditorProps) => {
 };
 
 export default Editor;
+
 

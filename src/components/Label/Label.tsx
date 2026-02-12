@@ -1,7 +1,7 @@
 import { faBolt, faClock, faRuler } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import type { PaceUnitType } from "../Editor/Editor";
+import type { PaceUnitType } from "../Editor/editorTypes";
 import { speedToPace } from "../helpers";
 
 import "./Label.css";

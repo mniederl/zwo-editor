@@ -1,7 +1,7 @@
 import { XMLParser } from "fast-xml-parser";
 
 import { genId } from "@utils/id";
-import type { BarType, DurationType, Instruction, SportType } from "../components/Editor/Editor";
+import type { BarType, DurationType, Instruction, SportType } from "../components/Editor/editorTypes";
 
 export interface ParsedWorkoutXml {
   meta: {

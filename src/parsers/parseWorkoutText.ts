@@ -1,5 +1,5 @@
 import { genId } from "@utils/id";
-import type { BarType, DurationType, Instruction } from "../components/Editor/Editor";
+import type { BarType, DurationType, Instruction } from "../components/Editor/editorTypes";
 import { calculateDistance, calculateTime, round } from "../components/helpers";
 import { parseLines, type Block, type PowerValue, type Range } from "./parseWorkoutLine";
 

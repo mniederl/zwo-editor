@@ -3,7 +3,7 @@ import { Resizable } from "re-resizable";
 
 import { formatTime } from "@utils/time";
 import { Colors, Zones } from "../constants";
-import type { PaceUnitType } from "../Editor/Editor";
+import type { PaceUnitType } from "../Editor/editorTypes";
 import { calculateDistance, calculateSpeed, calculateTime, round } from "../helpers";
 import Label from "../Label/Label";
 
