@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { faComment, faCommentDots } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Draggable from "react-draggable";
@@ -27,6 +27,7 @@ const Comment = (props: {
 
   const [time, setTime] = useState(props.instruction.time / timeMultiplier);
   const [isDragging, setIsDragging] = useState(false);
+  const nodeRef = useRef<HTMLDivElement>(null);
 
   // FOR RUN WORKOUTS
   const [length, setLength] = useState(props.instruction.length / lengthMultiplier);
@@ -54,15 +55,16 @@ const Comment = (props: {
 
   return (
     <Draggable
+      nodeRef={nodeRef}
       axis="x"
       handle=".handle"
       defaultPosition={{ x: time, y: (props.index % 5) * 20 }}
       bounds={{ left: 0, right: props.width }}
       scale={1}
-      onStop={(e, data) => handleTouch(data.x)}
-      onDrag={(e, data) => handleDragging(data.x)}
+      onStop={(_e, data) => handleTouch(data.x)}
+      onDrag={(_e, data) => handleDragging(data.x)}
     >
-      <div>
+      <div ref={nodeRef}>
         <FontAwesomeIcon
           style={{ display: "block", opacity: 0.7 }}
           icon={props.instruction.text !== "" ? faCommentDots : faComment}
