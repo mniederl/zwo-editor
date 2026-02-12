@@ -1,18 +1,17 @@
-import React from "react";
-import Bar from "../../Bar/Bar";
-import { Zones } from "../../Constants";
 import renderer from "react-test-renderer";
-import { v4 as uuidv4 } from "uuid";
-import "@testing-library/jest-dom/extend-expect";
+import { expect, it } from "vitest"; // or you can configure globals
 
-test("Bar renders correctly", () => {
+import { genId } from "../../../utils/id";
+import Bar from "../../Bar/Bar";
+import { Zones } from "../../constants";
+
+it("Bar renders correctly", () => {
   const bar = {
     time: 50,
     power: Zones.Z3.min,
     type: "bar",
-    id: uuidv4(),
+    id: genId(),
   };
-
   const ftp = 250;
 
   const component = renderer.create(
@@ -26,7 +25,6 @@ test("Bar renders correctly", () => {
       onClick={() => handleOnClick}
     />,
   );
-
-  let tree = component.toJSON();
+  const tree = component.toJSON();
   expect(tree).toMatchSnapshot();
 });

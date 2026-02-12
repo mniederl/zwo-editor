@@ -20,10 +20,10 @@
  * ```
  */
 export function parseTime(s: string): number {
-  if (s.trim() === "") return 0;
-
   if (typeof s !== "string") throw new TypeError("Expected string");
-  const parts = s.trim().split(":");
+  const trimmed = s.trim();
+  if (trimmed === "") throw new Error("Empty time string");
+  const parts = trimmed.split(":");
   if (parts.length < 2 || parts.length > 3) throw new Error("Use HH:MM:SS or MM:SS");
 
   const nums = parts.map((p) => {

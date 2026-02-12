@@ -46,7 +46,15 @@ export class Trapeze implements ICommon {
   cadence: number;
   pace?: number;
 
-  constructor({ id, time, length, startPower = 1, endPower = 1, cadence = 0, pace = 0 }: Partial<Trapeze> & { id: string; time: number }) {
+  constructor({
+    id,
+    time,
+    length,
+    startPower = 1,
+    endPower = 1,
+    cadence = 0,
+    pace = 0,
+  }: Partial<Trapeze> & { id: string; time: number }) {
     this.id = id;
     this.time = time;
     this.length = length;
@@ -134,62 +142,57 @@ export interface Instruction {
 
 export type Segment = Bar | Trapeze | Interval | FreeRide;
 
+// biome-ignore lint/suspicious/noExplicitAny: Number allows any input
+const num = (v: any, d?: number): number | undefined => (v === undefined ? d : Number(v));
+
 // Factory that converts a plain JS object (as used throughout the app) into a class instance.
 export function fromPlain(obj: unknown): Segment | Instruction | null {
   if (!obj || typeof obj !== "object") return null;
   const o = obj as Record<string, unknown>;
   const type = typeof o.type === "string" ? (o.type as string) : undefined;
 
+  const baseProps = {
+    id: String(o.id),
+    time: num(o.time, 0) || 0,
+    length: num(o.length),
+    cadence: num(o.cadence, 0),
+  };
+
   switch (type) {
     case "bar":
       return new Bar({
-        id: String(o.id),
-        time: Number(o.time) || 0,
-        length: o.length === undefined ? undefined : Number(o.length),
-        power: o.power === undefined ? 1 : Number(o.power),
-        cadence: o.cadence === undefined ? 0 : Number(o.cadence),
-        pace: o.pace === undefined ? 0 : Number(o.pace),
+        ...baseProps,
+        power: num(o.power, 1),
+        pace: num(o.pace, 0),
       });
     case "trapeze":
       return new Trapeze({
-        id: String(o.id),
-        time: Number(o.time) || 0,
-        length: o.length === undefined ? undefined : Number(o.length),
-        startPower: o.startPower === undefined ? 1 : Number(o.startPower),
-        endPower: o.endPower === undefined ? 1 : Number(o.endPower),
-        cadence: o.cadence === undefined ? 0 : Number(o.cadence),
-        pace: o.pace === undefined ? 0 : Number(o.pace),
+        ...baseProps,
+        startPower: num(o.startPower, 1),
+        endPower: num(o.endPower, 1),
+        pace: num(o.pace, 0),
       });
     case "interval":
       return new Interval({
-        id: String(o.id),
-        time: Number(o.time) || 0,
-        length: o.length === undefined ? undefined : Number(o.length),
-        repeat: o.repeat === undefined ? 1 : Number(o.repeat),
-        onDuration: o.onDuration === undefined ? 0 : Number(o.onDuration),
-        offDuration: o.offDuration === undefined ? 0 : Number(o.offDuration),
-        onPower: o.onPower === undefined ? 1 : Number(o.onPower),
-        offPower: o.offPower === undefined ? 1 : Number(o.offPower),
-        cadence: o.cadence === undefined ? 0 : Number(o.cadence),
-        restingCadence: o.restingCadence === undefined ? undefined : Number(o.restingCadence),
-        pace: o.pace === undefined ? 0 : Number(o.pace),
+        ...baseProps,
+        repeat: num(o.repeat, 1),
+        onDuration: num(o.onDuration, 0),
+        offDuration: num(o.offDuration, 0),
+        onPower: num(o.onPower, 1),
+        offPower: num(o.offPower, 1),
+        restingCadence: num(o.restingCadence),
+        pace: num(o.pace, 0),
       });
     case "freeRide":
-      return new FreeRide({
-        id: String(o.id),
-        time: Number(o.time) || 0,
-        length: o.length === undefined ? undefined : Number(o.length),
-        cadence: o.cadence === undefined ? 0 : Number(o.cadence),
-      });
+      return new FreeRide(baseProps);
     default: {
-      if (o.text !== undefined && o.time !== undefined && o.id !== undefined) {
+      if (o.text !== undefined && o.time !== undefined && o.id !== undefined)
         return {
           id: String(o.id),
           text: String(o.text),
-          time: Number(o.time) || 0,
-          length: o.length === undefined ? 0 : Number(o.length),
+          time: num(o.time, 0),
+          length: num(o.length, 0),
         } as Instruction;
-      }
       return null;
     }
   }

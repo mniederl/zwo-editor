@@ -1,11 +1,14 @@
 {
-  "cSpell.words": [
-    "Cooldown",
-    "fontawesome",
-    "fortawesome"
-  ],
+  "cSpell.words": ["Cooldown", "fontawesome", "fortawesome", "freeride"],
   "editor.codeActionsOnSave": {
     "source.organizeImports.biome": "explicit",
+    "source.addMissingImports.ts": "explicit",
     "source.fixAll.biome": "explicit"
+  },
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "modificationsIfAvailable",
+  "editor.defaultFormatter": "biomejs.biome",
+  "[jsonc]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
   }
 }
