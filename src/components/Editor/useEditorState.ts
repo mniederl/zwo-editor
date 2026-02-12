@@ -6,7 +6,7 @@ import { genShortId } from "@utils/id";
 import { loadRunningTimes } from "./editorTypes";
 import type { BarType, DurationType, Instruction, PaceUnitType, SportType } from "./editorTypes";
 
-interface Message {
+export interface EditorMessage {
   visible: boolean;
   class?: string;
   text?: string;
@@ -33,7 +33,7 @@ export default function useEditorState({ id, segmentsRef }: UseEditorStateProps)
   const [author, setAuthor] = useState(localStorage.getItem("author") || "");
 
   const [segmentsWidth, setSegmentsWidth] = useState(1320);
-  const [message, setMessage] = useState<Message>();
+  const [message, setMessage] = useState<EditorMessage>();
 
   const [sportType, setSportType] = useState<SportType>((localStorage.getItem("sportType") as SportType) || "bike");
   const [durationType, setDurationType] = useState<DurationType>(

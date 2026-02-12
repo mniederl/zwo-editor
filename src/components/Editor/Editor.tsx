@@ -19,11 +19,9 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Tooltip } from "react-tooltip";
 
-import { genId } from "@utils/id";
 import { formatTime, parseTime } from "@utils/time";
 import { CooldownLogo, IntervalLogo, SteadyLogo, WarmupLogo } from "../../assets";
 import parseWorkoutText from "../../parsers/parseWorkoutText";
-import parseWorkoutXml from "../../parsers/parseWorkoutXml";
 import Bar from "../Bar/Bar";
 import Comment from "../Comment/Comment";
 import EditComment from "../Comment/EditComment";
@@ -32,7 +30,6 @@ import FreeRide from "../FreeRide/FreeRide";
 import { getStressScore, getWorkoutDistance, getWorkoutLength, getWorkoutPace, round } from "../helpers";
 import Interval from "../Interval/Interval";
 import RightTrapezoid from "../Trapeze/Trapeze";
-import createWorkoutXml from "./createWorkoutXml";
 import DistanceAxis from "./DistanceAxis";
 import type { BarType, Instruction, SportType } from "./editorTypes";
 import LeftRightToggle from "./LeftRightToggle";
@@ -40,6 +37,7 @@ import RunningTimesEditor from "./RunningTimesEditor";
 import TimeAxis from "./TimeAxis";
 import useEditorState from "./useEditorState";
 import useWorkoutActions from "./useWorkoutActions";
+import useWorkoutIO from "./useWorkoutIO";
 import ZoneAxis from "./ZoneAxis";
 
 import "./Editor.css";
@@ -92,12 +90,6 @@ const Editor = ({ id }: EditorProps) => {
     setIsMetaEditing,
   } = useEditorState({ id, segmentsRef });
 
-  useEffect(() => {
-    if (id !== "new") {
-      void fetchAndParse(id);
-    }
-  }, [id]);
-
   const {
     newWorkout,
     handleOnChange,
@@ -136,6 +128,34 @@ const Editor = ({ id }: EditorProps) => {
     setTags,
   });
 
+  const { downloadWorkout, handleUpload, fetchAndParse } = useWorkoutIO({
+    s3Url: S3_URL,
+    workoutId,
+    author,
+    name,
+    description,
+    sportType,
+    durationType,
+    tags,
+    bars,
+    instructions,
+    setBars,
+    setInstructions,
+    setAuthor,
+    setName,
+    setDescription,
+    setTags,
+    setSportType,
+    setDurationType,
+    setMessage,
+  });
+
+  useEffect(() => {
+    if (id !== "new") {
+      void fetchAndParse(id);
+    }
+  }, [id]);
+
   function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
 
@@ -151,89 +171,6 @@ const Editor = ({ id }: EditorProps) => {
 
     if (event.key in actionDict) {
       actionDict[event.key]();
-    }
-  }
-
-  function save() {
-    setMessage({ visible: true, class: "loading", text: "Saving.." });
-
-    const xml = createWorkoutXml({
-      author,
-      name,
-      description,
-      sportType,
-      durationType,
-      tags,
-      bars,
-      instructions,
-    });
-
-    const file = new Blob([xml], { type: "application/xml" });
-    return file;
-  }
-
-  function downloadWorkout() {
-    const tempFile = save();
-    const url = window.URL.createObjectURL(tempFile);
-
-    const a = document.createElement("a");
-    document.body.appendChild(a);
-    a.style.display = "none";
-    a.href = url;
-    a.download = `${workoutId}.zwo`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-  }
-
-  function applyParsedWorkout(parsed: ReturnType<typeof parseWorkoutXml>) {
-    setBars(parsed.segments);
-    setInstructions(parsed.instructions);
-    setAuthor(parsed.meta.author || "");
-    setName(parsed.meta.name || "");
-    setDescription(parsed.meta.description || "");
-    setTags(parsed.meta.tags || []);
-    setSportType(parsed.meta.sportType || "bike");
-    setDurationType(parsed.meta.durationType || "time");
-  }
-
-  async function handleUpload(file: Blob) {
-    if (bars.length > 0 && !window.confirm("Are you sure you want to create a new workout?")) {
-      return false;
-    }
-
-    try {
-      const xml = await file.text();
-      const parsed = parseWorkoutXml(xml, { idGenerator: genId });
-      applyParsedWorkout(parsed);
-      setMessage({ visible: true, class: "success", text: "Workout imported." });
-      return true;
-    } catch (error) {
-      console.error(error);
-      setMessage({
-        visible: true,
-        class: "error",
-        text: error instanceof Error ? error.message : "Unable to parse workout XML",
-      });
-      return false;
-    }
-  }
-
-  async function fetchAndParse(id: string) {
-    setBars([]);
-    setInstructions([]);
-
-    try {
-      const response = await fetch(`${S3_URL}/${id}.zwo`);
-      const xml = await response.text();
-      const parsed = parseWorkoutXml(xml, { idGenerator: genId });
-      applyParsedWorkout(parsed);
-    } catch (error) {
-      console.error(error);
-      setMessage({
-        visible: true,
-        class: "error",
-        text: error instanceof Error ? error.message : "Unable to fetch workout",
-      });
     }
   }
 
