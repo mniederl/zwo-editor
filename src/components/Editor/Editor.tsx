@@ -1,44 +1,23 @@
 ﻿import { useEffect, useRef } from "react";
-import {
-  faArrowLeft,
-  faArrowRight,
-  faBicycle,
-  faBiking,
-  faClock,
-  faComment,
-  faCopy,
-  faDownload,
-  faFile,
-  faPen,
-  faRuler,
-  faRunning,
-  faTimesCircle,
-  faTrash,
-  faUpload,
-} from "@fortawesome/free-solid-svg-icons";
+import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Tooltip } from "react-tooltip";
 
 import { formatTime, parseTime } from "@utils/time";
-import { CooldownLogo, IntervalLogo, SteadyLogo, WarmupLogo } from "../../assets";
 import parseWorkoutText from "../../parsers/parseWorkoutText";
 import Bar from "../Bar/Bar";
 import Comment from "../Comment/Comment";
 import EditComment from "../Comment/EditComment";
-import { Colors, Zones } from "../constants";
 import FreeRide from "../FreeRide/FreeRide";
 import { getStressScore, getWorkoutDistance, getWorkoutLength, getWorkoutPace, round } from "../helpers";
 import Interval from "../Interval/Interval";
 import RightTrapezoid from "../Trapeze/Trapeze";
-import DistanceAxis from "./DistanceAxis";
+import EditorHeaderPanel from "./EditorHeaderPanel";
 import type { BarType, Instruction, SportType } from "./editorTypes";
-import LeftRightToggle from "./LeftRightToggle";
-import RunningTimesEditor from "./RunningTimesEditor";
-import TimeAxis from "./TimeAxis";
+import TextComposerPanel from "./TextComposerPanel";
 import useEditorState from "./useEditorState";
 import useWorkoutActions from "./useWorkoutActions";
 import useWorkoutIO from "./useWorkoutIO";
-import ZoneAxis from "./ZoneAxis";
+import WorkoutBuilderPanel from "./WorkoutBuilderPanel";
 
 import "./Editor.css";
 
@@ -342,34 +321,12 @@ const Editor = ({ id }: EditorProps) => {
   const trainingLoad = round(getStressScore(barsForMetrics, ftp), 1);
   const averagePace = getWorkoutPace(barsForMetrics, durationType, paceUnitType);
 
-  const zoneButtons = [
-    { label: "Z1", color: Colors.GRAY, zone: 0.5, textColor: "#ffffff" },
-    { label: "Z2", color: Colors.BLUE, zone: Zones.Z2.min, textColor: "#ffffff" },
-    { label: "Z3", color: Colors.GREEN, zone: Zones.Z3.min, textColor: "#ffffff" },
-    { label: "Z4", color: Colors.YELLOW, zone: Zones.Z4.min, textColor: "#111827" },
-    { label: "Z5", color: Colors.ORANGE, zone: Zones.Z5.min, textColor: "#ffffff" },
-    { label: "Z6", color: Colors.RED, zone: Zones.Z6.min, textColor: "#ffffff" },
-  ];
-
   const messageToneClass =
     message?.class === "error"
       ? "border-rose-200 bg-rose-50 text-rose-700"
       : message?.class === "loading"
         ? "border-slate-800 bg-slate-900 text-slate-100"
         : "border-emerald-200 bg-emerald-50 text-emerald-700";
-
-  const fieldLabelClass = "mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500";
-  const inputClass =
-    "w-full rounded-lg border border-slate-200 bg-white/90 px-2.5 py-1.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200";
-  const segmentToolButtonClass =
-    "inline-flex items-center justify-start gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900";
-  const composerActionButtonClass =
-    "inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400 hover:text-slate-900";
-  const topSectionClass =
-    sportType === "run"
-      ? "grid gap-3 xl:grid-cols-[230px_196px_minmax(0,1fr)]"
-      : "grid gap-3 xl:grid-cols-[230px_minmax(0,1fr)]";
-  const setupStackClass = sportType === "run" ? "space-y-5" : "space-y-3";
 
   return (
     // Adding tabIndex allows div element to receive keyboard events
@@ -418,415 +375,85 @@ const Editor = ({ id }: EditorProps) => {
           />
         )}
 
-        <section className={topSectionClass}>
-          <aside className="rounded-3xl border border-white/50 bg-white/85 p-3 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-4">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-800">Workout Setup</p>
-            <div className={setupStackClass}>
-              <LeftRightToggle<"bike", "run">
-                label="Sport Type"
-                leftValue="bike"
-                rightValue="run"
-                leftIcon={faBiking}
-                rightIcon={faRunning}
-                selected={sportType}
-                onChange={switchSportType}
-              />
-              {sportType === "bike" && (
-                <>
-                  <label className="block">
-                    <span className={fieldLabelClass}>FTP (W)</span>
-                    <input
-                      className={inputClass}
-                      type="number"
-                      name="ftp"
-                      value={ftp}
-                      onChange={(event) => setFtp(Math.max(1, Number.parseInt(event.target.value, 10) || 0))}
-                    />
-                  </label>
-                  <label className="block">
-                    <span className={fieldLabelClass}>Body Weight (kg)</span>
-                    <input
-                      className={inputClass}
-                      type="number"
-                      name="weight"
-                      value={weight}
-                      onChange={(event) => setWeight(Math.max(1, Number.parseInt(event.target.value, 10) || 0))}
-                    />
-                  </label>
-                </>
-              )}
-              {sportType === "run" && (
-                <>
-                  <LeftRightToggle<"time", "distance">
-                    label="Duration Type"
-                    leftValue="time"
-                    rightValue="distance"
-                    leftIcon={faClock}
-                    rightIcon={faRuler}
-                    selected={durationType}
-                    onChange={setDurationType}
-                  />
-                  <LeftRightToggle<"metric", "imperial">
-                    label="Pace Unit"
-                    leftValue="metric"
-                    rightValue="imperial"
-                    leftLabel="min/km"
-                    rightLabel="min/mi"
-                    selected={paceUnitType}
-                    onChange={setPaceUnitType}
-                  />
-                </>
-              )}
-            </div>
-          </aside>
+        <EditorHeaderPanel
+          sportType={sportType}
+          durationType={durationType}
+          paceUnitType={paceUnitType}
+          ftp={ftp}
+          weight={weight}
+          setFtp={setFtp}
+          setWeight={setWeight}
+          switchSportType={switchSportType}
+          setDurationType={setDurationType}
+          setPaceUnitType={setPaceUnitType}
+          runningTimes={runningTimes}
+          setRunningTimes={setRunningTimes}
+          isMetaEditing={isMetaEditing}
+          setIsMetaEditing={setIsMetaEditing}
+          name={name}
+          setName={setName}
+          description={description}
+          setDescription={setDescription}
+          author={author}
+          setAuthor={setAuthor}
+          workoutTime={workoutTime}
+          workoutDistance={workoutDistance}
+          trainingLoad={trainingLoad}
+          averagePace={averagePace}
+          barsCount={bars.length}
+          instructionsCount={instructions.length}
+          newWorkout={newWorkout}
+          downloadWorkout={downloadWorkout}
+          uploadInputRef={uploadInputRef}
+          handleUpload={handleUpload}
+          normalizeEditableText={normalizeEditableText}
+        />
 
-          {sportType === "run" && <RunningTimesEditor times={runningTimes} onChange={setRunningTimes} />}
+        <TextComposerPanel
+          isVisible={textEditorIsVisible}
+          sportType={sportType}
+          onChangeText={transformTextToWorkout}
+        />
 
-          <header className="flex h-full flex-col rounded-3xl border border-white/50 bg-white/85 p-4 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-5">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-              <div className="w-full max-w-3xl">
-                <div className="mb-2 flex items-center gap-2">
-                  <p className="inline-flex rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
-                    ZWO Composer
-                  </p>
-                  <button
-                    type="button"
-                    className={`inline-flex h-7 w-7 items-center justify-center rounded-full border text-xs transition ${
-                      isMetaEditing
-                        ? "border-cyan-300 bg-cyan-100 text-cyan-700"
-                        : "border-slate-300 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-700"
-                    }`}
-                    onClick={() => setIsMetaEditing((value) => !value)}
-                    aria-label={isMetaEditing ? "Stop editing workout details" : "Edit workout details"}
-                    title={isMetaEditing ? "Stop editing" : "Edit title, description, and author"}
-                  >
-                    <FontAwesomeIcon icon={faPen} />
-                  </button>
-                </div>
-
-                <h1
-                  contentEditable={isMetaEditing}
-                  suppressContentEditableWarning
-                  onBlur={(event) => {
-                    const value = normalizeEditableText(event.currentTarget.textContent || "");
-                    setName(value === "Untitled workout" ? "" : value);
-                  }}
-                  className="font-[var(--font-display)] text-3xl font-semibold tracking-tight text-slate-900 outline-none md:text-4xl"
-                >
-                  {name || "Untitled workout"}
-                </h1>
-
-                {(description || isMetaEditing) && (
-                  <p
-                    contentEditable={isMetaEditing}
-                    suppressContentEditableWarning
-                    onBlur={(event) => {
-                      const value = normalizeEditableText(event.currentTarget.textContent || "");
-                      setDescription(value === "Add workout description" ? "" : value);
-                    }}
-                    className="mt-2 max-w-2xl text-sm text-slate-600 outline-none"
-                  >
-                    {description || "Add workout description"}
-                  </p>
-                )}
-
-                <p
-                  contentEditable={isMetaEditing}
-                  suppressContentEditableWarning
-                  onBlur={(event) => {
-                    const value = normalizeEditableText(event.currentTarget.textContent || "");
-                    const withoutBy = value.toLowerCase().startsWith("by ") ? value.slice(3) : value;
-                    setAuthor(withoutBy);
-                  }}
-                  className="mt-3 text-sm font-medium text-slate-500 outline-none"
-                >
-                  {author ? `By ${author}` : isMetaEditing ? "By " : "No author set"}
-                </p>
-              </div>
-
-              <div className="grid w-full gap-2 [grid-template-columns:repeat(auto-fit,minmax(132px,1fr))] xl:max-w-[720px]">
-                <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Workout Time</p>
-                  <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                    {workoutTime}
-                  </p>
-                </div>
-                {sportType === "run" ? (
-                  <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Distance</p>
-                    <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                      {workoutDistance} km
-                    </p>
-                  </div>
-                ) : (
-                  <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-                      Training Load
-                    </p>
-                    <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                      {trainingLoad}
-                    </p>
-                  </div>
-                )}
-                {sportType === "run" && (
-                  <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Avg Pace</p>
-                    <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                      {averagePace}
-                    </p>
-                  </div>
-                )}
-                <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Segments</p>
-                  <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                    {bars.length}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Text Events</p>
-                  <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                    {instructions.length}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-auto flex flex-wrap items-center justify-end gap-2 pt-3">
-              <button
-                type="button"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
-                onClick={() => {
-                  if (window.confirm("Are you sure you want to create a new workout?")) newWorkout();
-                }}
-              >
-                <FontAwesomeIcon icon={faFile} /> New Workout
-              </button>
-              <button type="button" className={composerActionButtonClass} onClick={() => downloadWorkout()}>
-                <FontAwesomeIcon icon={faDownload} /> Download .zwo
-              </button>
-              <input
-                accept=".xml,.zwo"
-                ref={uploadInputRef}
-                type="file"
-                className="hidden"
-                onChange={(event) => {
-                  const selectedFile = event.target.files?.[0];
-                  if (selectedFile) void handleUpload(selectedFile);
-                }}
-              />
-              <button
-                type="button"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-300 bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-700 shadow-sm transition hover:border-cyan-400 hover:bg-cyan-100"
-                onClick={() => uploadInputRef.current?.click()}
-              >
-                <FontAwesomeIcon icon={faUpload} /> Upload Workout
-              </button>
-            </div>
-          </header>
-        </section>
-
-        {textEditorIsVisible && sportType === "bike" && (
-          <section className="grid gap-3 rounded-3xl border border-white/50 bg-white/85 p-4 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md lg:grid-cols-[1.5fr_1fr]">
-            <div>
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Text Composer</p>
-              <textarea
-                onChange={(event) => transformTextToWorkout(event.target.value)}
-                rows={10}
-                spellCheck={false}
-                className="h-full min-h-[210px] w-full resize-y rounded-2xl border border-slate-200 bg-slate-950 px-4 py-3 font-mono text-sm text-slate-100 shadow-inner outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-300/40"
-                placeholder="Add one block per line here:&#10;steady 3.0wkg 30s"
-              />
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-              <h2 className="text-xl font-semibold text-slate-900">Syntax Guide</h2>
-              <p className="mt-2">Each line maps to one workout block.</p>
-              <div className="mt-4 space-y-3">
-                <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-500">Blocks</h3>
-                  <p className="mt-1 flex flex-wrap gap-1">
-                    {["steady", "warmup", "cooldown", "ramp", "intervals", "freeride", "message"].map((item) => (
-                      <span
-                        key={item}
-                        className="rounded-md bg-cyan-100 px-2 py-0.5 text-xs font-semibold text-cyan-700"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-widest text-slate-500">Examples</h3>
-                  <div className="mt-1 space-y-1">
-                    <code className="block rounded-md bg-slate-900 px-2 py-1 text-xs text-emerald-200">
-                      steady 3.0wkg 30s
-                    </code>
-                    <code className="block rounded-md bg-slate-900 px-2 py-1 text-xs text-emerald-200">
-                      warmup 2.0wkg-3.5wkg 10m
-                    </code>
-                    <code className="block rounded-md bg-slate-900 px-2 py-1 text-xs text-emerald-200">
-                      interval 10x 30s-30s 4.0wkg-1.0wkg 110rpm-85rpm
-                    </code>
-                    <code className="block rounded-md bg-slate-900 px-2 py-1 text-xs text-emerald-200">
-                      message "Last one!" 20:00m
-                    </code>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        <section className="rounded-3xl border border-white/50 bg-white/95 p-3 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-4">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-800">Build Workout</p>
-          <div className="flex flex-col gap-3 xl:flex-row xl:gap-6">
-            <aside className="flex shrink-0 flex-col gap-2 xl:w-36">
-              {sportType === "bike" ? (
-                <>
-                  <Tooltip id="text-editor-tooltip" />
-                  <div className="grid grid-cols-4 gap-2 sm:grid-cols-8 xl:grid-cols-2">
-                    <button
-                      type="button"
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500 text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-rose-600"
-                      onClick={() => toggleTextEditor()}
-                      data-tooltip-id="text-editor-tooltip"
-                      data-tooltip-content="Open text workout composer"
-                      aria-label="Open text editor"
-                    >
-                      <FontAwesomeIcon icon={faPen} />
-                    </button>
-                    {zoneButtons.map((zoneButton) => (
-                      <button
-                        key={zoneButton.label}
-                        type="button"
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold shadow-sm transition hover:-translate-y-0.5"
-                        onClick={() => addBar(zoneButton.zone)}
-                        style={{ backgroundColor: zoneButton.color, color: zoneButton.textColor }}
-                      >
-                        {zoneButton.label}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <button type="button" className={segmentToolButtonClass} onClick={() => addBar(1, 300, 0, 0, 1000)}>
-                  <SteadyLogo className="h-5 w-5" /> Steady Pace
-                </button>
-              )}
-
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-1">
-                <button type="button" className={segmentToolButtonClass} onClick={() => addTrapeze(0.25, 0.75)}>
-                  <WarmupLogo className="h-5 w-5" /> Warm Up
-                </button>
-                <button type="button" className={segmentToolButtonClass} onClick={() => addTrapeze(0.75, 0.25)}>
-                  <CooldownLogo className="h-5 w-5" /> Cool Down
-                </button>
-                <button type="button" className={segmentToolButtonClass} onClick={() => addInterval()}>
-                  <IntervalLogo className="h-5 w-5" /> Interval
-                </button>
-                <button type="button" className={segmentToolButtonClass} onClick={() => addFreeRide()}>
-                  <FontAwesomeIcon icon={sportType === "bike" ? faBicycle : faRunning} /> Free{" "}
-                  {sportType === "bike" ? "Ride" : "Run"}
-                </button>
-                <button type="button" className={segmentToolButtonClass} onClick={() => addInstruction()}>
-                  <FontAwesomeIcon icon={faComment} /> Text Event
-                </button>
-              </div>
-            </aside>
-
-            <div className="min-w-0 flex-1">
-              <div id="editor" className="editor-shell">
-                {actionId && (
-                  <div className="editor-actions">
-                    <button
-                      type="button"
-                      onClick={() => moveLeft(actionId)}
-                      title="Move Left"
-                      className="editor-action-button"
-                    >
-                      <FontAwesomeIcon icon={faArrowLeft} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => moveRight(actionId)}
-                      title="Move Right"
-                      className="editor-action-button"
-                    >
-                      <FontAwesomeIcon icon={faArrowRight} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeBar(actionId)}
-                      title="Delete"
-                      className="editor-action-button"
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => duplicateBar(actionId)}
-                      title="Duplicate"
-                      className="editor-action-button"
-                    >
-                      <FontAwesomeIcon icon={faCopy} />
-                    </button>
-                    {sportType === "run" && (
-                      <select
-                        name="pace"
-                        value={getPace(actionId)}
-                        onChange={(event) => setPace(event.target.value, actionId)}
-                        className="rounded-full border border-slate-600 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-100 outline-none transition focus:border-cyan-400"
-                      >
-                        <option value="0">1 Mile Pace</option>
-                        <option value="1">5K Pace</option>
-                        <option value="2">10K Pace</option>
-                        <option value="3">Half Marathon Pace</option>
-                        <option value="4">Marathon Pace</option>
-                      </select>
-                    )}
-                  </div>
-                )}
-                <div className="canvas" ref={canvasRef}>
-                  {actionId && (
-                    <div
-                      className="fader"
-                      style={{ width: canvasRef.current?.scrollWidth }}
-                      onClick={() => setActionId(undefined)}
-                    ></div>
-                  )}
-                  <div className="segments" ref={segmentsRef}>
-                    {bars.map((bar) => {
-                      if (bar.type === "bar") {
-                        return renderBar(bar);
-                      }
-                      if (bar.type === "trapeze") {
-                        return renderTrapeze(bar);
-                      }
-                      if (bar.type === "freeRide") {
-                        return renderFreeRide(bar);
-                      }
-                      if (bar.type === "interval") {
-                        return renderInterval(bar);
-                      }
-                      return false;
-                    })}
-                  </div>
-
-                  <div className="slider">
-                    {instructions.map((instruction, index) => renderComment(instruction, index))}
-                  </div>
-
-                  {durationType === "time" ? (
-                    <TimeAxis width={segmentsWidth} />
-                  ) : (
-                    <DistanceAxis width={segmentsWidth} />
-                  )}
-                </div>
-
-                <ZoneAxis />
-              </div>
-            </div>
-          </div>
-        </section>
+        <WorkoutBuilderPanel
+          sportType={sportType}
+          durationType={durationType}
+          segmentsWidth={segmentsWidth}
+          actionId={actionId}
+          bars={bars}
+          instructions={instructions}
+          canvasRef={canvasRef}
+          segmentsRef={segmentsRef}
+          setActionId={setActionId}
+          toggleTextEditor={toggleTextEditor}
+          addBar={addBar}
+          addTrapeze={addTrapeze}
+          addInterval={addInterval}
+          addFreeRide={addFreeRide}
+          addInstruction={addInstruction}
+          moveLeft={moveLeft}
+          moveRight={moveRight}
+          removeBar={removeBar}
+          duplicateBar={duplicateBar}
+          setPace={setPace}
+          getPace={getPace}
+          renderSegment={(bar) => {
+            if (bar.type === "bar") {
+              return renderBar(bar);
+            }
+            if (bar.type === "trapeze") {
+              return renderTrapeze(bar);
+            }
+            if (bar.type === "freeRide") {
+              return renderFreeRide(bar);
+            }
+            if (bar.type === "interval") {
+              return renderInterval(bar);
+            }
+            return false;
+          }}
+          renderComment={renderComment}
+        />
       </div>
     </div>
   );
