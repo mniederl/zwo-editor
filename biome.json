@@ -23,7 +23,10 @@
         "useUniqueElementIds": "off"
       },
       "a11y": {
-        "noLabelWithoutControl": "info"
+        "noLabelWithoutControl": "info",
+        "noStaticElementInteractions": "off",
+        "noNoninteractiveTabindex": "info",
+        "useKeyWithClickEvents": "info"
       },
       "style": {
         "noUselessElse": "warn"

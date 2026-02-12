@@ -23,6 +23,8 @@ import { Tooltip } from "react-tooltip";
 import { genId, genShortId } from "@utils/id";
 import { formatTime, parseTime } from "@utils/time";
 import { CooldownLogo, IntervalLogo, SteadyLogo, WarmupLogo } from "../../assets";
+import parseWorkoutText from "../../parsers/parseWorkoutText";
+import parseWorkoutXml from "../../parsers/parseWorkoutXml";
 import Bar from "../Bar/Bar";
 import Comment from "../Comment/Comment";
 import EditComment from "../Comment/EditComment";
@@ -39,8 +41,6 @@ import {
 } from "../helpers";
 import Interval from "../Interval/Interval";
 import RightTrapezoid from "../Trapeze/Trapeze";
-import parseWorkoutText from "../../parsers/parseWorkoutText";
-import parseWorkoutXml from "../../parsers/parseWorkoutXml";
 import createWorkoutXml from "./createWorkoutXml";
 import DistanceAxis from "./DistanceAxis";
 import LeftRightToggle from "./LeftRightToggle";
@@ -837,7 +837,11 @@ const Editor = ({ id }: EditorProps) => {
           {sportType === "run" && (
             <div className="form-input">
               <label>Avg. Workout Pace</label>
-              <input className="textInput" value={getWorkoutPace(barsForMetrics, durationType, paceUnitType)} disabled />
+              <input
+                className="textInput"
+                value={getWorkoutPace(barsForMetrics, durationType, paceUnitType)}
+                disabled
+              />
             </div>
           )}
           {sportType === "run" && (
