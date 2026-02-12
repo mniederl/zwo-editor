@@ -4,6 +4,10 @@ import createWorkoutXml from "../src/components/Editor/createWorkoutXml";
 import { parseWorkoutXml } from "../src/parsers/parseWorkoutXml";
 
 describe("parseWorkoutXml + createWorkoutXml", () => {
+  it("throws on invalid xml root", () => {
+    expect(() => parseWorkoutXml("<invalid></invalid>")).toThrow(/workout_file/i);
+  });
+
   it("round-trips a time-based workout", () => {
     const xml = createWorkoutXml({
       author: "tester",
@@ -98,6 +102,33 @@ describe("parseWorkoutXml + createWorkoutXml", () => {
     expect(parsed.segments[0].length).toBe(1000);
     expect(parsed.instructions.length).toBe(1);
     expect(parsed.instructions[0].length).toBe(500);
+  });
+
+  it("keeps a single ramp-up trapeze as Warmup (not Cooldown)", () => {
+    const xml = createWorkoutXml({
+      author: "tester",
+      name: "warmup check",
+      description: "single trapeze should remain warmup",
+      sportType: "bike",
+      durationType: "time",
+      tags: [],
+      bars: [
+        {
+          id: "t1",
+          type: "trapeze",
+          time: 120,
+          length: 0,
+          startPower: 0.5,
+          endPower: 0.8,
+          cadence: 90,
+          pace: 0,
+        },
+      ],
+      instructions: [],
+    });
+
+    expect(xml).toContain("<Warmup");
+    expect(xml).not.toContain("<Cooldown");
   });
 });
 

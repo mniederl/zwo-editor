@@ -76,7 +76,7 @@ export default function createWorkoutXml({
     } else if (bar.type === "trapeze" && bar.startPower && bar.endPower) {
       nodeName = "Ramp";
       if (index === 0) nodeName = "Warmup";
-      if (index === bars.length - 1) nodeName = "Cooldown";
+      if (index === bars.length - 1 && bar.startPower > bar.endPower) nodeName = "Cooldown";
       if (bar.startPower < bar.endPower) {
         attrs = {
           Duration: durationType === "time" ? bar.time : bar.length,

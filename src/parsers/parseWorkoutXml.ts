@@ -57,6 +57,9 @@ export function parseWorkoutXml(xmlString: string, { idGenerator = genId }: Pars
   const parsed = parser.parse(xmlString) as OrderedNode[];
 
   const rootNode = parsed.find((n) => "workout_file" in n);
+  if (!rootNode) {
+    throw new Error("Invalid workout file format: missing workout_file element");
+  }
   const rootChildren = toArray(rootNode?.workout_file as OrderedNode[] | undefined);
 
   const author = readText(rootChildren, "author");
