@@ -3,23 +3,15 @@ import { faComment, faCommentDots } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Draggable from "react-draggable";
 
+import type { Instruction } from "@/components/Editor/editorTypes";
 import { formatTime } from "@/utils/time";
-
-import "./Comment.css";
-
-interface Instruction {
-  id: string;
-  text: string;
-  time: number;
-  length: number;
-}
 
 const Comment = (props: {
   instruction: Instruction;
   durationType: string;
   width: number;
-  onChange: Function;
-  onClick: Function;
+  onChange: (id: string, instruction: Instruction) => void;
+  onClick: (id: string) => void;
   index: number;
 }) => {
   const timeMultiplier = 3;
@@ -64,7 +56,7 @@ const Comment = (props: {
       onStop={(_e, data) => handleTouch(data.x)}
       onDrag={(_e, data) => handleDragging(data.x)}
     >
-      <div ref={nodeRef}>
+      <div ref={nodeRef} className="absolute">
         <FontAwesomeIcon
           style={{ display: "block", opacity: 0.7 }}
           icon={props.instruction.text !== "" ? faCommentDots : faComment}
@@ -72,7 +64,7 @@ const Comment = (props: {
           className="handle"
         />
         {isDragging && (
-          <div className="edit">
+          <div className="inline-block bg-white p-[5px]">
             {props.durationType === "time" ? (
               <span style={{ fontSize: "13px" }} data-testid="time">
                 {formatTime(time * timeMultiplier)}
@@ -84,7 +76,7 @@ const Comment = (props: {
             )}
           </div>
         )}
-        <div className="line"></div>
+        <div className="absolute left-0 right-0 top-[30px] z-0 h-[90vh] w-px border-l border-l-dotted border-l-gray-500"></div>
       </div>
     </Draggable>
   );

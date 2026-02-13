@@ -1,19 +1,14 @@
 import { useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashAlt } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-interface Instruction {
-  id: string;
-  text: string;
-  time: number;
-  length: number;
-}
+import type { Instruction } from "@/components/Editor/editorTypes";
 
 const EditComment = (props: {
   instruction: Instruction;
-  onChange: Function;
-  onDelete: Function;
-  dismiss: Function;
+  onChange: (id: string, instruction: Instruction) => void;
+  onDelete: (id: string) => void;
+  dismiss: () => void;
 }) => {
   const [text, setText] = useState(props.instruction.text);
   const [showInput, setShowInput] = useState(false);
@@ -22,7 +17,7 @@ const EditComment = (props: {
     props.onChange(props.instruction.id, {
       id: props.instruction.id,
       text: text,
-      lenth: props.instruction.length,
+      length: props.instruction.length,
       time: props.instruction.time,
     });
   }

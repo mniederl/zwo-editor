@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Resizable } from "re-resizable";
 
+import type { BarType, DurationType, SportType } from "@/components/Editor/editorTypes";
 import { round } from "@/components/helpers";
 import Label from "@/components/Label/Label";
 import { formatTime } from "@/utils/time";
@@ -12,10 +13,10 @@ const FreeRide = (props: {
   time?: number;
   length?: number;
   cadence: number;
-  sportType: string;
-  durationType: string;
-  onChange: Function;
-  onClick: Function;
+  sportType: SportType;
+  durationType: DurationType;
+  onChange: (id: string, value: BarType) => void;
+  onClick: (id: string) => void;
   selected: boolean;
 }) => {
   const timeMultiplier = 3;
@@ -75,7 +76,7 @@ const FreeRide = (props: {
 
   return (
     <div
-      className="segment"
+      className="relative"
       onMouseEnter={() => setShowLabel(true)}
       onMouseLeave={() => setShowLabel(false)}
       style={props.selected ? { zIndex: 1 } : {}}

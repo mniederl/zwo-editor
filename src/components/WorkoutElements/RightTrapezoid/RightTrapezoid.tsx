@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Resizable } from "re-resizable";
 
 import { Colors, Zones, ZonesArray } from "@/components/constants";
-import type { PaceUnitType } from "@/components/Editor/editorTypes";
+import type { BarType, DurationType, PaceUnitType, SportType } from "@/components/Editor/editorTypes";
 import { calculateDistance, calculateTime, round } from "@/components/helpers";
 import Label from "@/components/Label/Label";
 import { formatTime } from "@/utils/time";
@@ -22,11 +22,11 @@ const RightTrapezoid = (props: {
   cadence: number;
   ftp: number;
   pace: number;
-  sportType: string;
-  durationType: string;
+  sportType: SportType;
+  durationType: DurationType;
   speed?: number;
-  onChange: Function;
-  onClick: Function;
+  onChange: (id: string, value: BarType) => void;
+  onClick: (id: string) => void;
   selected: boolean;
   paceUnitType?: PaceUnitType;
 }) => {
@@ -209,7 +209,7 @@ const RightTrapezoid = (props: {
 
   return (
     <div
-      className="segment"
+      className="relative"
       onMouseEnter={() => setShowLabel(true)}
       onMouseLeave={() => setShowLabel(false)}
       style={props.selected ? { zIndex: 1 } : {}}

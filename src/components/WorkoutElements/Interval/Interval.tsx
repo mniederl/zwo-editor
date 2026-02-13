@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
+import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+import type { BarType, DurationType, SportType } from "../../Editor/editorTypes";
 import Bar from "../Bar/Bar";
-import type { BarType } from "../../Editor/editorTypes";
 import { genId } from "@/utils/id";
-
-import "./Interval.css";
 
 const Interval = (props: {
   id: string;
@@ -21,10 +21,10 @@ const Interval = (props: {
   weight: number;
   pace: number;
   speed?: number;
-  sportType: string;
-  durationType: string;
-  handleIntervalChange: Function;
-  handleIntervalClick: Function;
+  sportType: SportType;
+  durationType: DurationType;
+  handleIntervalChange: (id: string, value: BarType) => void;
+  handleIntervalClick: (id: string) => void;
   selected: boolean;
 }) => {
   const [bars, setBars] = useState<Array<BarType>>([]);
@@ -161,24 +161,32 @@ const Interval = (props: {
       durationType={props.durationType}
       pace={props.pace}
       speed={props.speed}
-      onChange={(id: string, value: any) => handleOnChange(id, value)} // Change any to Interface Bar?
+      onChange={handleOnChange}
       onClick={() => props.handleIntervalClick(props.id)}
       selected={props.selected}
       showLabel={withLabel}
     />
   );
 
+  const renderButton = (title: string, icon: typeof faPlus, onClick: () => void) => (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className="p-0.5 bg-[#00C46A] text-white hover:bg-[#009651] rounded-lg"
+      // className="inline-flex h-6.5 w-6.5 cursor-pointer items-center justify-center rounded-lg bg-[#00C46A] text-white hover:bg-[#009651]"
+    >
+      <FontAwesomeIcon icon={icon} className="block" />
+    </button>
+  );
+
   return (
     <div>
-      <div className="buttons">
-        <button type="button" onClick={handleAddInterval} title="Add interval">
-          +
-        </button>
-        <button type="button" onClick={handleRemoveInterval} title="Remove interval">
-          -
-        </button>
+      <div className="absolute -mt-7.5 gap-1 flex-row flex">
+        {renderButton("Add interval", faPlus, handleAddInterval)}
+        {renderButton("Remove interval", faMinus, handleRemoveInterval)}
       </div>
-      <div className="intervals">
+      <div className="flex flex-row items-end">
         {bars.map((bar, index) => renderBar(bar, index === 0 || index === bars.length - 1))}
       </div>
     </div>

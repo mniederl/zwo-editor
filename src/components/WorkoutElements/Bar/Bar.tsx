@@ -2,12 +2,10 @@ import { useEffect, useState } from "react";
 import { Resizable } from "re-resizable";
 
 import { Colors, Zones } from "@/components/constants";
-import type { PaceUnitType } from "@/components/Editor/editorTypes";
+import type { BarType, DurationType, PaceUnitType, SportType } from "@/components/Editor/editorTypes";
 import { calculateDistance, calculateSpeed, calculateTime, round } from "@/components/helpers";
 import Label from "@/components/Label/Label";
 import { formatTime } from "@/utils/time";
-
-import "./Bar.css";
 
 const Bar = (props: {
   id: string;
@@ -18,11 +16,11 @@ const Bar = (props: {
   ftp: number;
   weight: number;
   pace: number;
-  sportType: string;
-  durationType: string;
+  sportType: SportType;
+  durationType: DurationType;
   speed?: number;
-  onChange: Function;
-  onClick: Function;
+  onChange: (id: string, value: BarType) => void;
+  onClick: (id: string) => void;
   selected: boolean;
   showLabel: boolean;
   paceUnitType?: PaceUnitType;
@@ -148,7 +146,7 @@ const Bar = (props: {
 
   return (
     <div
-      className="segment"
+      className="relative"
       onMouseEnter={() => setShowLabel(true)}
       onMouseLeave={() => setShowLabel(false)}
       onClick={() => props.onClick(props.id)}
@@ -170,7 +168,7 @@ const Bar = (props: {
         />
       )}
       <Resizable
-        className="bar"
+        className="rounded-[10px] border border-white"
         size={{
           width:
             props.durationType === "time" ? (props.time || 0) / timeMultiplier : (props.length || 0) / lengthMultiplier,
