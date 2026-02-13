@@ -1,6 +1,6 @@
-import { useRef, useState } from "react";
-import Draggable from "react-draggable";
+import { useEffect, useRef, useState } from "react";
 import { MessageCircle, MessageCircleMore } from "lucide-react";
+import Draggable from "react-draggable";
 
 import type { Instruction } from "@/components/Editor/editorTypes";
 import { formatTime } from "@/utils/time";
@@ -16,21 +16,37 @@ const Comment = (props: {
   const timeMultiplier = 3;
   const lengthMultiplier = 10;
 
-  const [time, setTime] = useState(props.instruction.time / timeMultiplier);
+  const initialX =
+    props.durationType === "time"
+      ? props.instruction.time / timeMultiplier
+      : props.instruction.length / lengthMultiplier;
+  const [x, setX] = useState(initialX);
   const [isDragging, setIsDragging] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
+  const didDragRef = useRef(false);
   const nodeRef = useRef<HTMLDivElement>(null);
 
-  // FOR RUN WORKOUTS
-  const [length, setLength] = useState(props.instruction.length / lengthMultiplier);
+  useEffect(() => {
+    if (!isDragging) {
+      setX(
+        props.durationType === "time"
+          ? props.instruction.time / timeMultiplier
+          : props.instruction.length / lengthMultiplier,
+      );
+    }
+  }, [props.durationType, props.instruction.time, props.instruction.length, isDragging]);
 
-  function handleTouch(position: number) {
+  function handleStop(position: number) {
+    const clampedPosition = Math.max(0, Math.min(position, props.width));
     setIsDragging(false);
+    setX(clampedPosition);
 
-    if (isDragging) {
+    if (didDragRef.current) {
+      didDragRef.current = false;
       props.onChange(props.instruction.id, {
         id: props.instruction.id,
-        time: position * timeMultiplier,
-        length: position * lengthMultiplier,
+        time: clampedPosition * timeMultiplier,
+        length: clampedPosition * lengthMultiplier,
         text: props.instruction.text,
       });
     } else {
@@ -39,9 +55,9 @@ const Comment = (props: {
   }
 
   function handleDragging(position: number) {
+    didDragRef.current = true;
     setIsDragging(true);
-    setTime(position);
-    setLength(position);
+    setX(position);
   }
 
   return (
@@ -49,32 +65,40 @@ const Comment = (props: {
       nodeRef={nodeRef}
       axis="x"
       handle=".handle"
-      defaultPosition={{ x: props.durationType === "time" ? time : length, y: (props.index % 5) * 20 }}
+      position={{ x, y: (props.index % 5) * 20 }}
       bounds={{ left: 0, right: props.width }}
       scale={1}
-      onStop={(_e, data) => handleTouch(data.x)}
+      onStart={() => {
+        didDragRef.current = false;
+      }}
+      onStop={(_e, data) => handleStop(data.x)}
       onDrag={(_e, data) => handleDragging(data.x)}
     >
-      <div ref={nodeRef} className="absolute">
+      <div
+        ref={nodeRef}
+        className="absolute"
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+      >
         {props.instruction.text !== "" ? (
           <MessageCircleMore style={{ display: "block", opacity: 0.7 }} className="handle h-5 w-5" />
         ) : (
           <MessageCircle style={{ display: "block", opacity: 0.7 }} className="handle h-5 w-5" />
         )}
-        {isDragging && (
-          <div className="inline-block bg-white p-[5px]">
+        {(isDragging || isHovering) && (
+          <div className="inline-block bg-white p-1.25">
             {props.durationType === "time" ? (
               <span style={{ fontSize: "13px" }} data-testid="time">
-                {formatTime(time * timeMultiplier)}
+                {formatTime(x * timeMultiplier)}
               </span>
             ) : (
               <span style={{ fontSize: "13px" }} data-testid="time">
-                {length * lengthMultiplier} m
+                {x * lengthMultiplier} m
               </span>
             )}
           </div>
         )}
-        <div className="absolute left-0 right-0 top-[30px] z-0 h-[90vh] w-px border-l border-l-dotted border-l-gray-500"></div>
+        <div className="absolute left-0 right-0 top-7.5 z-0 h-[90vh] w-px border-l border-l-dotted border-l-gray-500"></div>
       </div>
     </Draggable>
   );
