@@ -316,7 +316,9 @@ export default function WorkoutBuilderPanel() {
               <WorkoutProgramPanel
                 rows={programRows}
                 selectedSegmentId={actionId}
-                onSelectSegment={(segmentId: string) => state.setActionId(segmentId)}
+                onSelectSegment={(segmentId: string) =>
+                  state.setActionId((currentId) => (currentId === segmentId ? undefined : segmentId))
+                }
               />
             )}
           </div>
