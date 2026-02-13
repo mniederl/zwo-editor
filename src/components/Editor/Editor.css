@@ -6,7 +6,7 @@
   margin: 0 auto;
   overflow-x: hidden;
   overflow-y: hidden;
-  border-radius: 1.25rem;
+  border-radius: .5rem;
   background:
     linear-gradient(180deg, rgba(241, 245, 249, 0.75) 0%, rgba(255, 255, 255, 0.98) 65%),
     radial-gradient(circle at right top, rgba(14, 165, 233, 0.12), transparent 40%);
@@ -18,7 +18,7 @@
   inset: 0;
   pointer-events: none;
   border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 1.25rem;
+  border-radius: .5rem;
 }
 
 .canvas {
@@ -27,9 +27,24 @@
   width: 100%;
   min-width: 0;
   overflow-y: hidden;
-  overflow-x: auto;
+  overflow-x: scroll;
   --track-padding-left: 42px;
   --track-padding-right: 20px;
+}
+
+.canvas::-webkit-scrollbar {
+  background-color: transparent;
+  height: 8px;
+}
+
+.canvas::-webkit-scrollbar-thumb {
+  background-color: rgba(153, 181, 221, 0.7);
+  border-radius: 10px;
+}
+
+.canvas::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(153, 181, 221, 1);
+  cursor: pointer;
 }
 
 .segments {
