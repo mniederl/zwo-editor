@@ -23,15 +23,15 @@ export default function EditorHeaderPanel() {
   } = state;
   const { switchSportType, normalizeEditableText } = helpers;
 
-  const fieldLabelClass = "mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500";
+  const fieldLabelClass = "mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500";
   const inputClass =
-    "w-full rounded-lg border border-slate-200 bg-white/90 px-2.5 py-1.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200";
+    "w-full max-w-64 rounded-lg border border-slate-200 bg-white/90 px-2.5 py-1.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200";
   const composerActionButtonClass =
     "inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-400 hover:text-slate-900";
   const topSectionClass =
     sportType === "run"
-      ? "grid gap-3 xl:grid-cols-[230px_196px_minmax(0,1fr)]"
-      : "grid gap-3 xl:grid-cols-[230px_minmax(0,1fr)]";
+      ? "grid gap-3 mid:grid-cols-[230px_196px_minmax(0,1fr)]"
+      : "grid gap-3 mid:grid-cols-[230px_minmax(0,1fr)]";
   const setupStackClass = sportType === "run" ? "space-y-5" : "space-y-3";
 
   const renderStatCard = (label: string, value: string | number) => (
@@ -56,7 +56,7 @@ export default function EditorHeaderPanel() {
             onChange={switchSportType}
           />
           {sportType === "bike" && (
-            <>
+            <div className="grid grid-cols-[repeat(2,minmax(0,16rem))] gap-3 justify-start mid:grid-cols-1">
               <label className="block">
                 <span className={fieldLabelClass}>FTP (W)</span>
                 <input
@@ -77,7 +77,7 @@ export default function EditorHeaderPanel() {
                   onChange={(event) => state.setWeight(Math.max(1, Number.parseInt(event.target.value, 10) || 0))}
                 />
               </label>
-            </>
+            </div>
           )}
           {sportType === "run" && (
             <>
@@ -169,7 +169,7 @@ export default function EditorHeaderPanel() {
             </p>
           </div>
 
-          <div className="grid w-full gap-2 grid-cols-2 xl:max-w-90">
+          <div className="editor-stats-grid grid w-fit max-w-full grid-cols-2 gap-2 self-end md:grid-cols-4 lg:grid-cols-2 xl:w-full xl:max-w-90">
             {renderStatCard("Workout Time", metrics.workoutTime)}
             {sportType === "run"
               ? renderStatCard("Distance", `${metrics.workoutDistance} km`)

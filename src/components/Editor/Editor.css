@@ -109,3 +109,11 @@
     --track-padding-left: 30px;
   }
 }
+
+@media (max-width: 449px) {
+  .editor-stats-grid {
+    width: 100%;
+    max-width: none;
+    justify-self: stretch;
+  }
+}

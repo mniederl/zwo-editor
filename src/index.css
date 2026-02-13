@@ -1,6 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap");
 @import "tailwindcss";
 
+@theme {
+  --breakpoint-mid: 60rem;
+}
+
 :root {
   --font-body: "DM Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-display: "Sora", "Trebuchet MS", "Segoe UI", sans-serif;
