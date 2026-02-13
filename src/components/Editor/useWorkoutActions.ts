@@ -59,6 +59,7 @@ export interface WorkoutActions {
   duplicateBar: (id: string) => void;
   moveLeft: (id: string) => void;
   moveRight: (id: string) => void;
+  moveBarToIndex: (id: string, targetIndex: number) => void;
   setPace: (value: string, id: string) => void;
   getPace: (id: string) => number | undefined;
 }
@@ -372,6 +373,28 @@ export default function useWorkoutActions({
     }
   }
 
+  function moveBarToIndex(id: string, targetIndex: number) {
+    const fromIndex = bars.findIndex((bar) => bar.id === id);
+    if (fromIndex === -1) {
+      return;
+    }
+
+    const boundedTargetIndex = Math.max(0, Math.min(targetIndex, bars.length - 1));
+    if (fromIndex === boundedTargetIndex) {
+      return;
+    }
+
+    const updatedArray = [...bars];
+    const [element] = updatedArray.splice(fromIndex, 1);
+    if (!element) {
+      return;
+    }
+
+    const insertIndex = Math.max(0, Math.min(boundedTargetIndex, updatedArray.length));
+    updatedArray.splice(insertIndex, 0, element);
+    setBars(updatedArray);
+  }
+
   function setPace(value: string, id: string) {
     const index = bars.findIndex((bar) => bar.id === id);
     if (index !== -1) {
@@ -416,6 +439,7 @@ export default function useWorkoutActions({
     duplicateBar,
     moveLeft,
     moveRight,
+    moveBarToIndex,
     setPace,
     getPace,
   };

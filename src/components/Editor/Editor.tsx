@@ -93,8 +93,8 @@ const Editor = ({ id }: EditorProps) => {
     const normalizedKey = event.key.charAt(0).toLowerCase() + event.key.slice(1);
     const actionByKey: Record<string, () => void> = {
       backspace: () => actions.removeBar(actionId),
-      arrowLeft: () => actions.removeTimeFromBar(actionId),
-      arrowRight: () => actions.addTimeToBar(actionId),
+      arrowLeft: () => (event.ctrlKey ? actions.moveLeft(actionId) : actions.removeTimeFromBar(actionId)),
+      arrowRight: () => (event.ctrlKey ? actions.moveRight(actionId) : actions.addTimeToBar(actionId)),
       arrowUp: () => actions.addPowerToBar(actionId, event.shiftKey),
       arrowDown: () => actions.removePowerFromBar(actionId, event.shiftKey),
     };

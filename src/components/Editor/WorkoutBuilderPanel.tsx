@@ -5,6 +5,7 @@ import {
   Bike,
   Copy,
   Footprints,
+  GripVertical,
   ListOrdered,
   MessageSquare,
   Pencil,
@@ -18,6 +19,7 @@ import DistanceAxis from "./DistanceAxis";
 import { useEditorContext } from "./EditorContext";
 import type { BarType, Instruction } from "./editorTypes";
 import TimeAxis from "./TimeAxis";
+import useSegmentReorder from "./useSegmentReorder";
 import WorkoutProgramPanel from "./WorkoutProgramPanel";
 import ZoneAxis from "./ZoneAxis";
 import { CooldownLogo, IntervalLogo, SteadyLogo, WarmupLogo } from "@/assets";
@@ -166,6 +168,17 @@ export default function WorkoutBuilderPanel() {
       window.removeEventListener("resize", handleResize);
     };
   }, [recalculateShellHeight]);
+  const {
+    draggingBarId,
+    dropMarker,
+    handleSegmentDragStart,
+    handleSegmentDragOver,
+    handleSegmentDrop,
+    handleSegmentDragEnd,
+  } = useSegmentReorder({
+    barIds: bars.map((bar) => bar.id),
+    moveBarToIndex: actions.moveBarToIndex,
+  });
 
   const segmentToolButtonClass =
     "inline-flex items-center justify-start gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900";
@@ -180,7 +193,6 @@ export default function WorkoutBuilderPanel() {
 
   const renderBar = (bar: (typeof bars)[number]) => (
     <Bar
-      key={bar.id}
       id={bar.id}
       time={bar.time}
       length={bar.length || 200}
@@ -206,7 +218,6 @@ export default function WorkoutBuilderPanel() {
 
   const renderTrapeze = (bar: (typeof bars)[number]) => (
     <RightTrapezoid
-      key={bar.id}
       id={bar.id}
       time={bar.time}
       length={bar.length || 200}
@@ -231,7 +242,6 @@ export default function WorkoutBuilderPanel() {
 
   const renderFreeRide = (bar: (typeof bars)[number]) => (
     <FreeRide
-      key={bar.id}
       id={bar.id}
       time={bar.time}
       length={bar.length}
@@ -246,7 +256,6 @@ export default function WorkoutBuilderPanel() {
 
   const renderInterval = (bar: (typeof bars)[number]) => (
     <Interval
-      key={bar.id}
       id={bar.id}
       repeat={bar.repeat || 3}
       onDuration={bar.onDuration || 10}
@@ -446,19 +455,51 @@ export default function WorkoutBuilderPanel() {
                   )}
                   <div className="segments" ref={refs.segmentsRef}>
                     {bars.map((bar) => {
+                      let content: ReturnType<typeof renderBar> | null = null;
                       if (bar.type === "bar") {
-                        return renderBar(bar);
+                        content = renderBar(bar);
+                      } else if (bar.type === "trapeze") {
+                        content = renderTrapeze(bar);
+                      } else if (bar.type === "freeRide") {
+                        content = renderFreeRide(bar);
+                      } else if (bar.type === "interval") {
+                        content = renderInterval(bar);
                       }
-                      if (bar.type === "trapeze") {
-                        return renderTrapeze(bar);
+
+                      if (!content) {
+                        return null;
                       }
-                      if (bar.type === "freeRide") {
-                        return renderFreeRide(bar);
-                      }
-                      if (bar.type === "interval") {
-                        return renderInterval(bar);
-                      }
-                      return false;
+
+                      const showBeforeMarker = dropMarker?.barId === bar.id && dropMarker.position === "before";
+                      const showAfterMarker = dropMarker?.barId === bar.id && dropMarker.position === "after";
+
+                      return (
+                        <div
+                          key={bar.id}
+                          className={cn(
+                            "segment-dnd-item",
+                            draggingBarId === bar.id && "segment-dnd-item-dragging",
+                            showBeforeMarker && "segment-dnd-drop-before",
+                            showAfterMarker && "segment-dnd-drop-after",
+                          )}
+                          onDragOver={(event) => handleSegmentDragOver(event, bar.id)}
+                          onDrop={(event) => handleSegmentDrop(event, bar.id)}
+                        >
+                          <button
+                            type="button"
+                            className="segment-dnd-handle"
+                            draggable
+                            onDragStart={(event) => handleSegmentDragStart(event, bar.id)}
+                            onDragEnd={handleSegmentDragEnd}
+                            onClick={(event) => event.stopPropagation()}
+                            aria-label="Drag to reorder segment"
+                            title="Drag to reorder"
+                          >
+                            <GripVertical className="h-3.5 w-3.5" />
+                          </button>
+                          {content}
+                        </div>
+                      );
                     })}
                   </div>
 
