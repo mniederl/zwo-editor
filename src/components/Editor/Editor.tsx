@@ -95,11 +95,14 @@ const Editor = ({ id }: EditorProps) => {
       backspace: () => actions.removeBar(actionId),
       arrowLeft: () => actions.removeTimeFromBar(actionId),
       arrowRight: () => actions.addTimeToBar(actionId),
-      arrowUp: () => actions.addPowerToBar(actionId),
-      arrowDown: () => actions.removePowerFromBar(actionId),
+      arrowUp: () => actions.addPowerToBar(actionId, event.shiftKey),
+      arrowDown: () => actions.removePowerFromBar(actionId, event.shiftKey),
     };
 
-    actionByKey[normalizedKey]?.();
+    if (actionByKey[normalizedKey]) {
+      event.preventDefault();
+      actionByKey[normalizedKey]();
+    }
   }
 
   function switchSportType(newSportType: SportType) {

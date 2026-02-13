@@ -54,8 +54,8 @@ export interface WorkoutActions {
   removeBar: (id: string) => void;
   addTimeToBar: (id: string) => void;
   removeTimeFromBar: (id: string) => void;
-  addPowerToBar: (id: string) => void;
-  removePowerFromBar: (id: string) => void;
+  addPowerToBar: (id: string, useLargeStep?: boolean) => void;
+  removePowerFromBar: (id: string, useLargeStep?: boolean) => void;
   duplicateBar: (id: string) => void;
   moveLeft: (id: string) => void;
   moveRight: (id: string) => void;
@@ -268,13 +268,15 @@ export default function useWorkoutActions({
     }
   }
 
-  function addPowerToBar(id: string) {
+  function addPowerToBar(id: string, useLargeStep = false) {
     const updatedArray = [...bars];
     const index = updatedArray.findIndex((bar) => bar.id === id);
     const element = updatedArray[index];
 
     if (element?.power) {
-      element.power = parseFloat((element.power + 1 / ftp).toFixed(3));
+      const currentWatts = element.power * ftp;
+      const nextWatts = useLargeStep ? Math.round(currentWatts / 10) * 10 + 10 : currentWatts + 1;
+      element.power = parseFloat((nextWatts / ftp).toFixed(3));
 
       if (durationType === "time") {
         element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / element.power;
@@ -286,13 +288,17 @@ export default function useWorkoutActions({
     }
   }
 
-  function removePowerFromBar(id: string) {
+  function removePowerFromBar(id: string, useLargeStep = false) {
     const updatedArray = [...bars];
     const index = updatedArray.findIndex((bar) => bar.id === id);
     const element = updatedArray[index];
 
     if (element?.power && element.power >= Zones.Z1.min) {
-      element.power = parseFloat((element.power - 1 / ftp).toFixed(3));
+      const currentWatts = element.power * ftp;
+      const minWatts = Zones.Z1.min * ftp;
+      const rawNextWatts = useLargeStep ? Math.round(currentWatts / 10) * 10 - 10 : currentWatts - 1;
+      const nextWatts = Math.max(minWatts, rawNextWatts);
+      element.power = parseFloat((nextWatts / ftp).toFixed(3));
 
       if (durationType === "time") {
         element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / element.power;
