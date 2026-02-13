@@ -15,6 +15,7 @@ const Comment = (props: {
 }) => {
   const timeMultiplier = 3;
   const lengthMultiplier = 10;
+  const timeSnapSeconds = 5;
 
   const initialX =
     props.durationType === "time"
@@ -38,15 +39,20 @@ const Comment = (props: {
 
   function handleStop(position: number) {
     const clampedPosition = Math.max(0, Math.min(position, props.width));
+    const snappedPosition =
+      props.durationType === "time"
+        ? Math.round((clampedPosition * timeMultiplier) / timeSnapSeconds) * (timeSnapSeconds / timeMultiplier)
+        : clampedPosition;
+
     setIsDragging(false);
-    setX(clampedPosition);
+    setX(snappedPosition);
 
     if (didDragRef.current) {
       didDragRef.current = false;
       props.onChange(props.instruction.id, {
         id: props.instruction.id,
-        time: clampedPosition * timeMultiplier,
-        length: clampedPosition * lengthMultiplier,
+        time: snappedPosition * timeMultiplier,
+        length: snappedPosition * lengthMultiplier,
         text: props.instruction.text,
       });
     } else {
@@ -55,10 +61,17 @@ const Comment = (props: {
   }
 
   function handleDragging(position: number) {
+    const clampedPosition = Math.max(0, Math.min(position, props.width));
+
     didDragRef.current = true;
     setIsDragging(true);
-    setX(position);
+    setX(clampedPosition);
   }
+
+  const snappedPreviewX =
+    props.durationType === "time"
+      ? Math.round((x * timeMultiplier) / timeSnapSeconds) * (timeSnapSeconds / timeMultiplier)
+      : x;
 
   return (
     <Draggable
@@ -89,11 +102,11 @@ const Comment = (props: {
           <div className="inline-block bg-white p-1.25">
             {props.durationType === "time" ? (
               <span style={{ fontSize: "13px" }} data-testid="time">
-                {formatTime(x * timeMultiplier)}
+                {formatTime(snappedPreviewX * timeMultiplier)}
               </span>
             ) : (
               <span style={{ fontSize: "13px" }} data-testid="time">
-                {x * lengthMultiplier} m
+                {snappedPreviewX * lengthMultiplier} m
               </span>
             )}
           </div>
