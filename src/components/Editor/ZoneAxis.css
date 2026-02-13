@@ -1,6 +1,6 @@
 .zone-axis {
   position: absolute;
-  bottom: 50px;
+  bottom: 42px;
   left: 8px;
   color: #64748b;
   font-size: 0.68rem;
@@ -9,11 +9,15 @@
   text-transform: uppercase;
   pointer-events: none;
 }
-.zone-axis > div {
+
+.zone-axis-marker {
   position: absolute;
-  bottom: 0;
   left: 0;
+  transform: translateY(50%);
 }
-.zone-axis > div:not(:first-child) {
-  border-top: 1px solid rgba(100, 116, 139, 0.35);
+
+.zone-axis-label {
+  display: inline-block;
+  min-width: 1.4rem;
+  line-height: 1;
 }

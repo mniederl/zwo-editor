@@ -66,7 +66,37 @@ export default function WorkoutBuilderPanel() {
   const visibleMaxPower = isPowerResizeActive && lockedVisibleMaxPower ? lockedVisibleMaxPower : liveVisibleMaxPower;
   const maxEditablePower = Math.max(Zones.Z6.max * 1.8, visibleMaxPower * 1.6);
   const verticalPlotHeight = Math.max(220, shellViewportHeight - 58);
+  const canvasAxisHeight = 42;
+  const canvasTopZoneFillHeight = Math.max(0, shellViewportHeight - 48 - verticalPlotHeight);
+  const z6BackgroundTint = "rgba(233, 0, 0, 0.088)";
   const powerScale = verticalPlotHeight / visibleMaxPower;
+  const canvasZoneBackground = useMemo(() => {
+    const zoneBands = [
+      { max: Zones.Z1.max, color: "rgba(128, 127, 128, 0.105)" },
+      { max: Zones.Z2.max, color: "rgba(14, 144, 212, 0.102)" },
+      { max: Zones.Z3.max, color: "rgba(0, 196, 106, 0.102)" },
+      { max: Zones.Z4.max, color: "rgba(255, 203, 0, 0.098)" },
+      { max: Zones.Z5.max, color: "rgba(255, 100, 48, 0.104)" },
+      { max: Number.POSITIVE_INFINITY, color: z6BackgroundTint },
+    ];
+
+    let lowerBound = 0;
+    const stops: string[] = [];
+
+    zoneBands.forEach(({ max, color }) => {
+      const upperBound = Math.min(max, visibleMaxPower);
+      if (upperBound <= lowerBound) {
+        return;
+      }
+
+      const from = (lowerBound / visibleMaxPower) * 100;
+      const to = (upperBound / visibleMaxPower) * 100;
+      stops.push(`${color} ${from.toFixed(3)}%`, `${color} ${to.toFixed(3)}%`);
+      lowerBound = upperBound;
+    });
+
+    return `linear-gradient(to top, ${stops.join(", ")})`;
+  }, [visibleMaxPower]);
 
   const handleVerticalResizeStart = useCallback(() => {
     setIsPowerResizeActive(true);
@@ -387,6 +417,26 @@ export default function WorkoutBuilderPanel() {
                   </div>
                 )}
                 <div className="canvas" ref={refs.canvasRef}>
+                  <div
+                    className="canvas-zone-background"
+                    style={{
+                      width: axisWidth,
+                      height: verticalPlotHeight,
+                      bottom: canvasAxisHeight,
+                      backgroundImage: canvasZoneBackground,
+                    }}
+                  />
+                  {canvasTopZoneFillHeight > 0 && (
+                    <div
+                      className="canvas-zone-top-fill"
+                      style={{
+                        width: axisWidth,
+                        height: canvasTopZoneFillHeight,
+                        bottom: canvasAxisHeight + verticalPlotHeight,
+                        backgroundColor: z6BackgroundTint,
+                      }}
+                    />
+                  )}
                   {actionId && (
                     <div
                       className="fader"
@@ -419,7 +469,7 @@ export default function WorkoutBuilderPanel() {
                   {durationType === "time" ? <TimeAxis width={axisWidth} /> : <DistanceAxis width={axisWidth} />}
                 </div>
 
-                <ZoneAxis powerScale={powerScale} />
+                <ZoneAxis powerScale={powerScale} visibleMaxPower={visibleMaxPower} />
               </div>
             </div>
 

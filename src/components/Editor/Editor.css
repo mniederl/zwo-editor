@@ -46,6 +46,22 @@
   cursor: pointer;
 }
 
+.canvas-zone-background {
+  position: absolute;
+  left: 0;
+  min-width: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.canvas-zone-top-fill {
+  position: absolute;
+  left: 0;
+  min-width: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .editor-page-scroll {
   scrollbar-color: rgba(153, 181, 221, 0.7) transparent;
 }

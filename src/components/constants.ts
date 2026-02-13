@@ -16,12 +16,12 @@ interface ZoneRange {
 }
 
 export const Zones: Record<ZoneKey, ZoneRange> = {
-  Z1: { min: 0.1, max: 0.605 },
-  Z2: { min: 0.605, max: 0.763 },
-  Z3: { min: 0.763, max: 0.901 },
-  Z4: { min: 0.901, max: 1.053 },
-  Z5: { min: 1.053, max: 1.194 },
-  Z6: { min: 1.194, max: 2.0 },
+  Z1: { min: 0.1, max: 0.6 },
+  Z2: { min: 0.6, max: 0.75 },
+  Z3: { min: 0.75, max: 0.89 },
+  Z4: { min: 0.89, max: 1.04 },
+  Z5: { min: 1.04, max: 1.18 },
+  Z6: { min: 1.18, max: 2.0 },
 };
 
 export const ZonesArray: [number, number][] = Object.values(Zones).map(({ min, max }) => [min, max]);
