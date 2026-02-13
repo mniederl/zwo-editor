@@ -1,7 +1,7 @@
 import { XMLParser } from "fast-xml-parser";
 
-import { genId } from "@utils/id";
-import type { BarType, DurationType, Instruction, SportType } from "../components/Editor/editorTypes";
+import type { BarType, DurationType, Instruction, SportType } from "@/components/Editor/editorTypes";
+import { genId } from "@/utils/id";
 
 export interface ParsedWorkoutXml {
   meta: {
@@ -53,7 +53,10 @@ const readAttr = (attrs: Record<string, unknown>, ...keys: string[]): string => 
   return "";
 };
 
-export function parseWorkoutXml(xmlString: string, { idGenerator = genId }: ParseWorkoutXmlOptions = {}): ParsedWorkoutXml {
+export function parseWorkoutXml(
+  xmlString: string,
+  { idGenerator = genId }: ParseWorkoutXmlOptions = {},
+): ParsedWorkoutXml {
   const parsed = parser.parse(xmlString) as OrderedNode[];
 
   const rootNode = parsed.find((n) => "workout_file" in n);
@@ -171,14 +174,8 @@ export function parseWorkoutXml(xmlString: string, { idGenerator = genId }: Pars
         instructions.push({
           id: idGenerator(),
           text: String(readAttr(textAttrs, "message")),
-          time:
-            durationType === "time"
-              ? segmentStartTime + asNumber(readAttr(textAttrs, "timeoffset"), 0)
-              : 0,
-          length:
-            durationType === "distance"
-              ? segmentStartLength + asNumber(readAttr(textAttrs, "distoffset"), 0)
-              : 0,
+          time: durationType === "time" ? segmentStartTime + asNumber(readAttr(textAttrs, "timeoffset"), 0) : 0,
+          length: durationType === "distance" ? segmentStartLength + asNumber(readAttr(textAttrs, "distoffset"), 0) : 0,
         });
       });
 

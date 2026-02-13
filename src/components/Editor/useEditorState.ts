@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useReducer, useState } from "react";
 import type { Dispatch, RefObject, SetStateAction } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 
-import { genShortId } from "@utils/id";
-
-import { loadRunningTimes } from "./editorTypes";
 import type { BarType, DurationType, Instruction, PaceUnitType, SportType } from "./editorTypes";
+import { loadRunningTimes } from "./editorTypes";
 import type { RunningTimes } from "./RunningTimesEditor";
+import { genShortId } from "@/utils/id";
 
 export interface EditorMessage {
   visible: boolean;
@@ -93,10 +92,7 @@ export default function useEditorState({ id, segmentsRef }: UseEditorStateProps)
     actionId: undefined,
   } as WorkoutState);
   const { bars, instructions, actionId } = workoutState;
-  const setBars = useCallback(
-    (value: SetStateAction<BarType[]>) => dispatchWorkout({ type: "setBars", value }),
-    [],
-  );
+  const setBars = useCallback((value: SetStateAction<BarType[]>) => dispatchWorkout({ type: "setBars", value }), []);
   const setInstructions = useCallback(
     (value: SetStateAction<Instruction[]>) => dispatchWorkout({ type: "setInstructions", value }),
     [],

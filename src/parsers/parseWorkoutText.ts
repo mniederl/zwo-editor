@@ -1,7 +1,7 @@
-import { genId } from "@utils/id";
-import type { BarType, DurationType, Instruction } from "../components/Editor/editorTypes";
-import { calculateDistance, calculateTime, round } from "../components/helpers";
-import { parseLines, type Block, type PowerValue, type Range } from "./parseWorkoutLine";
+import type { BarType, DurationType, Instruction } from "@/components/Editor/editorTypes";
+import { calculateDistance, calculateTime, round } from "@/components/helpers";
+import { type Block, type PowerValue, parseLines, type Range } from "@/parsers/parseWorkoutLine";
+import { genId } from "@/utils/id";
 
 interface ParseOptions {
   durationType?: DurationType;
@@ -46,15 +46,19 @@ export function parseWorkoutText(
 
   blocks.forEach((block: Block) => {
     if (block.t === "steady") {
-      const power = block.power ? ("value" in block.power ? powerToRatio(block.power) : powerToRatio(block.power.a)) : 1;
+      const power = block.power
+        ? "value" in block.power
+          ? powerToRatio(block.power)
+          : powerToRatio(block.power.a)
+        : 1;
       const cadence = firstCadence(block.cad);
       const pace = 0;
       const lengthDefault = 200;
       const duration = block.time || 300;
 
-      const time =
-        durationType === "time" ? duration : round(calculateTime(lengthDefault, calculateSpeed(pace)), 1);
-      const length = durationType === "time" ? round(calculateDistance(duration, calculateSpeed(pace)), 1) : lengthDefault;
+      const time = durationType === "time" ? duration : round(calculateTime(lengthDefault, calculateSpeed(pace)), 1);
+      const length =
+        durationType === "time" ? round(calculateDistance(duration, calculateSpeed(pace)), 1) : lengthDefault;
 
       segments.push({
         time,
@@ -75,9 +79,9 @@ export function parseWorkoutText(
       const lengthDefault = 1000;
       const duration = block.time || 300;
 
-      const time =
-        durationType === "time" ? duration : round(calculateTime(lengthDefault, calculateSpeed(pace)), 1);
-      const length = durationType === "time" ? round(calculateDistance(duration, calculateSpeed(pace)), 1) : lengthDefault;
+      const time = durationType === "time" ? duration : round(calculateTime(lengthDefault, calculateSpeed(pace)), 1);
+      const length =
+        durationType === "time" ? round(calculateDistance(duration, calculateSpeed(pace)), 1) : lengthDefault;
 
       segments.push({
         time,

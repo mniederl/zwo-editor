@@ -1,4 +1,3 @@
-import React from "react";
 import "./XAxis.css";
 
 const hoursBy10Minutes = (hours: number): string[] =>

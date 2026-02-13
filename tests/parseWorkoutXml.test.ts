@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import createWorkoutXml from "../src/components/Editor/createWorkoutXml";
-import { parseWorkoutXml } from "../src/parsers/parseWorkoutXml";
+import { parseWorkoutXml } from "@/parsers/parseWorkoutXml";
 
 describe("parseWorkoutXml + createWorkoutXml", () => {
   it("throws on invalid xml root", () => {
@@ -131,4 +131,5 @@ describe("parseWorkoutXml + createWorkoutXml", () => {
     expect(xml).not.toContain("<Cooldown");
   });
 });
+
 

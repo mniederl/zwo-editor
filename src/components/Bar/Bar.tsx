@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Resizable } from "re-resizable";
 
-import { formatTime } from "@utils/time";
 import { Colors, Zones } from "../constants";
 import type { PaceUnitType } from "../Editor/editorTypes";
 import { calculateDistance, calculateSpeed, calculateTime, round } from "../helpers";
 import Label from "../Label/Label";
+import { formatTime } from "@/utils/time";
 
 import "./Bar.css";
 
@@ -125,22 +125,25 @@ const Bar = (props: {
     if (zone >= 0 && zone < Zones.Z1.max) {
       // Z1 gray
       return { backgroundColor: Colors.GRAY };
-    } else if (zone >= Zones.Z2.min && zone < Zones.Z2.max) {
+    }
+    if (zone >= Zones.Z2.min && zone < Zones.Z2.max) {
       // Z2 blue
       return { backgroundColor: Colors.BLUE };
-    } else if (zone >= Zones.Z3.min && zone < Zones.Z3.max) {
+    }
+    if (zone >= Zones.Z3.min && zone < Zones.Z3.max) {
       // Z3 green
       return { backgroundColor: Colors.GREEN };
-    } else if (zone >= Zones.Z4.min && zone < Zones.Z4.max) {
+    }
+    if (zone >= Zones.Z4.min && zone < Zones.Z4.max) {
       // Z4 yellow
       return { backgroundColor: Colors.YELLOW };
-    } else if (zone >= Zones.Z5.min && zone < Zones.Z5.max) {
+    }
+    if (zone >= Zones.Z5.min && zone < Zones.Z5.max) {
       // Z5 orange
       return { backgroundColor: Colors.ORANGE };
-    } else {
-      // Z6 red
-      return { backgroundColor: Colors.RED };
     }
+    // Z6 red
+    return { backgroundColor: Colors.RED };
   }
 
   return (

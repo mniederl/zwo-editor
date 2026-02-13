@@ -1,4 +1,3 @@
-import React from "react";
 import { Zones } from "../constants";
 import "./ZoneAxis.css";
 

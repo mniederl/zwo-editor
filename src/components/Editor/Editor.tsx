@@ -2,8 +2,6 @@ import { useRef } from "react";
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { formatTime, parseTime } from "@utils/time";
-import parseWorkoutText from "../../parsers/parseWorkoutText";
 import EditComment from "../Comment/EditComment";
 import { getStressScore, getWorkoutDistance, getWorkoutLength, getWorkoutPace, round } from "../helpers";
 import { EditorProvider } from "./EditorContext";
@@ -14,6 +12,8 @@ import useEditorState from "./useEditorState";
 import useWorkoutActions from "./useWorkoutActions";
 import useWorkoutIO from "./useWorkoutIO";
 import WorkoutBuilderPanel from "./WorkoutBuilderPanel";
+import parseWorkoutText from "@/parsers/parseWorkoutText";
+import { formatTime, parseTime } from "@/utils/time";
 
 import "./Editor.css";
 
@@ -208,7 +208,9 @@ const Editor = ({ id }: EditorProps) => {
               <button
                 type="button"
                 className={`rounded-full p-1 transition ${
-                  state.message.class === "loading" ? "text-slate-100 hover:bg-white/15" : "text-current hover:bg-black/10"
+                  state.message.class === "loading"
+                    ? "text-slate-100 hover:bg-white/15"
+                    : "text-current hover:bg-black/10"
                 }`}
                 onClick={() => state.setMessage({ visible: false })}
                 aria-label="Dismiss message"

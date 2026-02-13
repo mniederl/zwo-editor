@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseLine, parseLines } from "../src/parsers/parseWorkoutLine";
+import { parseLine, parseLines } from "@/parsers/parseWorkoutLine";
 
 describe("parseWorkoutLine", () => {
   it("parses a steady block with watts and duration", () => {
@@ -63,7 +63,7 @@ describe("parseWorkoutLine", () => {
   });
 
   it("ignores blank lines in parseLines", () => {
-    expect(parseLines(["steady 120w 30s", "", "message \"x\" 5s"])).toEqual([
+    expect(parseLines(["steady 120w 30s", "", 'message "x" 5s'])).toEqual([
       {
         t: "steady",
         power: { unit: "w", value: 120 },

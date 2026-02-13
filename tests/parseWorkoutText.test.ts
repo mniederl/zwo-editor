@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import type { BarType } from "../src/components/Editor/Editor";
-import { calculateTime, round } from "../src/components/helpers";
-import { parseWorkoutText } from "../src/parsers/parseWorkoutText";
+import type { BarType } from "@/components/Editor/Editor";
+import { calculateTime, round } from "@/components/helpers";
+import { parseWorkoutText } from "@/parsers/parseWorkoutText";
 
 describe("parseWorkoutText", () => {
   it("parses a simple steady block with seconds", () => {

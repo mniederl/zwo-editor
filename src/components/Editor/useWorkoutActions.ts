@@ -1,9 +1,9 @@
-import { genId, genShortId } from "@utils/id";
 import type { Dispatch, SetStateAction } from "react";
 
 import { Zones } from "../constants";
 import { calculateDistance, calculateTime, round } from "../helpers";
 import type { BarType, DurationType, Instruction } from "./editorTypes";
+import { genId, genShortId } from "@/utils/id";
 
 interface UseWorkoutActionsProps {
   bars: BarType[];

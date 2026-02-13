@@ -1,10 +1,10 @@
-import { genId } from "@utils/id";
 import type { Dispatch, SetStateAction } from "react";
 
-import parseWorkoutXml from "../../parsers/parseWorkoutXml";
 import createWorkoutXml from "./createWorkoutXml";
 import type { BarType, DurationType, Instruction, SportType } from "./editorTypes";
 import type { EditorMessage } from "./useEditorState";
+import parseWorkoutXml from "@/parsers/parseWorkoutXml";
+import { genId } from "@/utils/id";
 
 interface UseWorkoutIOProps {
   workoutId: string;

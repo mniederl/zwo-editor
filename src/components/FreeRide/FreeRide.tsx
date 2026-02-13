@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Resizable } from "re-resizable";
 
-import { formatTime } from "@utils/time";
 import { round } from "../helpers";
 import Label from "../Label/Label";
+import { formatTime } from "@/utils/time";
 
 import "./FreeRide.css";
 
