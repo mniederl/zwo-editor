@@ -1,6 +1,7 @@
-import type { IconProp } from "@fortawesome/fontawesome-svg-core";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { LucideIcon } from "lucide-react";
 import Switch from "react-switch";
+
+import { cn } from "@/utils/cssUtils";
 
 interface LeftRightToggleProps<TLeft, TRight> {
   label: string;
@@ -8,8 +9,8 @@ interface LeftRightToggleProps<TLeft, TRight> {
   rightValue: TRight;
   leftLabel?: string;
   rightLabel?: string;
-  leftIcon?: IconProp;
-  rightIcon?: IconProp;
+  leftIcon?: LucideIcon;
+  rightIcon?: LucideIcon;
   selected: TLeft | TRight;
   onChange: (selected: TLeft | TRight) => void;
 }
@@ -26,47 +27,43 @@ const LeftRightToggle = <TLeft, TRight>({
   rightLabel,
   selected,
   onChange,
-}: LeftRightToggleProps<TLeft, TRight>) => (
-  <div className="flex flex-col">
-    <label className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{label}</label>
-    <div className="flex items-center gap-2 text-slate-400">
-      {leftIcon && (
-        <FontAwesomeIcon
-          className={selected === leftValue ? "text-emerald-600" : "text-slate-400"}
-          icon={leftIcon}
-          size="lg"
+}: LeftRightToggleProps<TLeft, TRight>) => {
+  const LeftIcon = leftIcon;
+  const RightIcon = rightIcon;
+
+  const isLeft = selected === leftValue;
+  const isRight = selected === rightValue;
+
+  return (
+    <div className="flex flex-col">
+      <label className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">{label}</label>
+      <div className="flex items-center gap-2 text-slate-400">
+        {LeftIcon && <LeftIcon className={cn("h-5 w-5", isLeft ? "text-emerald-600" : "text-slate-400")} />}
+        {leftLabel && (
+          <span className={cn("text-sm font-semibold", isLeft ? "text-emerald-600" : "text-slate-500")}>
+            {leftLabel}
+          </span>
+        )}
+        <Switch
+          onChange={() => onChange(isLeft ? rightValue : leftValue)}
+          checked={isRight}
+          checkedIcon={false}
+          uncheckedIcon={false}
+          onColor={COLOR}
+          offColor={COLOR}
+          height={20}
+          width={40}
+          handleDiameter={16}
         />
-      )}
-      {leftLabel && (
-        <span className={`text-sm font-semibold ${selected === leftValue ? "text-emerald-600" : "text-slate-500"}`}>
-          {leftLabel}
-        </span>
-      )}
-      <Switch
-        onChange={() => onChange(selected === leftValue ? rightValue : leftValue)}
-        checked={selected === rightValue}
-        checkedIcon={false}
-        uncheckedIcon={false}
-        onColor={COLOR}
-        offColor={COLOR}
-        height={20}
-        width={40}
-        handleDiameter={16}
-      />
-      {rightIcon && (
-        <FontAwesomeIcon
-          className={selected === rightValue ? "text-emerald-600" : "text-slate-400"}
-          icon={rightIcon}
-          size="lg"
-        />
-      )}
-      {rightLabel && (
-        <span className={`text-sm font-semibold ${selected === rightValue ? "text-emerald-600" : "text-slate-500"}`}>
-          {rightLabel}
-        </span>
-      )}
+        {RightIcon && <RightIcon className={cn("h-5 w-5", isRight ? "text-emerald-600" : "text-slate-400")} />}
+        {rightLabel && (
+          <span className={cn("text-sm font-semibold", isRight ? "text-emerald-600" : "text-slate-500")}>
+            {rightLabel}
+          </span>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default LeftRightToggle;

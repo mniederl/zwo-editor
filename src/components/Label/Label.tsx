@@ -1,5 +1,4 @@
-import { faBolt, faClock, faRuler } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Clock3, Ruler, Zap } from "lucide-react";
 
 import type { PaceUnitType } from "../Editor/editorTypes";
 import { speedToPace } from "../helpers";
@@ -29,17 +28,17 @@ const Label = (props: {
     <div className="label">
       {props.duration && props.duration !== "00:00" && (
         <div>
-          <FontAwesomeIcon icon={faClock} /> {props.duration}
+          <Clock3 className="mr-1 inline-block h-4 w-4 align-text-bottom" /> {props.duration}
         </div>
       )}
       {props.power && props.sportType === "bike" && (
         <div>
-          <FontAwesomeIcon icon={faBolt} /> {props.power}W
+          <Zap className="mr-1 inline-block h-4 w-4 align-text-bottom" /> {props.power}W
         </div>
       )}
       {props.powerStart && props.powerEnd && props.sportType === "bike" && (
         <div>
-          <FontAwesomeIcon icon={faBolt} /> {props.powerStart}W - {props.powerEnd}W
+          <Zap className="mr-1 inline-block h-4 w-4 align-text-bottom" /> {props.powerStart}W - {props.powerEnd}W
         </div>
       )}
       {props.weight && props.power && props.ftp && props.sportType === "bike" && (
@@ -55,7 +54,7 @@ const Label = (props: {
       )}
       {props.sportType === "run" && props.distance !== undefined && props.distance !== 0 && (
         <div>
-          <FontAwesomeIcon icon={faRuler} /> {props.distance.toFixed(0)} m
+          <Ruler className="mr-1 inline-block h-4 w-4 align-text-bottom" /> {props.distance.toFixed(0)} m
         </div>
       )}
       {props.power && props.ftp && props.pace !== null && props.sportType === "run" && (

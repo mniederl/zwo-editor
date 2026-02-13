@@ -1,6 +1,5 @@
 import { useRef } from "react";
-import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { CircleX } from "lucide-react";
 
 import { getStressScore, getWorkoutDistance, getWorkoutLength, getWorkoutPace, round } from "../helpers";
 import { EditorProvider } from "./EditorContext";
@@ -13,6 +12,7 @@ import useWorkoutIO from "./useWorkoutIO";
 import WorkoutBuilderPanel from "./WorkoutBuilderPanel";
 import { EditComment } from "@/components/WorkoutElements";
 import parseWorkoutText from "@/parsers/parseWorkoutText";
+import { cn } from "@/utils/cssUtils";
 import { formatTime, parseTime } from "@/utils/time";
 
 import "./Editor.css";
@@ -180,12 +180,11 @@ const Editor = ({ id }: EditorProps) => {
     refs,
   };
 
-  const messageToneClass =
-    state.message?.class === "error"
-      ? "border-rose-200 bg-rose-50 text-rose-700"
-      : state.message?.class === "loading"
-        ? "border-slate-800 bg-slate-900 text-slate-100"
-        : "border-emerald-200 bg-emerald-50 text-emerald-700";
+  const messageToneClass = cn(
+    "border-emerald-200 bg-emerald-50 text-emerald-700",
+    state.message?.class === "error" && "border-rose-200 bg-rose-50 text-rose-700",
+    state.message?.class === "loading" && "border-slate-800 bg-slate-900 text-slate-100",
+  );
 
   return (
     <EditorProvider value={contextValue}>
@@ -208,15 +207,16 @@ const Editor = ({ id }: EditorProps) => {
               <p className="pr-3 text-sm font-semibold">{state.message.text}</p>
               <button
                 type="button"
-                className={`rounded-full p-1 transition ${
+                className={cn(
+                  "rounded-full p-1 transition",
                   state.message.class === "loading"
                     ? "text-slate-100 hover:bg-white/15"
-                    : "text-current hover:bg-black/10"
-                }`}
+                    : "text-current hover:bg-black/10",
+                )}
                 onClick={() => state.setMessage({ visible: false })}
                 aria-label="Dismiss message"
               >
-                <FontAwesomeIcon icon={faTimesCircle} />
+                <CircleX className="h-4 w-4" />
               </button>
             </div>
           )}

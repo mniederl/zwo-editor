@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Minus, Plus } from "lucide-react";
 
 import type { BarType, DurationType, SportType } from "../../Editor/editorTypes";
 import Bar from "../Bar/Bar";
@@ -168,7 +167,7 @@ const Interval = (props: {
     />
   );
 
-  const renderButton = (title: string, icon: typeof faPlus, onClick: () => void) => (
+  const renderButton = (title: string, Icon: typeof Plus, onClick: () => void) => (
     <button
       type="button"
       onClick={onClick}
@@ -176,15 +175,15 @@ const Interval = (props: {
       className="p-0.5 bg-[#00C46A] text-white hover:bg-[#009651] rounded-lg"
       // className="inline-flex h-6.5 w-6.5 cursor-pointer items-center justify-center rounded-lg bg-[#00C46A] text-white hover:bg-[#009651]"
     >
-      <FontAwesomeIcon icon={icon} className="block" />
+      <Icon className="block h-4 w-4" />
     </button>
   );
 
   return (
     <div>
       <div className="absolute -mt-7.5 gap-1 flex-row flex">
-        {renderButton("Add interval", faPlus, handleAddInterval)}
-        {renderButton("Remove interval", faMinus, handleRemoveInterval)}
+        {renderButton("Add interval", Plus, handleAddInterval)}
+        {renderButton("Remove interval", Minus, handleRemoveInterval)}
       </div>
       <div className="flex flex-row items-end">
         {bars.map((bar, index) => renderBar(bar, index === 0 || index === bars.length - 1))}

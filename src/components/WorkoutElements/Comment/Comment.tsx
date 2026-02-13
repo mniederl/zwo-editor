@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
-import { faComment, faCommentDots } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Draggable from "react-draggable";
+import { MessageCircle, MessageCircleMore } from "lucide-react";
 
 import type { Instruction } from "@/components/Editor/editorTypes";
 import { formatTime } from "@/utils/time";
@@ -57,12 +56,11 @@ const Comment = (props: {
       onDrag={(_e, data) => handleDragging(data.x)}
     >
       <div ref={nodeRef} className="absolute">
-        <FontAwesomeIcon
-          style={{ display: "block", opacity: 0.7 }}
-          icon={props.instruction.text !== "" ? faCommentDots : faComment}
-          size="lg"
-          className="handle"
-        />
+        {props.instruction.text !== "" ? (
+          <MessageCircleMore style={{ display: "block", opacity: 0.7 }} className="handle h-5 w-5" />
+        ) : (
+          <MessageCircle style={{ display: "block", opacity: 0.7 }} className="handle h-5 w-5" />
+        )}
         {isDragging && (
           <div className="inline-block bg-white p-[5px]">
             {props.durationType === "time" ? (

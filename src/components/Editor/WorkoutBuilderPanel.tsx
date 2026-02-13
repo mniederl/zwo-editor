@@ -1,14 +1,13 @@
 import {
-  faArrowLeft,
-  faArrowRight,
-  faBicycle,
-  faComment,
-  faCopy,
-  faPen,
-  faRunning,
-  faTrash,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+  ArrowLeft,
+  ArrowRight,
+  Bike,
+  Copy,
+  Footprints,
+  MessageSquare,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { Tooltip } from "react-tooltip";
 
 import { Colors, Zones } from "../constants";
@@ -155,7 +154,7 @@ export default function WorkoutBuilderPanel() {
                   data-tooltip-content="Open text workout composer"
                   aria-label="Open text editor"
                 >
-                  <FontAwesomeIcon icon={faPen} />
+                  <Pencil className="h-4 w-4" />
                 </button>
                 {zoneButtons.map((zoneButton) => (
                   <button
@@ -187,11 +186,11 @@ export default function WorkoutBuilderPanel() {
               <IntervalLogo className="h-5 w-5" /> Interval
             </button>
             <button type="button" className={segmentToolButtonClass} onClick={() => actions.addFreeRide()}>
-              <FontAwesomeIcon icon={sportType === "bike" ? faBicycle : faRunning} /> Free{" "}
+              {sportType === "bike" ? <Bike className="h-4 w-4" /> : <Footprints className="h-4 w-4" />} Free{" "}
               {sportType === "bike" ? "Ride" : "Run"}
             </button>
             <button type="button" className={segmentToolButtonClass} onClick={() => actions.addInstruction()}>
-              <FontAwesomeIcon icon={faComment} /> Text Event
+              <MessageSquare className="h-4 w-4" /> Text Event
             </button>
           </div>
         </aside>
@@ -206,7 +205,7 @@ export default function WorkoutBuilderPanel() {
                   title="Move Left"
                   className="editor-action-button"
                 >
-                  <FontAwesomeIcon icon={faArrowLeft} />
+                  <ArrowLeft className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
@@ -214,7 +213,7 @@ export default function WorkoutBuilderPanel() {
                   title="Move Right"
                   className="editor-action-button"
                 >
-                  <FontAwesomeIcon icon={faArrowRight} />
+                  <ArrowRight className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
@@ -222,7 +221,7 @@ export default function WorkoutBuilderPanel() {
                   title="Delete"
                   className="editor-action-button"
                 >
-                  <FontAwesomeIcon icon={faTrash} />
+                  <Trash2 className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
@@ -230,7 +229,7 @@ export default function WorkoutBuilderPanel() {
                   title="Duplicate"
                   className="editor-action-button"
                 >
-                  <FontAwesomeIcon icon={faCopy} />
+                  <Copy className="h-4 w-4" />
                 </button>
                 {sportType === "run" && (
                   <select

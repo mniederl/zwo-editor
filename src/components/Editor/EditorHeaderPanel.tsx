@@ -1,18 +1,9 @@
-import {
-  faBiking,
-  faClock,
-  faDownload,
-  faFile,
-  faPen,
-  faRuler,
-  faRunning,
-  faUpload,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Bike, Clock3, Download, FileText, Footprints, Pencil, Ruler, Upload } from "lucide-react";
 
 import { useEditorContext } from "./EditorContext";
 import LeftRightToggle from "./LeftRightToggle";
 import RunningTimesEditor from "./RunningTimesEditor";
+import { cn } from "@/utils/cssUtils";
 
 export default function EditorHeaderPanel() {
   const { state, actions, io, metrics, helpers, refs } = useEditorContext();
@@ -43,6 +34,13 @@ export default function EditorHeaderPanel() {
       : "grid gap-3 xl:grid-cols-[230px_minmax(0,1fr)]";
   const setupStackClass = sportType === "run" ? "space-y-5" : "space-y-3";
 
+  const renderStatCard = (label: string, value: string | number) => (
+    <div className="rounded-2xl border border-slate-200 bg-white/80 px-3 py-2">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</p>
+      <p className="mt-1 font-(--font-display) text-[1.75rem] leading-none text-slate-900 tabular-nums">{value}</p>
+    </div>
+  );
+
   return (
     <section className={topSectionClass}>
       <aside className="rounded-3xl border border-white/50 bg-white/85 p-3 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-4">
@@ -52,8 +50,8 @@ export default function EditorHeaderPanel() {
             label="Sport Type"
             leftValue="bike"
             rightValue="run"
-            leftIcon={faBiking}
-            rightIcon={faRunning}
+            leftIcon={Bike}
+            rightIcon={Footprints}
             selected={sportType}
             onChange={switchSportType}
           />
@@ -87,8 +85,8 @@ export default function EditorHeaderPanel() {
                 label="Duration Type"
                 leftValue="time"
                 rightValue="distance"
-                leftIcon={faClock}
-                rightIcon={faRuler}
+                leftIcon={Clock3}
+                rightIcon={Ruler}
                 selected={durationType}
                 onChange={state.setDurationType}
               />
@@ -117,16 +115,17 @@ export default function EditorHeaderPanel() {
               </p>
               <button
                 type="button"
-                className={`inline-flex h-7 w-7 items-center justify-center rounded-full border text-xs transition ${
+                className={cn(
+                  "inline-flex h-7 w-7 items-center justify-center rounded-full border text-xs transition",
                   isMetaEditing
                     ? "border-cyan-300 bg-cyan-100 text-cyan-700"
-                    : "border-slate-300 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-700"
-                }`}
+                    : "border-slate-300 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-700",
+                )}
                 onClick={() => state.setIsMetaEditing((value) => !value)}
                 aria-label={isMetaEditing ? "Stop editing workout details" : "Edit workout details"}
                 title={isMetaEditing ? "Stop editing" : "Edit title, description, and author"}
               >
-                <FontAwesomeIcon icon={faPen} />
+                <Pencil className="h-4 w-4" />
               </button>
             </div>
 
@@ -137,7 +136,7 @@ export default function EditorHeaderPanel() {
                 const value = normalizeEditableText(event.currentTarget.textContent || "");
                 state.setName(value === "Untitled workout" ? "" : value);
               }}
-              className="font-[var(--font-display)] text-3xl font-semibold tracking-tight text-slate-900 outline-none md:text-4xl"
+              className="text-2xl font-semibold tracking-tight text-slate-900 outline-none md:text-3xl"
             >
               {name || "Untitled workout"}
             </h1>
@@ -170,48 +169,14 @@ export default function EditorHeaderPanel() {
             </p>
           </div>
 
-          <div className="grid w-full gap-2 [grid-template-columns:repeat(auto-fit,minmax(132px,1fr))] xl:max-w-[720px]">
-            <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Workout Time</p>
-              <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                {metrics.workoutTime}
-              </p>
-            </div>
-            {sportType === "run" ? (
-              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Distance</p>
-                <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                  {metrics.workoutDistance} km
-                </p>
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Training Load</p>
-                <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                  {metrics.trainingLoad}
-                </p>
-              </div>
-            )}
-            {sportType === "run" && (
-              <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Avg Pace</p>
-                <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                  {metrics.averagePace}
-                </p>
-              </div>
-            )}
-            <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Segments</p>
-              <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                {bars.length}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Text Events</p>
-              <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                {instructions.length}
-              </p>
-            </div>
+          <div className="grid w-full gap-2 grid-cols-2 xl:max-w-90">
+            {renderStatCard("Workout Time", metrics.workoutTime)}
+            {sportType === "run"
+              ? renderStatCard("Distance", `${metrics.workoutDistance} km`)
+              : renderStatCard("Training Load", metrics.trainingLoad)}
+            {sportType === "run" && renderStatCard("Avg Pace", metrics.averagePace)}
+            {renderStatCard("Segments", bars.length)}
+            {renderStatCard("Text Events", instructions.length)}
           </div>
         </div>
 
@@ -223,10 +188,10 @@ export default function EditorHeaderPanel() {
               if (window.confirm("Are you sure you want to create a new workout?")) actions.newWorkout();
             }}
           >
-            <FontAwesomeIcon icon={faFile} /> New Workout
+            <FileText className="h-4 w-4" /> New Workout
           </button>
           <button type="button" className={composerActionButtonClass} onClick={() => io.downloadWorkout()}>
-            <FontAwesomeIcon icon={faDownload} /> Download .zwo
+            <Download className="h-4 w-4" /> Download .zwo
           </button>
           <input
             accept=".xml,.zwo"
@@ -243,7 +208,7 @@ export default function EditorHeaderPanel() {
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-300 bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-700 shadow-sm transition hover:border-cyan-400 hover:bg-cyan-100"
             onClick={() => refs.uploadInputRef.current?.click()}
           >
-            <FontAwesomeIcon icon={faUpload} /> Upload Workout
+            <Upload className="h-4 w-4" /> Upload Workout
           </button>
         </div>
       </header>

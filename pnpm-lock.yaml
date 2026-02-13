@@ -11,24 +11,21 @@ importers:
 
   .:
     dependencies:
-      '@fortawesome/fontawesome-svg-core':
-        specifier: ^7.2.0
-        version: 7.2.0
-      '@fortawesome/free-solid-svg-icons':
-        specifier: ^7.2.0
-        version: 7.2.0
-      '@fortawesome/react-fontawesome':
-        specifier: ^3.2.0
-        version: 3.2.0(@fortawesome/fontawesome-svg-core@7.2.0)(react@19.2.4)
       '@tailwindcss/vite':
         specifier: ^4.1.18
         version: 4.1.18(rolldown-vite@7.1.14(@types/node@25.2.3)(jiti@2.6.1))
       '@typescript/native-preview':
         specifier: 7.0.0-dev.20260213.1
         version: 7.0.0-dev.20260213.1
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
       fast-xml-parser:
         specifier: ^5.3.5
         version: 5.3.5
+      lucide-react:
+        specifier: ^0.563.0
+        version: 0.563.0(react@19.2.4)
       re-resizable:
         specifier: ^6.11.2
         version: 6.11.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -50,6 +47,9 @@ importers:
       react-tooltip:
         specifier: ^5.30.0
         version: 5.30.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      tailwind-merge:
+        specifier: ^3.4.0
+        version: 3.4.0
       tailwindcss:
         specifier: ^4.1.18
         version: 4.1.18
@@ -302,25 +302,6 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
-
-  '@fortawesome/fontawesome-common-types@7.2.0':
-    resolution: {integrity: sha512-IpR0bER9FY25p+e7BmFH25MZKEwFHTfRAfhOyJubgiDnoJNsSvJ7nigLraHtp4VOG/cy8D7uiV0dLkHOne5Fhw==}
-    engines: {node: '>=6'}
-
-  '@fortawesome/fontawesome-svg-core@7.2.0':
-    resolution: {integrity: sha512-6639htZMjEkwskf3J+e6/iar+4cTNM9qhoWuRfj9F3eJD6r7iCzV1SWnQr2Mdv0QT0suuqU8BoJCZUyCtP9R4Q==}
-    engines: {node: '>=6'}
-
-  '@fortawesome/free-solid-svg-icons@7.2.0':
-    resolution: {integrity: sha512-YTVITFGN0/24PxzXrwqCgnyd7njDuzp5ZvaCx5nq/jg55kUYd94Nj8UTchBdBofi/L0nwRfjGOg0E41d2u9T1w==}
-    engines: {node: '>=6'}
-
-  '@fortawesome/react-fontawesome@3.2.0':
-    resolution: {integrity: sha512-E9Gu1hqd6JussVO26EC4WqRZssXMnQr2ol7ZNWkkFOH8jZUaxDJ9Z9WF9wIVkC+kJGXUdY3tlffpDwEKfgQrQw==}
-    engines: {node: '>=20'}
-    peerDependencies:
-      '@fortawesome/fontawesome-svg-core': ~6 || ~7
-      react: ^18.0.0 || ^19.0.0
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -983,6 +964,11 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
+  lucide-react@0.563.0:
+    resolution: {integrity: sha512-8dXPB2GI4dI8jV4MgUDGBeLdGk8ekfqVZ0BdLcrRzocGgG75ltNEmWS+gE7uokKF/0oSUuczNDT+g9hFJ23FkA==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
@@ -1194,6 +1180,9 @@ packages:
 
   svg-parser@2.0.4:
     resolution: {integrity: sha512-e4hG1hRwoOdRb37cIMSgzNsxyzKfayW6VOflrwvR+/bzrkyxY/31WkbgnQpgtrNp1SdpJvpUAGTa/ZoiPNDuRQ==}
+
+  tailwind-merge@3.4.0:
+    resolution: {integrity: sha512-uSaO4gnW+b3Y2aWoWfFpX62vn2sR3skfhbjsEnaBI81WD1wBLlHZe5sWf0AqjksNdYTbGBEd0UasQMT3SNV15g==}
 
   tailwindcss@4.1.18:
     resolution: {integrity: sha512-4+Z+0yiYyEtUVCScyfHCxOYP06L5Ne+JiHhY2IjR2KWMIWhJOYZKLSGZaP5HkZ8+bY0cxfzwDE5uOmzFXyIwxw==}
@@ -1571,21 +1560,6 @@ snapshots:
       '@floating-ui/utils': 0.2.10
 
   '@floating-ui/utils@0.2.10': {}
-
-  '@fortawesome/fontawesome-common-types@7.2.0': {}
-
-  '@fortawesome/fontawesome-svg-core@7.2.0':
-    dependencies:
-      '@fortawesome/fontawesome-common-types': 7.2.0
-
-  '@fortawesome/free-solid-svg-icons@7.2.0':
-    dependencies:
-      '@fortawesome/fontawesome-common-types': 7.2.0
-
-  '@fortawesome/react-fontawesome@3.2.0(@fortawesome/fontawesome-svg-core@7.2.0)(react@19.2.4)':
-    dependencies:
-      '@fortawesome/fontawesome-svg-core': 7.2.0
-      react: 19.2.4
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
@@ -2125,6 +2099,10 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
+  lucide-react@0.563.0(react@19.2.4):
+    dependencies:
+      react: 19.2.4
+
   magic-string@0.30.21:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
@@ -2309,6 +2287,8 @@ snapshots:
   strnum@2.1.2: {}
 
   svg-parser@2.0.4: {}
+
+  tailwind-merge@3.4.0: {}
 
   tailwindcss@4.1.18: {}
 

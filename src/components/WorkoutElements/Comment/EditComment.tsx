@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { faTrashAlt } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Trash2 } from "lucide-react";
 
 import type { Instruction } from "@/components/Editor/editorTypes";
 
@@ -53,7 +52,7 @@ const EditComment = (props: {
             type="button"
             onClick={() => props.onDelete(props.instruction.id)}
           >
-            <FontAwesomeIcon icon={faTrashAlt} className="delete" />
+            <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </div>

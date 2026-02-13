@@ -13,12 +13,11 @@
     "typecheck": "tsgo"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^7.2.0",
-    "@fortawesome/free-solid-svg-icons": "^7.2.0",
-    "@fortawesome/react-fontawesome": "^3.2.0",
     "@tailwindcss/vite": "^4.1.18",
     "@typescript/native-preview": "7.0.0-dev.20260213.1",
+    "clsx": "^2.1.1",
     "fast-xml-parser": "^5.3.5",
+    "lucide-react": "^0.563.0",
     "re-resizable": "^6.11.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -26,6 +25,7 @@
     "react-switch": "^7.1.0",
     "react-time-picker": "^8.0.2",
     "react-tooltip": "^5.30.0",
+    "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
