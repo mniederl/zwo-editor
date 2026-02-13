@@ -4,7 +4,7 @@
   max-width: 100%;
   min-height: 430px;
   margin: 0 auto;
-  overflow-x: auto;
+  overflow-x: hidden;
   overflow-y: hidden;
   border-radius: 1.25rem;
   background:
@@ -25,9 +25,9 @@
   position: absolute;
   inset: 0 0 6px 0;
   width: 100%;
-  min-width: 1320px;
+  min-width: 0;
   overflow-y: hidden;
-  overflow-x: visible;
+  overflow-x: auto;
 }
 
 .segments {

@@ -1,10 +1,16 @@
 .trapeze {
+  position: relative;
   display: flex;
   align-items: flex-end;
+  overflow: hidden;
 }
 
 .trapeze-component {
+  border: 0;
   border-top: 1px dotted gray;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
   z-index: 5;
 }
 
@@ -25,26 +31,10 @@
   display: flex;
 }
 
-.color {
-}
-
 .color:first-child {
   border-bottom-left-radius: 5px;
 }
 
 .color:last-child {
   border-bottom-right-radius: 5px;
-}
-
-.trapeze-svg-container {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-}
-.trapeze-svg {
-  fill: transparent;
-}
-.trapeze-svg-off {
-  fill: white;
-  display: hidden;
 }

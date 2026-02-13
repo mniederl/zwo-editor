@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Resizable } from "re-resizable";
 
 import { Colors, Zones, ZonesArray } from "@/components/constants";
@@ -39,7 +39,7 @@ const RightTrapezoid = (props: {
 
   const avgPower = Math.abs((props.endPower + props.startPower) / 2);
 
-  const durationLabel = formatTime(props.time!);
+  const durationLabel = formatTime(props.time || 0);
 
   const [showLabel, setShowLabel] = useState(false);
 
@@ -70,94 +70,106 @@ const RightTrapezoid = (props: {
   const [height1, setHeight1] = useState(props.startPower * multiplier);
   const [height2, setHeight2] = useState(((props.endPower + props.startPower) * multiplier) / 2);
   const [height3, setHeight3] = useState(props.endPower * multiplier);
+  const resizeBaseRef = useRef({ width, height1, height3 });
 
   const trapezeHeight = height3 > height1 ? height3 : height1;
   const trapezeTop = height3 > height1 ? height3 - height1 : height1 - height3;
+  const trapezeClipPath =
+    height3 > height1
+      ? `polygon(0px ${trapezeTop}px, 0px ${trapezeHeight}px, ${width * 3}px ${trapezeHeight}px, ${width * 3}px 0px)`
+      : `polygon(0px 0px, 0px ${trapezeHeight}px, ${width * 3}px ${trapezeHeight}px, ${width * 3}px ${trapezeTop}px)`;
 
-  const vertexB = height3 > height1 ? 0 : width * 3;
-  const vertexA = height3 > height1 ? trapezeTop : 0;
-  const vertexD = height3 > height1 ? 0 : trapezeTop;
-
-  var bars =
+  const bars =
     height3 > height1
       ? calculateColors(props.startPower, props.endPower)
       : calculateColors(props.endPower, props.startPower);
   const flexDirection = height3 > height1 ? "row" : "row-reverse";
 
-  const handleResizeStop1 = (dHeight: number) => {
-    setHeight1(height1 + dHeight);
-    setHeight2((height3 + dHeight + height1) / 2);
+  const captureResizeBase = () => {
+    resizeBaseRef.current = { width, height1, height3 };
   };
-  const handleResizeStop2 = (dHeight: number) => {
-    setHeight2(height2 + dHeight);
-    setHeight1(height1 + dHeight);
-    setHeight3(height3 + dHeight);
-  };
-  const handleResizeStop3 = (dWidth: number, dHeight: number) => {
-    setWidth(width + dWidth / 3);
-    setHeight3(height3 + dHeight);
-    setHeight2((height3 + dHeight + height1) / 2);
+
+  const updateShape = (nextWidth: number, nextHeight1: number, nextHeight3: number) => {
+    setWidth(nextWidth);
+    setHeight1(nextHeight1);
+    setHeight3(nextHeight3);
+    setHeight2((nextHeight1 + nextHeight3) / 2);
   };
 
   const handleResize1 = (dHeight: number) => {
+    const nextWidth = resizeBaseRef.current.width;
+    const nextHeight1 = resizeBaseRef.current.height1 + dHeight;
+    const nextHeight3 = resizeBaseRef.current.height3;
+    updateShape(nextWidth, nextHeight1, nextHeight3);
+
     const time =
       props.durationType === "time"
-        ? round(width * timeMultiplier * 3, 5)
+        ? round(nextWidth * timeMultiplier * 3, 5)
         : round((calculateTime(props.length, props.speed) * 1) / avgPower, 1);
     const length =
       props.durationType === "time"
-        ? round((calculateDistance(width * timeMultiplier, props.speed) * 1) / avgPower, 1)
-        : round(width * lengthMultiplier * 3, 200);
+        ? round((calculateDistance(nextWidth * timeMultiplier, props.speed) * 1) / avgPower, 1)
+        : round(nextWidth * lengthMultiplier * 3, 200);
 
     props.onChange(props.id, {
       time: time,
       length: length,
-      startPower: (height1 + dHeight) / multiplier,
-      endPower: height3 / multiplier,
+      startPower: nextHeight1 / multiplier,
+      endPower: nextHeight3 / multiplier,
       cadence: props.cadence,
       type: "trapeze",
       pace: props.pace,
       id: props.id,
     });
   };
+
   const handleResize2 = (dHeight: number) => {
+    const nextWidth = resizeBaseRef.current.width;
+    const nextHeight1 = resizeBaseRef.current.height1 + dHeight;
+    const nextHeight3 = resizeBaseRef.current.height3 + dHeight;
+    updateShape(nextWidth, nextHeight1, nextHeight3);
+
     const time =
       props.durationType === "time"
-        ? round(width * timeMultiplier * 3, 5)
+        ? round(nextWidth * timeMultiplier * 3, 5)
         : round((calculateTime(props.length, props.speed) * 1) / avgPower, 1);
     const length =
       props.durationType === "time"
-        ? round((calculateDistance(width * timeMultiplier, props.speed) * 1) / avgPower, 1)
-        : round(width * lengthMultiplier * 3, 200);
+        ? round((calculateDistance(nextWidth * timeMultiplier, props.speed) * 1) / avgPower, 1)
+        : round(nextWidth * lengthMultiplier * 3, 200);
 
     props.onChange(props.id, {
       time: time,
       length: length,
-      startPower: (height1 + dHeight) / multiplier,
-      endPower: (height3 + dHeight) / multiplier,
+      startPower: nextHeight1 / multiplier,
+      endPower: nextHeight3 / multiplier,
       cadence: props.cadence,
       type: "trapeze",
       pace: props.pace,
       id: props.id,
     });
   };
+
   const handleResize3 = (dWidth: number, dHeight: number) => {
-    const newWidth = width + dWidth / 3;
+    const nextWidth = resizeBaseRef.current.width + dWidth / 3;
+    const nextHeight1 = resizeBaseRef.current.height1;
+    const nextHeight3 = resizeBaseRef.current.height3 + dHeight;
+    updateShape(nextWidth, nextHeight1, nextHeight3);
 
     const length =
       props.durationType === "time"
-        ? round((calculateDistance(newWidth * timeMultiplier * 3, props.speed) * 1) / avgPower, 1)
-        : round(newWidth * lengthMultiplier * 3, 200);
+        ? round((calculateDistance(nextWidth * timeMultiplier * 3, props.speed) * 1) / avgPower, 1)
+        : round(nextWidth * lengthMultiplier * 3, 200);
     const time =
       props.durationType === "time"
-        ? round(newWidth * timeMultiplier * 3, 5)
+        ? round(nextWidth * timeMultiplier * 3, 5)
         : round((calculateTime(props.length, props.speed) * 1) / avgPower, 1);
 
     props.onChange(props.id, {
       time: time,
       length: length,
-      startPower: height1 / multiplier,
-      endPower: (height3 + dHeight) / multiplier,
+      startPower: nextHeight1 / multiplier,
+      endPower: nextHeight3 / multiplier,
       cadence: props.cadence,
       type: "trapeze",
       pace: props.pace,
@@ -170,13 +182,13 @@ const RightTrapezoid = (props: {
 
     ZonesArray.forEach((zone, index) => {
       if (start >= zone[0] && start < zone[1]) {
-        bars["Z" + (index + 1)] = zone[1] - start;
+        bars[`Z${index + 1}`] = zone[1] - start;
       } else if (end >= zone[0] && end < zone[1]) {
-        bars["Z" + (index + 1)] = end - zone[0];
+        bars[`Z${index + 1}`] = end - zone[0];
       } else if (end >= zone[1] && start < zone[0]) {
-        bars["Z" + (index + 1)] = zone[1] - zone[0];
+        bars[`Z${index + 1}`] = zone[1] - zone[0];
       } else {
-        bars["Z" + (index + 1)] = 0;
+        bars[`Z${index + 1}`] = 0;
       }
     });
     return bars;
@@ -231,7 +243,11 @@ const RightTrapezoid = (props: {
           paceUnitType={props.paceUnitType}
         />
       )}
-      <div className="trapeze" onClick={() => props.onClick(props.id)}>
+      <div
+        className="trapeze"
+        onClick={() => props.onClick(props.id)}
+        style={{ width: width * 3, height: trapezeHeight }}
+      >
         <Resizable
           className="trapeze-component"
           size={{
@@ -243,8 +259,8 @@ const RightTrapezoid = (props: {
           maxHeight={multiplier * Zones.Z6.max}
           enable={{ top: true, right: true }}
           grid={[1, 1]}
-          onResizeStop={(e, direction, ref, d) => handleResizeStop1(d.height)}
-          onResize={(e, direction, ref, d) => handleResize1(d.height)}
+          onResizeStart={captureResizeBase}
+          onResize={(_e, _direction, _ref, d) => handleResize1(d.height)}
         ></Resizable>
         <Resizable
           className="trapeze-component"
@@ -257,8 +273,8 @@ const RightTrapezoid = (props: {
           maxHeight={multiplier * Zones.Z6.max}
           enable={{ top: true }}
           grid={[1, 1]}
-          onResizeStop={(e, direction, ref, d) => handleResizeStop2(d.height)}
-          onResize={(e, direction, ref, d) => handleResize2(d.height)}
+          onResizeStart={captureResizeBase}
+          onResize={(_e, _direction, _ref, d) => handleResize2(d.height)}
         ></Resizable>
         <Resizable
           className="trapeze-component"
@@ -271,69 +287,64 @@ const RightTrapezoid = (props: {
           maxHeight={multiplier * Zones.Z6.max}
           enable={{ top: true, right: true }}
           grid={[1, 1]}
-          onResizeStop={(e, direction, ref, d) => handleResizeStop3(d.width, d.height)}
-          onResize={(e, direction, ref, d) => handleResize3(d.width, d.height)}
+          onResizeStart={captureResizeBase}
+          onResize={(_e, _direction, _ref, d) => handleResize3(d.width, d.height)}
         ></Resizable>
       </div>
       <div
         className="trapeze-colors"
         style={{
           height: trapezeHeight,
+          width: width * 3,
           flexDirection: flexDirection,
           backgroundColor: zwiftStyle(props.startPower),
+          clipPath: trapezeClipPath,
+          WebkitClipPath: trapezeClipPath,
         }}
       >
         <div
           className="color"
           style={{
             backgroundColor: Colors.GRAY,
-            width: `${(bars["Z1"] * 100) / Math.abs(props.endPower - props.startPower)}%`,
+            width: `${(bars.Z1 * 100) / Math.abs(props.endPower - props.startPower)}%`,
           }}
         ></div>
         <div
           className="color"
           style={{
             backgroundColor: Colors.BLUE,
-            width: `${(bars["Z2"] * 100) / Math.abs(props.endPower - props.startPower)}%`,
+            width: `${(bars.Z2 * 100) / Math.abs(props.endPower - props.startPower)}%`,
           }}
         ></div>
         <div
           className="color"
           style={{
             backgroundColor: Colors.GREEN,
-            width: `${(bars["Z3"] * 100) / Math.abs(props.endPower - props.startPower)}%`,
+            width: `${(bars.Z3 * 100) / Math.abs(props.endPower - props.startPower)}%`,
           }}
         ></div>
         <div
           className="color"
           style={{
             backgroundColor: Colors.YELLOW,
-            width: `${(bars["Z4"] * 100) / Math.abs(props.endPower - props.startPower)}%`,
+            width: `${(bars.Z4 * 100) / Math.abs(props.endPower - props.startPower)}%`,
           }}
         ></div>
         <div
           className="color"
           style={{
             backgroundColor: Colors.ORANGE,
-            width: `${(bars["Z5"] * 100) / Math.abs(props.endPower - props.startPower)}%`,
+            width: `${(bars.Z5 * 100) / Math.abs(props.endPower - props.startPower)}%`,
           }}
         ></div>
         <div
           className="color"
           style={{
             backgroundColor: Colors.RED,
-            width: `${(bars["Z6"] * 100) / Math.abs(props.endPower - props.startPower)}%`,
+            width: `${(bars.Z6 * 100) / Math.abs(props.endPower - props.startPower)}%`,
           }}
         ></div>
       </div>
-      <svg height={`${trapezeHeight}`} width={`${width * 3}`} className="trapeze-svg-container">
-        <polygon
-          points={`0,${vertexA} 0,${trapezeHeight} ${width * 3},${trapezeHeight} ${width * 3},${vertexD}`}
-          className="trapeze-svg"
-        />
-        <polygon points={`0,0 ${vertexB},${trapezeTop} ${width * 3},0`} className="trapeze-svg-off" />
-        Sorry, your browser does not support inline SVG.
-      </svg>
     </div>
   );
 };

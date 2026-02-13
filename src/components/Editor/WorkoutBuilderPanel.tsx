@@ -1,20 +1,11 @@
-import {
-  ArrowLeft,
-  ArrowRight,
-  Bike,
-  Copy,
-  Footprints,
-  MessageSquare,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight, Bike, Copy, Footprints, MessageSquare, Pencil, Trash2 } from "lucide-react";
 import { Tooltip } from "react-tooltip";
 
 import { Colors, Zones } from "../constants";
 import { getWorkoutDistance, getWorkoutLength } from "../helpers";
 import DistanceAxis from "./DistanceAxis";
 import { useEditorContext } from "./EditorContext";
-import type { Instruction } from "./editorTypes";
+import type { BarType, Instruction } from "./editorTypes";
 import TimeAxis from "./TimeAxis";
 import ZoneAxis from "./ZoneAxis";
 import { CooldownLogo, IntervalLogo, SteadyLogo, WarmupLogo } from "@/assets";
@@ -23,6 +14,7 @@ import { Bar, Comment, FreeRide, Interval, RightTrapezoid } from "@/components/W
 export default function WorkoutBuilderPanel() {
   const { state, actions, helpers, refs } = useEditorContext();
   const { sportType, durationType, segmentsWidth, actionId, bars, instructions, ftp, weight, paceUnitType } = state;
+  const axisWidth = Math.max(1320, segmentsWidth);
 
   const segmentToolButtonClass =
     "inline-flex items-center justify-start gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900";
@@ -53,7 +45,7 @@ export default function WorkoutBuilderPanel() {
       paceUnitType={paceUnitType}
       pace={bar.pace || 0}
       speed={helpers.calculateSpeed(bar.pace || 0)}
-      onChange={(id: string, value: any) => actions.handleOnChange(id, value)}
+      onChange={(id: string, value: BarType) => actions.handleOnChange(id, value)}
       onClick={(id: string) => actions.handleOnClick(id)}
       selected={bar.id === actionId}
       showLabel={true}
@@ -75,7 +67,7 @@ export default function WorkoutBuilderPanel() {
       paceUnitType={paceUnitType}
       pace={bar.pace || 0}
       speed={helpers.calculateSpeed(bar.pace || 0)}
-      onChange={(id: string, value: any) => actions.handleOnChange(id, value)}
+      onChange={(id: string, value: BarType) => actions.handleOnChange(id, value)}
       onClick={(id: string) => actions.handleOnClick(id)}
       selected={bar.id === actionId}
     />
@@ -90,7 +82,7 @@ export default function WorkoutBuilderPanel() {
       cadence={bar.cadence}
       durationType={durationType}
       sportType={sportType}
-      onChange={(id: string, value: any) => actions.handleOnChange(id, value)}
+      onChange={(id: string, value: BarType) => actions.handleOnChange(id, value)}
       onClick={(id: string) => actions.handleOnClick(id)}
       selected={bar.id === actionId}
     />
@@ -115,7 +107,7 @@ export default function WorkoutBuilderPanel() {
       durationType={durationType}
       pace={bar.pace || 0}
       speed={helpers.calculateSpeed(bar.pace || 0)}
-      handleIntervalChange={(id: string, value: any) => actions.handleOnChange(id, value)}
+      handleIntervalChange={(id: string, value: BarType) => actions.handleOnChange(id, value)}
       handleIntervalClick={(id: string) => actions.handleOnClick(id)}
       selected={bar.id === actionId}
     />
@@ -277,7 +269,7 @@ export default function WorkoutBuilderPanel() {
                 {instructions.map((instruction, index) => renderComment(instruction, index))}
               </div>
 
-              {durationType === "time" ? <TimeAxis width={segmentsWidth} /> : <DistanceAxis width={segmentsWidth} />}
+              {durationType === "time" ? <TimeAxis width={axisWidth} /> : <DistanceAxis width={axisWidth} />}
             </div>
 
             <ZoneAxis />
