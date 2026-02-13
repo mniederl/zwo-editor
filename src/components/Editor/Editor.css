@@ -34,7 +34,6 @@
 
 .canvas::-webkit-scrollbar {
   background-color: transparent;
-  height: 8px;
 }
 
 .canvas::-webkit-scrollbar-thumb {
@@ -43,6 +42,24 @@
 }
 
 .canvas::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(153, 181, 221, 1);
+  cursor: pointer;
+}
+
+.editor-page-scroll {
+  scrollbar-color: rgba(153, 181, 221, 0.7) transparent;
+}
+
+.editor-page-scroll::-webkit-scrollbar {
+  background-color: transparent;
+}
+
+.editor-page-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(153, 181, 221, 0.7);
+  border-radius: 10px;
+}
+
+.editor-page-scroll::-webkit-scrollbar-thumb:hover {
   background-color: rgba(153, 181, 221, 1);
   cursor: pointer;
 }

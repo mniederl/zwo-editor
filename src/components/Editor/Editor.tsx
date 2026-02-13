@@ -211,7 +211,7 @@ const Editor = ({ id }: EditorProps) => {
     <EditorProvider value={contextValue}>
       <div
         data-editor-scroll-root="true"
-        className="relative h-full overflow-y-auto overflow-x-hidden px-3 py-3 md:px-5 md:py-5"
+        className="editor-page-scroll relative h-full overflow-y-scroll overflow-x-hidden px-3 py-3 md:px-5 md:py-5"
         onKeyDown={handleKeyPress}
         tabIndex={0}
       >
