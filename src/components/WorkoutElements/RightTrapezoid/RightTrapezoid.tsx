@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Resizable } from "re-resizable";
 
 import { Colors, Zones, ZonesArray } from "@/components/constants";
@@ -25,14 +25,20 @@ const RightTrapezoid = (props: {
   sportType: SportType;
   durationType: DurationType;
   speed?: number;
+  powerScale: number;
+  maxEditablePower: number;
+  onVerticalResizeStart?: () => void;
+  onVerticalResizeEnd?: () => void;
   onChange: (id: string, value: BarType) => void;
   onClick: (id: string) => void;
   selected: boolean;
   paceUnitType?: PaceUnitType;
 }) => {
-  const multiplier = 250;
+  const multiplier = props.powerScale;
   const timeMultiplier = 3;
   const lengthMultiplier = 10;
+  const absolutePowerCap = 2500 / Math.max(props.ftp, 1);
+  const cappedEditablePower = Math.max(Zones.Z1.min, Math.min(props.maxEditablePower, absolutePowerCap));
 
   const powerLabelStart = Math.round(props.startPower * props.ftp);
   const powerLabelEnd = Math.round(props.endPower * props.ftp);
@@ -72,6 +78,12 @@ const RightTrapezoid = (props: {
   const [height3, setHeight3] = useState(props.endPower * multiplier);
   const resizeBaseRef = useRef({ width, height1, height3 });
 
+  useEffect(() => {
+    setHeight1(props.startPower * multiplier);
+    setHeight3(props.endPower * multiplier);
+    setHeight2(((props.endPower + props.startPower) * multiplier) / 2);
+  }, [props.startPower, props.endPower, multiplier]);
+
   const trapezeHeight = height3 > height1 ? height3 : height1;
   const trapezeTop = height3 > height1 ? height3 - height1 : height1 - height3;
   const trapezeClipPath =
@@ -87,6 +99,7 @@ const RightTrapezoid = (props: {
 
   const captureResizeBase = () => {
     resizeBaseRef.current = { width, height1, height3 };
+    props.onVerticalResizeStart?.();
   };
 
   const updateShape = (nextWidth: number, nextHeight1: number, nextHeight3: number) => {
@@ -114,8 +127,8 @@ const RightTrapezoid = (props: {
     props.onChange(props.id, {
       time: time,
       length: length,
-      startPower: nextHeight1 / multiplier,
-      endPower: nextHeight3 / multiplier,
+      startPower: Math.max(Zones.Z1.min, Math.min(cappedEditablePower, nextHeight1 / multiplier)),
+      endPower: Math.max(Zones.Z1.min, Math.min(cappedEditablePower, nextHeight3 / multiplier)),
       cadence: props.cadence,
       type: "trapeze",
       pace: props.pace,
@@ -141,8 +154,8 @@ const RightTrapezoid = (props: {
     props.onChange(props.id, {
       time: time,
       length: length,
-      startPower: nextHeight1 / multiplier,
-      endPower: nextHeight3 / multiplier,
+      startPower: Math.max(Zones.Z1.min, Math.min(cappedEditablePower, nextHeight1 / multiplier)),
+      endPower: Math.max(Zones.Z1.min, Math.min(cappedEditablePower, nextHeight3 / multiplier)),
       cadence: props.cadence,
       type: "trapeze",
       pace: props.pace,
@@ -168,8 +181,8 @@ const RightTrapezoid = (props: {
     props.onChange(props.id, {
       time: time,
       length: length,
-      startPower: nextHeight1 / multiplier,
-      endPower: nextHeight3 / multiplier,
+      startPower: Math.max(Zones.Z1.min, Math.min(cappedEditablePower, nextHeight1 / multiplier)),
+      endPower: Math.max(Zones.Z1.min, Math.min(cappedEditablePower, nextHeight3 / multiplier)),
       cadence: props.cadence,
       type: "trapeze",
       pace: props.pace,
@@ -256,11 +269,12 @@ const RightTrapezoid = (props: {
           }}
           minWidth={3}
           minHeight={multiplier * Zones.Z1.min}
-          maxHeight={multiplier * Zones.Z6.max}
+          maxHeight={multiplier * cappedEditablePower}
           enable={{ top: true, right: true }}
           grid={[1, 1]}
           onResizeStart={captureResizeBase}
           onResize={(_e, _direction, _ref, d) => handleResize1(d.height)}
+          onResizeStop={() => props.onVerticalResizeEnd?.()}
         ></Resizable>
         <Resizable
           className="trapeze-component"
@@ -270,11 +284,12 @@ const RightTrapezoid = (props: {
           }}
           minWidth={3}
           minHeight={multiplier * Zones.Z1.min}
-          maxHeight={multiplier * Zones.Z6.max}
+          maxHeight={multiplier * cappedEditablePower}
           enable={{ top: true }}
           grid={[1, 1]}
           onResizeStart={captureResizeBase}
           onResize={(_e, _direction, _ref, d) => handleResize2(d.height)}
+          onResizeStop={() => props.onVerticalResizeEnd?.()}
         ></Resizable>
         <Resizable
           className="trapeze-component"
@@ -284,11 +299,12 @@ const RightTrapezoid = (props: {
           }}
           minWidth={3}
           minHeight={multiplier * Zones.Z1.min}
-          maxHeight={multiplier * Zones.Z6.max}
+          maxHeight={multiplier * cappedEditablePower}
           enable={{ top: true, right: true }}
           grid={[1, 1]}
           onResizeStart={captureResizeBase}
           onResize={(_e, _direction, _ref, d) => handleResize3(d.width, d.height)}
+          onResizeStop={() => props.onVerticalResizeEnd?.()}
         ></Resizable>
       </div>
       <div

@@ -18,6 +18,10 @@ const Interval = (props: {
   weight: number;
   pace: number;
   speed?: number;
+  powerScale: number;
+  maxEditablePower: number;
+  onVerticalResizeStart?: () => void;
+  onVerticalResizeEnd?: () => void;
   sportType: SportType;
   durationType: DurationType;
   handleIntervalChange: (id: string, value: BarType) => void;
@@ -119,6 +123,10 @@ const Interval = (props: {
       durationType={props.durationType}
       pace={props.pace}
       speed={props.speed}
+      powerScale={props.powerScale}
+      maxEditablePower={props.maxEditablePower}
+      onVerticalResizeStart={props.onVerticalResizeStart}
+      onVerticalResizeEnd={props.onVerticalResizeEnd}
       onChange={(_, values) => handleOnChange(index, values)}
       onClick={() => props.handleIntervalClick(props.id)}
       selected={props.selected}

@@ -19,20 +19,26 @@ const Bar = (props: {
   sportType: SportType;
   durationType: DurationType;
   speed?: number;
+  powerScale: number;
+  maxEditablePower: number;
+  onVerticalResizeStart?: () => void;
+  onVerticalResizeEnd?: () => void;
   onChange: (id: string, value: BarType) => void;
   onClick: (id: string) => void;
   selected: boolean;
   showLabel: boolean;
   paceUnitType?: PaceUnitType;
 }) => {
-  const multiplier = 250;
+  const multiplier = props.powerScale;
   const timeMultiplier = 3;
   const lengthMultiplier = 10;
+  const absolutePowerCap = 2500 / Math.max(props.ftp, 1);
+  const cappedEditablePower = Math.max(Zones.Z1.min, Math.min(props.maxEditablePower, absolutePowerCap));
 
   const powerLabel = Math.round(props.power * props.ftp);
 
   // TIME
-  const duration = formatTime(props.time!);
+  const duration = formatTime(props.time || 0);
 
   // DISTANCE
   const distance = props.length;
@@ -59,6 +65,10 @@ const Bar = (props: {
   const speed = distance !== undefined && props.time !== undefined ? calculateSpeed(distance, props.time) : 0;
 
   useEffect(() => {
+    setHeight(props.power * multiplier);
+  }, [props.power, multiplier]);
+
+  useEffect(() => {
     setSelected(props.selected);
   }, [props.selected]);
 
@@ -78,40 +88,45 @@ const Bar = (props: {
     setWidth(width + dWidth);
     setHeight(height + dHeight);
 
+    const nextPower = Math.max(Zones.Z1.min, Math.min(cappedEditablePower, (height + dHeight) / multiplier));
+
     const length =
       props.durationType === "time"
-        ? round(calculateDistance((width + dWidth) * timeMultiplier * props.power, props.speed), 1)
+        ? round(calculateDistance((width + dWidth) * timeMultiplier * nextPower, props.speed), 1)
         : round((width + dWidth) * lengthMultiplier, 200);
     const time =
       props.durationType === "time"
         ? round((width + dWidth) * timeMultiplier, 5)
-        : round((calculateTime(props.length, props.speed) * 1) / props.power, 1);
+        : round((calculateTime(props.length, props.speed) * 1) / nextPower, 1);
 
     props.onChange(props.id, {
       time: time,
       length: length,
-      power: (height + dHeight) / multiplier,
+      power: nextPower,
       cadence: props.cadence,
       type: "bar",
       pace: props.pace,
       id: props.id,
     });
+
+    props.onVerticalResizeEnd?.();
   };
 
   const handleResize = (dWidth: number, dHeight: number) => {
+    const nextPower = Math.max(Zones.Z1.min, Math.min(cappedEditablePower, (height + dHeight) / multiplier));
     const length =
       props.durationType === "time"
-        ? round(calculateDistance((width + dWidth) * timeMultiplier * props.power, props.speed), 1)
+        ? round(calculateDistance((width + dWidth) * timeMultiplier * nextPower, props.speed), 1)
         : round((width + dWidth) * lengthMultiplier, 200);
     const time =
       props.durationType === "time"
         ? round((width + dWidth) * timeMultiplier, 5)
-        : round((calculateTime(props.length, props.speed) * 1) / props.power, 1);
+        : round((calculateTime(props.length, props.speed) * 1) / nextPower, 1);
 
     props.onChange(props.id, {
       time: time,
       length: length,
-      power: (height + dHeight) / multiplier,
+      power: nextPower,
       cadence: props.cadence,
       type: "bar",
       pace: props.pace,
@@ -176,11 +191,12 @@ const Bar = (props: {
         }}
         minWidth={3}
         minHeight={multiplier * Zones.Z1.min}
-        maxHeight={multiplier * Zones.Z6.max}
+        maxHeight={multiplier * cappedEditablePower}
         enable={{ top: true, right: true }}
         grid={[1, 1]}
-        onResizeStop={(e, direction, ref, d) => handleResizeStop(d.width, d.height)}
-        onResize={(e, direction, ref, d) => handleResize(d.width, d.height)}
+        onResizeStart={() => props.onVerticalResizeStart?.()}
+        onResizeStop={(_e, _direction, _ref, d) => handleResizeStop(d.width, d.height)}
+        onResize={(_e, _direction, _ref, d) => handleResize(d.width, d.height)}
         style={style}
       ></Resizable>
     </div>

@@ -29,6 +29,9 @@ export default function WorkoutBuilderPanel() {
   const { sportType, durationType, segmentsWidth, actionId, bars, instructions, ftp, weight, paceUnitType } = state;
   const [programVisible, setProgramVisible] = useState(true);
   const [dynamicShellHeight, setDynamicShellHeight] = useState<number>();
+  const [shellViewportHeight, setShellViewportHeight] = useState(430);
+  const [isPowerResizeActive, setIsPowerResizeActive] = useState(false);
+  const [lockedVisibleMaxPower, setLockedVisibleMaxPower] = useState<number | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
   const canvasViewportWidth = refs.canvasRef.current?.clientWidth || 0;
@@ -43,6 +46,38 @@ export default function WorkoutBuilderPanel() {
       }),
     [bars, sportType, durationType, ftp],
   );
+  const maxWorkoutPower = useMemo(
+    () =>
+      bars.reduce((maxPower, bar) => {
+        if (bar.type === "bar") {
+          return Math.max(maxPower, bar.power || 0);
+        }
+        if (bar.type === "trapeze") {
+          return Math.max(maxPower, bar.startPower || 0, bar.endPower || 0);
+        }
+        if (bar.type === "interval") {
+          return Math.max(maxPower, bar.onPower || 0, bar.offPower || 0);
+        }
+        return maxPower;
+      }, Zones.Z6.max),
+    [bars],
+  );
+  const liveVisibleMaxPower = Math.max(Zones.Z6.max, maxWorkoutPower * 1.05);
+  const visibleMaxPower = isPowerResizeActive && lockedVisibleMaxPower ? lockedVisibleMaxPower : liveVisibleMaxPower;
+  const maxEditablePower = Math.max(Zones.Z6.max * 1.8, visibleMaxPower * 1.6);
+  const verticalPlotHeight = Math.max(220, shellViewportHeight - 58);
+  const powerScale = verticalPlotHeight / visibleMaxPower;
+
+  const handleVerticalResizeStart = useCallback(() => {
+    setIsPowerResizeActive(true);
+    setLockedVisibleMaxPower((currentPower) => currentPower ?? liveVisibleMaxPower);
+  }, [liveVisibleMaxPower]);
+
+  const handleVerticalResizeEnd = useCallback(() => {
+    setIsPowerResizeActive(false);
+    setLockedVisibleMaxPower(null);
+  }, []);
+
   const recalculateShellHeight = useCallback(() => {
     const sectionElement = sectionRef.current;
     const shellElement = shellRef.current;
@@ -66,6 +101,15 @@ export default function WorkoutBuilderPanel() {
     const maxAllowedHeight = Math.floor(Math.min(700, availableHeight));
     const minimumShellHeight = window.matchMedia("(max-width: 900px)").matches ? 390 : 430;
     const nextHeight = maxAllowedHeight >= minimumShellHeight ? maxAllowedHeight : undefined;
+    const measuredShellHeight = Math.max(1, shellRect.height);
+
+    setShellViewportHeight((currentHeight) => {
+      if (Math.abs(currentHeight - measuredShellHeight) <= 1) {
+        return currentHeight;
+      }
+
+      return measuredShellHeight;
+    });
 
     setDynamicShellHeight((currentHeight) => {
       if (currentHeight === nextHeight) {
@@ -119,6 +163,10 @@ export default function WorkoutBuilderPanel() {
       paceUnitType={paceUnitType}
       pace={bar.pace || 0}
       speed={helpers.calculateSpeed(bar.pace || 0)}
+      powerScale={powerScale}
+      maxEditablePower={maxEditablePower}
+      onVerticalResizeStart={handleVerticalResizeStart}
+      onVerticalResizeEnd={handleVerticalResizeEnd}
       onChange={(id: string, value: BarType) => actions.handleOnChange(id, value)}
       onClick={(id: string) => actions.handleOnClick(id)}
       selected={bar.id === actionId}
@@ -141,6 +189,10 @@ export default function WorkoutBuilderPanel() {
       paceUnitType={paceUnitType}
       pace={bar.pace || 0}
       speed={helpers.calculateSpeed(bar.pace || 0)}
+      powerScale={powerScale}
+      maxEditablePower={maxEditablePower}
+      onVerticalResizeStart={handleVerticalResizeStart}
+      onVerticalResizeEnd={handleVerticalResizeEnd}
       onChange={(id: string, value: BarType) => actions.handleOnChange(id, value)}
       onClick={(id: string) => actions.handleOnClick(id)}
       selected={bar.id === actionId}
@@ -181,6 +233,10 @@ export default function WorkoutBuilderPanel() {
       durationType={durationType}
       pace={bar.pace || 0}
       speed={helpers.calculateSpeed(bar.pace || 0)}
+      powerScale={powerScale}
+      maxEditablePower={maxEditablePower}
+      onVerticalResizeStart={handleVerticalResizeStart}
+      onVerticalResizeEnd={handleVerticalResizeEnd}
       handleIntervalChange={(id: string, value: BarType) => actions.handleOnChange(id, value)}
       handleIntervalClick={(id: string) => actions.handleOnClick(id)}
       selected={bar.id === actionId}
@@ -363,7 +419,7 @@ export default function WorkoutBuilderPanel() {
                   {durationType === "time" ? <TimeAxis width={axisWidth} /> : <DistanceAxis width={axisWidth} />}
                 </div>
 
-                <ZoneAxis />
+                <ZoneAxis powerScale={powerScale} />
               </div>
             </div>
 
