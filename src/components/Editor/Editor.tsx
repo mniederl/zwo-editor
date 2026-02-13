@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
@@ -20,8 +20,6 @@ import "./Editor.css";
 type EditorProps = { id: string };
 
 const Editor = ({ id }: EditorProps) => {
-  const s3Url = "https://zwift-workout.s3-eu-west-1.amazonaws.com";
-
   const canvasRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<HTMLDivElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
@@ -67,7 +65,6 @@ const Editor = ({ id }: EditorProps) => {
   });
 
   const io = useWorkoutIO({
-    s3Url,
     workoutId: state.workoutId,
     author: state.author,
     name: state.name,
@@ -87,12 +84,6 @@ const Editor = ({ id }: EditorProps) => {
     setDurationType: state.setDurationType,
     setMessage: state.setMessage,
   });
-
-  useEffect(() => {
-    if (id !== "new") {
-      void io.fetchAndParse(id);
-    }
-  }, [id]);
 
   function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;

@@ -7,7 +7,6 @@ import type { BarType, DurationType, Instruction, SportType } from "./editorType
 import type { EditorMessage } from "./useEditorState";
 
 interface UseWorkoutIOProps {
-  s3Url: string;
   workoutId: string;
   author: string;
   name: string;
@@ -31,11 +30,9 @@ interface UseWorkoutIOProps {
 export interface WorkoutIOActions {
   downloadWorkout: () => void;
   handleUpload: (file: Blob) => Promise<boolean>;
-  fetchAndParse: (workoutIdToFetch: string) => Promise<void>;
 }
 
 export default function useWorkoutIO({
-  s3Url,
   workoutId,
   author,
   name,
@@ -118,28 +115,8 @@ export default function useWorkoutIO({
     }
   }
 
-  async function fetchAndParse(workoutIdToFetch: string) {
-    setBars([]);
-    setInstructions([]);
-
-    try {
-      const response = await fetch(`${s3Url}/${workoutIdToFetch}.zwo`);
-      const xml = await response.text();
-      const parsed = parseWorkoutXml(xml, { idGenerator: genId });
-      applyParsedWorkout(parsed);
-    } catch (error) {
-      console.error(error);
-      setMessage({
-        visible: true,
-        class: "error",
-        text: error instanceof Error ? error.message : "Unable to fetch workout",
-      });
-    }
-  }
-
   return {
     downloadWorkout,
     handleUpload,
-    fetchAndParse,
   };
 }
