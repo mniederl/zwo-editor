@@ -22,6 +22,47 @@ interface UseWorkoutActionsProps {
   setTags: Dispatch<SetStateAction<string[]>>;
 }
 
+export interface WorkoutActions {
+  newWorkout: () => void;
+  handleOnChange: (id: string, values: BarType) => void;
+  handleOnClick: (id: string) => void;
+  addBar: (zone: number, duration?: number, cadence?: number, pace?: number, length?: number) => void;
+  addTrapeze: (
+    zone1: number,
+    zone2: number,
+    duration?: number,
+    pace?: number,
+    length?: number,
+    cadence?: number,
+  ) => void;
+  addFreeRide: (duration?: number, cadence?: number, length?: number) => void;
+  addInterval: (
+    repeat?: number,
+    onDuration?: number,
+    offDuration?: number,
+    onPower?: number,
+    offPower?: number,
+    cadence?: number,
+    restingCadence?: number,
+    pace?: number,
+    onLength?: number,
+    offLength?: number,
+  ) => void;
+  addInstruction: (text?: string, time?: number, length?: number) => void;
+  changeInstruction: (id: string, values: Instruction) => void;
+  deleteInstruction: (id: string) => void;
+  removeBar: (id: string) => void;
+  addTimeToBar: (id: string) => void;
+  removeTimeFromBar: (id: string) => void;
+  addPowerToBar: (id: string) => void;
+  removePowerFromBar: (id: string) => void;
+  duplicateBar: (id: string) => void;
+  moveLeft: (id: string) => void;
+  moveRight: (id: string) => void;
+  setPace: (value: string, id: string) => void;
+  getPace: (id: string) => number | undefined;
+}
+
 export default function useWorkoutActions({
   bars,
   setBars,
@@ -37,7 +78,7 @@ export default function useWorkoutActions({
   setDescription,
   setAuthor,
   setTags,
-}: UseWorkoutActionsProps) {
+}: UseWorkoutActionsProps): WorkoutActions {
   function newWorkout() {
     setWorkoutId(genShortId());
     setBars([]);

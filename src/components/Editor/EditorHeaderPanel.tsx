@@ -9,79 +9,29 @@ import {
   faUpload,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { Dispatch, RefObject, SetStateAction } from "react";
 
-import type { DurationType, PaceUnitType, SportType } from "./editorTypes";
+import { useEditorContext } from "./EditorContext";
 import LeftRightToggle from "./LeftRightToggle";
-import RunningTimesEditor, { type RunningTimes } from "./RunningTimesEditor";
+import RunningTimesEditor from "./RunningTimesEditor";
 
-interface EditorHeaderPanelProps {
-  sportType: SportType;
-  durationType: DurationType;
-  paceUnitType: PaceUnitType;
-  ftp: number;
-  weight: number;
-  setFtp: Dispatch<SetStateAction<number>>;
-  setWeight: Dispatch<SetStateAction<number>>;
-  switchSportType: (newSportType: SportType) => void;
-  setDurationType: Dispatch<SetStateAction<DurationType>>;
-  setPaceUnitType: Dispatch<SetStateAction<PaceUnitType>>;
-  runningTimes: RunningTimes;
-  setRunningTimes: Dispatch<SetStateAction<RunningTimes>>;
-  isMetaEditing: boolean;
-  setIsMetaEditing: Dispatch<SetStateAction<boolean>>;
-  name: string;
-  setName: Dispatch<SetStateAction<string>>;
-  description: string;
-  setDescription: Dispatch<SetStateAction<string>>;
-  author: string;
-  setAuthor: Dispatch<SetStateAction<string>>;
-  workoutTime: string;
-  workoutDistance: number;
-  trainingLoad: number;
-  averagePace: string;
-  barsCount: number;
-  instructionsCount: number;
-  newWorkout: () => void;
-  downloadWorkout: () => void;
-  uploadInputRef: RefObject<HTMLInputElement | null>;
-  handleUpload: (file: Blob) => Promise<boolean>;
-  normalizeEditableText: (value: string) => string;
-}
+export default function EditorHeaderPanel() {
+  const { state, actions, io, metrics, helpers, refs } = useEditorContext();
+  const {
+    sportType,
+    durationType,
+    paceUnitType,
+    ftp,
+    weight,
+    runningTimes,
+    isMetaEditing,
+    name,
+    description,
+    author,
+    bars,
+    instructions,
+  } = state;
+  const { switchSportType, normalizeEditableText } = helpers;
 
-export default function EditorHeaderPanel({
-  sportType,
-  durationType,
-  paceUnitType,
-  ftp,
-  weight,
-  setFtp,
-  setWeight,
-  switchSportType,
-  setDurationType,
-  setPaceUnitType,
-  runningTimes,
-  setRunningTimes,
-  isMetaEditing,
-  setIsMetaEditing,
-  name,
-  setName,
-  description,
-  setDescription,
-  author,
-  setAuthor,
-  workoutTime,
-  workoutDistance,
-  trainingLoad,
-  averagePace,
-  barsCount,
-  instructionsCount,
-  newWorkout,
-  downloadWorkout,
-  uploadInputRef,
-  handleUpload,
-  normalizeEditableText,
-}: EditorHeaderPanelProps) {
   const fieldLabelClass = "mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500";
   const inputClass =
     "w-full rounded-lg border border-slate-200 bg-white/90 px-2.5 py-1.5 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200";
@@ -116,7 +66,7 @@ export default function EditorHeaderPanel({
                   type="number"
                   name="ftp"
                   value={ftp}
-                  onChange={(event) => setFtp(Math.max(1, Number.parseInt(event.target.value, 10) || 0))}
+                  onChange={(event) => state.setFtp(Math.max(1, Number.parseInt(event.target.value, 10) || 0))}
                 />
               </label>
               <label className="block">
@@ -126,7 +76,7 @@ export default function EditorHeaderPanel({
                   type="number"
                   name="weight"
                   value={weight}
-                  onChange={(event) => setWeight(Math.max(1, Number.parseInt(event.target.value, 10) || 0))}
+                  onChange={(event) => state.setWeight(Math.max(1, Number.parseInt(event.target.value, 10) || 0))}
                 />
               </label>
             </>
@@ -140,7 +90,7 @@ export default function EditorHeaderPanel({
                 leftIcon={faClock}
                 rightIcon={faRuler}
                 selected={durationType}
-                onChange={setDurationType}
+                onChange={state.setDurationType}
               />
               <LeftRightToggle<"metric", "imperial">
                 label="Pace Unit"
@@ -149,14 +99,14 @@ export default function EditorHeaderPanel({
                 leftLabel="min/km"
                 rightLabel="min/mi"
                 selected={paceUnitType}
-                onChange={setPaceUnitType}
+                onChange={state.setPaceUnitType}
               />
             </>
           )}
         </div>
       </aside>
 
-      {sportType === "run" && <RunningTimesEditor times={runningTimes} onChange={setRunningTimes} />}
+      {sportType === "run" && <RunningTimesEditor times={runningTimes} onChange={state.setRunningTimes} />}
 
       <header className="flex h-full flex-col rounded-3xl border border-white/50 bg-white/85 p-4 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -172,7 +122,7 @@ export default function EditorHeaderPanel({
                     ? "border-cyan-300 bg-cyan-100 text-cyan-700"
                     : "border-slate-300 bg-white text-slate-500 hover:border-slate-400 hover:text-slate-700"
                 }`}
-                onClick={() => setIsMetaEditing((value) => !value)}
+                onClick={() => state.setIsMetaEditing((value) => !value)}
                 aria-label={isMetaEditing ? "Stop editing workout details" : "Edit workout details"}
                 title={isMetaEditing ? "Stop editing" : "Edit title, description, and author"}
               >
@@ -185,7 +135,7 @@ export default function EditorHeaderPanel({
               suppressContentEditableWarning
               onBlur={(event) => {
                 const value = normalizeEditableText(event.currentTarget.textContent || "");
-                setName(value === "Untitled workout" ? "" : value);
+                state.setName(value === "Untitled workout" ? "" : value);
               }}
               className="font-[var(--font-display)] text-3xl font-semibold tracking-tight text-slate-900 outline-none md:text-4xl"
             >
@@ -198,7 +148,7 @@ export default function EditorHeaderPanel({
                 suppressContentEditableWarning
                 onBlur={(event) => {
                   const value = normalizeEditableText(event.currentTarget.textContent || "");
-                  setDescription(value === "Add workout description" ? "" : value);
+                  state.setDescription(value === "Add workout description" ? "" : value);
                 }}
                 className="mt-2 max-w-2xl text-sm text-slate-600 outline-none"
               >
@@ -212,7 +162,7 @@ export default function EditorHeaderPanel({
               onBlur={(event) => {
                 const value = normalizeEditableText(event.currentTarget.textContent || "");
                 const withoutBy = value.toLowerCase().startsWith("by ") ? value.slice(3) : value;
-                setAuthor(withoutBy);
+                state.setAuthor(withoutBy);
               }}
               className="mt-3 text-sm font-medium text-slate-500 outline-none"
             >
@@ -224,21 +174,21 @@ export default function EditorHeaderPanel({
             <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Workout Time</p>
               <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                {workoutTime}
+                {metrics.workoutTime}
               </p>
             </div>
             {sportType === "run" ? (
               <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Distance</p>
                 <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                  {workoutDistance} km
+                  {metrics.workoutDistance} km
                 </p>
               </div>
             ) : (
               <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Training Load</p>
                 <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                  {trainingLoad}
+                  {metrics.trainingLoad}
                 </p>
               </div>
             )}
@@ -246,20 +196,20 @@ export default function EditorHeaderPanel({
               <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Avg Pace</p>
                 <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                  {averagePace}
+                  {metrics.averagePace}
                 </p>
               </div>
             )}
             <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Segments</p>
               <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                {barsCount}
+                {bars.length}
               </p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white/80 px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Text Events</p>
               <p className="mt-1 font-[var(--font-display)] text-[1.75rem] leading-none text-slate-900 tabular-nums">
-                {instructionsCount}
+                {instructions.length}
               </p>
             </div>
           </div>
@@ -270,28 +220,28 @@ export default function EditorHeaderPanel({
             type="button"
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
             onClick={() => {
-              if (window.confirm("Are you sure you want to create a new workout?")) newWorkout();
+              if (window.confirm("Are you sure you want to create a new workout?")) actions.newWorkout();
             }}
           >
             <FontAwesomeIcon icon={faFile} /> New Workout
           </button>
-          <button type="button" className={composerActionButtonClass} onClick={() => downloadWorkout()}>
+          <button type="button" className={composerActionButtonClass} onClick={() => io.downloadWorkout()}>
             <FontAwesomeIcon icon={faDownload} /> Download .zwo
           </button>
           <input
             accept=".xml,.zwo"
-            ref={uploadInputRef}
+            ref={refs.uploadInputRef}
             type="file"
             className="hidden"
             onChange={(event) => {
               const selectedFile = event.target.files?.[0];
-              if (selectedFile) void handleUpload(selectedFile);
+              if (selectedFile) void io.handleUpload(selectedFile);
             }}
           />
           <button
             type="button"
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-300 bg-cyan-50 px-3 py-2 text-sm font-semibold text-cyan-700 shadow-sm transition hover:border-cyan-400 hover:bg-cyan-100"
-            onClick={() => uploadInputRef.current?.click()}
+            onClick={() => refs.uploadInputRef.current?.click()}
           >
             <FontAwesomeIcon icon={faUpload} /> Upload Workout
           </button>

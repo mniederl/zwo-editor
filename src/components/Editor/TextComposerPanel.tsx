@@ -1,12 +1,8 @@
-import type { SportType } from "./editorTypes";
+import { useEditorContext } from "./EditorContext";
 
-interface TextComposerPanelProps {
-  isVisible: boolean;
-  sportType: SportType;
-  onChangeText: (value: string) => void;
-}
-
-export default function TextComposerPanel({ isVisible, sportType, onChangeText }: TextComposerPanelProps) {
+export default function TextComposerPanel() {
+  const { state, helpers } = useEditorContext();
+  const { isVisible, sportType } = { isVisible: state.textEditorIsVisible, sportType: state.sportType };
   if (!isVisible || sportType !== "bike") {
     return null;
   }
@@ -16,7 +12,7 @@ export default function TextComposerPanel({ isVisible, sportType, onChangeText }
       <div>
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Text Composer</p>
         <textarea
-          onChange={(event) => onChangeText(event.target.value)}
+          onChange={(event) => helpers.transformTextToWorkout(event.target.value)}
           rows={10}
           spellCheck={false}
           className="h-full min-h-[210px] w-full resize-y rounded-2xl border border-slate-200 bg-slate-950 px-4 py-3 font-mono text-sm text-slate-100 shadow-inner outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-300/40"

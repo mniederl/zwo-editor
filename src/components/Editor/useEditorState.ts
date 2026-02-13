@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useReducer, useState } from "react";
-import type { RefObject, SetStateAction } from "react";
+import type { Dispatch, RefObject, SetStateAction } from "react";
 
 import { genShortId } from "@utils/id";
 
 import { loadRunningTimes } from "./editorTypes";
 import type { BarType, DurationType, Instruction, PaceUnitType, SportType } from "./editorTypes";
+import type { RunningTimes } from "./RunningTimesEditor";
 
 export interface EditorMessage {
   visible: boolean;
@@ -44,7 +45,47 @@ function workoutReducer(state: WorkoutState, action: WorkoutStateAction): Workou
   }
 }
 
-export default function useEditorState({ id, segmentsRef }: UseEditorStateProps) {
+export interface EditorStateModel {
+  workoutId: string;
+  setWorkoutId: Dispatch<SetStateAction<string>>;
+  bars: BarType[];
+  setBars: (value: SetStateAction<BarType[]>) => void;
+  actionId: string | undefined;
+  setActionId: (value: SetStateAction<string | undefined>) => void;
+  ftp: number;
+  setFtp: Dispatch<SetStateAction<number>>;
+  weight: number;
+  setWeight: Dispatch<SetStateAction<number>>;
+  instructions: Instruction[];
+  setInstructions: (value: SetStateAction<Instruction[]>) => void;
+  tags: string[];
+  setTags: Dispatch<SetStateAction<string[]>>;
+  name: string;
+  setName: Dispatch<SetStateAction<string>>;
+  description: string;
+  setDescription: Dispatch<SetStateAction<string>>;
+  author: string;
+  setAuthor: Dispatch<SetStateAction<string>>;
+  segmentsWidth: number;
+  message: EditorMessage | undefined;
+  setMessage: Dispatch<SetStateAction<EditorMessage | undefined>>;
+  sportType: SportType;
+  setSportType: Dispatch<SetStateAction<SportType>>;
+  durationType: DurationType;
+  setDurationType: Dispatch<SetStateAction<DurationType>>;
+  paceUnitType: PaceUnitType;
+  setPaceUnitType: Dispatch<SetStateAction<PaceUnitType>>;
+  runningTimes: RunningTimes;
+  setRunningTimes: Dispatch<SetStateAction<RunningTimes>>;
+  textEditorIsVisible: boolean;
+  setTextEditorIsVisible: Dispatch<SetStateAction<boolean>>;
+  selectedInstruction: Instruction | undefined;
+  setSelectedInstruction: Dispatch<SetStateAction<Instruction | undefined>>;
+  isMetaEditing: boolean;
+  setIsMetaEditing: Dispatch<SetStateAction<boolean>>;
+}
+
+export default function useEditorState({ id, segmentsRef }: UseEditorStateProps): EditorStateModel {
   const [workoutId, setWorkoutId] = useState(id === "new" ? localStorage.getItem("id") || genShortId() : id);
   const [workoutState, dispatchWorkout] = useReducer(workoutReducer, {
     bars: JSON.parse(localStorage.getItem("currentWorkout") || "[]"),

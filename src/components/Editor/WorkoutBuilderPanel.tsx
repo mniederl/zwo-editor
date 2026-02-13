@@ -9,85 +9,26 @@ import {
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { Dispatch, ReactNode, RefObject, SetStateAction } from "react";
 import { Tooltip } from "react-tooltip";
 
 import { CooldownLogo, IntervalLogo, SteadyLogo, WarmupLogo } from "../../assets";
+import Bar from "../Bar/Bar";
+import Comment from "../Comment/Comment";
 import { Colors, Zones } from "../constants";
+import FreeRide from "../FreeRide/FreeRide";
+import { getWorkoutDistance, getWorkoutLength } from "../helpers";
+import Interval from "../Interval/Interval";
+import RightTrapezoid from "../Trapeze/Trapeze";
 import DistanceAxis from "./DistanceAxis";
-import type { BarType, DurationType, Instruction, SportType } from "./editorTypes";
+import { useEditorContext } from "./EditorContext";
+import type { Instruction } from "./editorTypes";
 import TimeAxis from "./TimeAxis";
 import ZoneAxis from "./ZoneAxis";
 
-interface WorkoutBuilderPanelProps {
-  sportType: SportType;
-  durationType: DurationType;
-  segmentsWidth: number;
-  actionId: string | undefined;
-  bars: BarType[];
-  instructions: Instruction[];
-  canvasRef: RefObject<HTMLDivElement | null>;
-  segmentsRef: RefObject<HTMLDivElement | null>;
-  setActionId: Dispatch<SetStateAction<string | undefined>>;
-  toggleTextEditor: () => void;
-  addBar: (zone: number, duration?: number, cadence?: number, pace?: number, length?: number) => void;
-  addTrapeze: (
-    zone1: number,
-    zone2: number,
-    duration?: number,
-    pace?: number,
-    length?: number,
-    cadence?: number,
-  ) => void;
-  addInterval: (
-    repeat?: number,
-    onDuration?: number,
-    offDuration?: number,
-    onPower?: number,
-    offPower?: number,
-    cadence?: number,
-    restingCadence?: number,
-    pace?: number,
-    onLength?: number,
-    offLength?: number,
-  ) => void;
-  addFreeRide: (duration?: number, cadence?: number, length?: number) => void;
-  addInstruction: (text?: string, time?: number, length?: number) => void;
-  moveLeft: (id: string) => void;
-  moveRight: (id: string) => void;
-  removeBar: (id: string) => void;
-  duplicateBar: (id: string) => void;
-  setPace: (value: string, id: string) => void;
-  getPace: (id: string) => number | undefined;
-  renderSegment: (bar: BarType) => ReactNode;
-  renderComment: (instruction: Instruction, index: number) => ReactNode;
-}
+export default function WorkoutBuilderPanel() {
+  const { state, actions, helpers, refs } = useEditorContext();
+  const { sportType, durationType, segmentsWidth, actionId, bars, instructions, ftp, weight, paceUnitType } = state;
 
-export default function WorkoutBuilderPanel({
-  sportType,
-  durationType,
-  segmentsWidth,
-  actionId,
-  bars,
-  instructions,
-  canvasRef,
-  segmentsRef,
-  setActionId,
-  toggleTextEditor,
-  addBar,
-  addTrapeze,
-  addInterval,
-  addFreeRide,
-  addInstruction,
-  moveLeft,
-  moveRight,
-  removeBar,
-  duplicateBar,
-  setPace,
-  getPace,
-  renderSegment,
-  renderComment,
-}: WorkoutBuilderPanelProps) {
   const segmentToolButtonClass =
     "inline-flex items-center justify-start gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900";
   const zoneButtons = [
@@ -98,6 +39,108 @@ export default function WorkoutBuilderPanel({
     { label: "Z5", color: Colors.ORANGE, zone: Zones.Z5.min, textColor: "#ffffff" },
     { label: "Z6", color: Colors.RED, zone: Zones.Z6.min, textColor: "#ffffff" },
   ];
+
+  const barsForMetrics = bars as Parameters<typeof getWorkoutLength>[0];
+  const barsForDistance = bars.filter((bar) => bar.type !== "freeRide") as Parameters<typeof getWorkoutDistance>[0];
+
+  const renderBar = (bar: (typeof bars)[number]) => (
+    <Bar
+      key={bar.id}
+      id={bar.id}
+      time={bar.time}
+      length={bar.length || 200}
+      power={bar.power || 100}
+      cadence={bar.cadence}
+      ftp={ftp}
+      weight={weight}
+      sportType={sportType}
+      durationType={durationType}
+      paceUnitType={paceUnitType}
+      pace={bar.pace || 0}
+      speed={helpers.calculateSpeed(bar.pace || 0)}
+      onChange={(id: string, value: any) => actions.handleOnChange(id, value)}
+      onClick={(id: string) => actions.handleOnClick(id)}
+      selected={bar.id === actionId}
+      showLabel={true}
+    />
+  );
+
+  const renderTrapeze = (bar: (typeof bars)[number]) => (
+    <RightTrapezoid
+      key={bar.id}
+      id={bar.id}
+      time={bar.time}
+      length={bar.length || 200}
+      cadence={bar.cadence}
+      startPower={bar.startPower || 80}
+      endPower={bar.endPower || 160}
+      ftp={ftp}
+      sportType={sportType}
+      durationType={durationType}
+      paceUnitType={paceUnitType}
+      pace={bar.pace || 0}
+      speed={helpers.calculateSpeed(bar.pace || 0)}
+      onChange={(id: string, value: any) => actions.handleOnChange(id, value)}
+      onClick={(id: string) => actions.handleOnClick(id)}
+      selected={bar.id === actionId}
+    />
+  );
+
+  const renderFreeRide = (bar: (typeof bars)[number]) => (
+    <FreeRide
+      key={bar.id}
+      id={bar.id}
+      time={bar.time}
+      length={bar.length}
+      cadence={bar.cadence}
+      durationType={durationType}
+      sportType={sportType}
+      onChange={(id: string, value: any) => actions.handleOnChange(id, value)}
+      onClick={(id: string) => actions.handleOnClick(id)}
+      selected={bar.id === actionId}
+    />
+  );
+
+  const renderInterval = (bar: (typeof bars)[number]) => (
+    <Interval
+      key={bar.id}
+      id={bar.id}
+      repeat={bar.repeat || 3}
+      onDuration={bar.onDuration || 10}
+      offDuration={bar.offDuration || 50}
+      onPower={bar.onPower || 250}
+      offPower={bar.offPower || 120}
+      onLength={bar.onLength || 200}
+      offLength={bar.offLength || 200}
+      cadence={bar.cadence}
+      restingCadence={bar.restingCadence || 0}
+      ftp={ftp}
+      weight={weight}
+      sportType={sportType}
+      durationType={durationType}
+      pace={bar.pace || 0}
+      speed={helpers.calculateSpeed(bar.pace || 0)}
+      handleIntervalChange={(id: string, value: any) => actions.handleOnChange(id, value)}
+      handleIntervalClick={(id: string) => actions.handleOnClick(id)}
+      selected={bar.id === actionId}
+    />
+  );
+
+  const renderComment = (instruction: (typeof instructions)[number], index: number) => (
+    <Comment
+      key={instruction.id}
+      instruction={instruction}
+      durationType={durationType}
+      width={
+        durationType === "distance"
+          ? getWorkoutDistance(barsForDistance) * 100
+          : getWorkoutLength(barsForMetrics, durationType) / 3
+      }
+      onChange={(id: string, values: Instruction) => actions.changeInstruction(id, values)}
+      onClick={(id: string) => state.setSelectedInstruction(instructions.find((item) => item.id === id))}
+      index={index}
+    />
+  );
 
   return (
     <section className="rounded-3xl border border-white/50 bg-white/95 p-3 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-4">
@@ -111,7 +154,7 @@ export default function WorkoutBuilderPanel({
                 <button
                   type="button"
                   className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500 text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-rose-600"
-                  onClick={() => toggleTextEditor()}
+                  onClick={() => helpers.toggleTextEditor()}
                   data-tooltip-id="text-editor-tooltip"
                   data-tooltip-content="Open text workout composer"
                   aria-label="Open text editor"
@@ -123,7 +166,7 @@ export default function WorkoutBuilderPanel({
                     key={zoneButton.label}
                     type="button"
                     className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold shadow-sm transition hover:-translate-y-0.5"
-                    onClick={() => addBar(zoneButton.zone)}
+                    onClick={() => actions.addBar(zoneButton.zone)}
                     style={{ backgroundColor: zoneButton.color, color: zoneButton.textColor }}
                   >
                     {zoneButton.label}
@@ -132,26 +175,26 @@ export default function WorkoutBuilderPanel({
               </div>
             </>
           ) : (
-            <button type="button" className={segmentToolButtonClass} onClick={() => addBar(1, 300, 0, 0, 1000)}>
+            <button type="button" className={segmentToolButtonClass} onClick={() => actions.addBar(1, 300, 0, 0, 1000)}>
               <SteadyLogo className="h-5 w-5" /> Steady Pace
             </button>
           )}
 
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-1">
-            <button type="button" className={segmentToolButtonClass} onClick={() => addTrapeze(0.25, 0.75)}>
+            <button type="button" className={segmentToolButtonClass} onClick={() => actions.addTrapeze(0.25, 0.75)}>
               <WarmupLogo className="h-5 w-5" /> Warm Up
             </button>
-            <button type="button" className={segmentToolButtonClass} onClick={() => addTrapeze(0.75, 0.25)}>
+            <button type="button" className={segmentToolButtonClass} onClick={() => actions.addTrapeze(0.75, 0.25)}>
               <CooldownLogo className="h-5 w-5" /> Cool Down
             </button>
-            <button type="button" className={segmentToolButtonClass} onClick={() => addInterval()}>
+            <button type="button" className={segmentToolButtonClass} onClick={() => actions.addInterval()}>
               <IntervalLogo className="h-5 w-5" /> Interval
             </button>
-            <button type="button" className={segmentToolButtonClass} onClick={() => addFreeRide()}>
+            <button type="button" className={segmentToolButtonClass} onClick={() => actions.addFreeRide()}>
               <FontAwesomeIcon icon={sportType === "bike" ? faBicycle : faRunning} /> Free{" "}
               {sportType === "bike" ? "Ride" : "Run"}
             </button>
-            <button type="button" className={segmentToolButtonClass} onClick={() => addInstruction()}>
+            <button type="button" className={segmentToolButtonClass} onClick={() => actions.addInstruction()}>
               <FontAwesomeIcon icon={faComment} /> Text Event
             </button>
           </div>
@@ -161,18 +204,33 @@ export default function WorkoutBuilderPanel({
           <div id="editor" className="editor-shell">
             {actionId && (
               <div className="editor-actions">
-                <button type="button" onClick={() => moveLeft(actionId)} title="Move Left" className="editor-action-button">
+                <button
+                  type="button"
+                  onClick={() => actions.moveLeft(actionId)}
+                  title="Move Left"
+                  className="editor-action-button"
+                >
                   <FontAwesomeIcon icon={faArrowLeft} />
                 </button>
-                <button type="button" onClick={() => moveRight(actionId)} title="Move Right" className="editor-action-button">
+                <button
+                  type="button"
+                  onClick={() => actions.moveRight(actionId)}
+                  title="Move Right"
+                  className="editor-action-button"
+                >
                   <FontAwesomeIcon icon={faArrowRight} />
                 </button>
-                <button type="button" onClick={() => removeBar(actionId)} title="Delete" className="editor-action-button">
+                <button
+                  type="button"
+                  onClick={() => actions.removeBar(actionId)}
+                  title="Delete"
+                  className="editor-action-button"
+                >
                   <FontAwesomeIcon icon={faTrash} />
                 </button>
                 <button
                   type="button"
-                  onClick={() => duplicateBar(actionId)}
+                  onClick={() => actions.duplicateBar(actionId)}
                   title="Duplicate"
                   className="editor-action-button"
                 >
@@ -181,8 +239,8 @@ export default function WorkoutBuilderPanel({
                 {sportType === "run" && (
                   <select
                     name="pace"
-                    value={getPace(actionId)}
-                    onChange={(event) => setPace(event.target.value, actionId)}
+                    value={actions.getPace(actionId)}
+                    onChange={(event) => actions.setPace(event.target.value, actionId)}
                     className="rounded-full border border-slate-600 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-100 outline-none transition focus:border-cyan-400"
                   >
                     <option value="0">1 Mile Pace</option>
@@ -194,16 +252,30 @@ export default function WorkoutBuilderPanel({
                 )}
               </div>
             )}
-            <div className="canvas" ref={canvasRef}>
+            <div className="canvas" ref={refs.canvasRef}>
               {actionId && (
                 <div
                   className="fader"
-                  style={{ width: canvasRef.current?.scrollWidth }}
-                  onClick={() => setActionId(undefined)}
+                  style={{ width: refs.canvasRef.current?.scrollWidth }}
+                  onClick={() => state.setActionId(undefined)}
                 ></div>
               )}
-              <div className="segments" ref={segmentsRef}>
-                {bars.map((bar) => renderSegment(bar))}
+              <div className="segments" ref={refs.segmentsRef}>
+                {bars.map((bar) => {
+                  if (bar.type === "bar") {
+                    return renderBar(bar);
+                  }
+                  if (bar.type === "trapeze") {
+                    return renderTrapeze(bar);
+                  }
+                  if (bar.type === "freeRide") {
+                    return renderFreeRide(bar);
+                  }
+                  if (bar.type === "interval") {
+                    return renderInterval(bar);
+                  }
+                  return false;
+                })}
               </div>
 
               <div className="slider">{instructions.map((instruction, index) => renderComment(instruction, index))}</div>

@@ -28,6 +28,12 @@ interface UseWorkoutIOProps {
   setMessage: Dispatch<SetStateAction<EditorMessage | undefined>>;
 }
 
+export interface WorkoutIOActions {
+  downloadWorkout: () => void;
+  handleUpload: (file: Blob) => Promise<boolean>;
+  fetchAndParse: (workoutIdToFetch: string) => Promise<void>;
+}
+
 export default function useWorkoutIO({
   s3Url,
   workoutId,
@@ -48,7 +54,7 @@ export default function useWorkoutIO({
   setSportType,
   setDurationType,
   setMessage,
-}: UseWorkoutIOProps) {
+}: UseWorkoutIOProps): WorkoutIOActions {
   function save() {
     setMessage({ visible: true, class: "loading", text: "Saving.." });
 
