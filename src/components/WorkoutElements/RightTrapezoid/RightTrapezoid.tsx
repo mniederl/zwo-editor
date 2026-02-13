@@ -97,9 +97,11 @@ const RightTrapezoid = (props: {
       : calculateColors(props.endPower, props.startPower);
   const flexDirection = height3 > height1 ? "row" : "row-reverse";
 
-  const captureResizeBase = () => {
+  const captureResizeBase = (freezeVertical = true) => {
     resizeBaseRef.current = { width, height1, height3 };
-    props.onVerticalResizeStart?.();
+    if (freezeVertical) {
+      props.onVerticalResizeStart?.();
+    }
   };
 
   const updateShape = (nextWidth: number, nextHeight1: number, nextHeight3: number) => {
@@ -164,7 +166,7 @@ const RightTrapezoid = (props: {
   };
 
   const handleResize3 = (dWidth: number, dHeight: number) => {
-    const nextWidth = resizeBaseRef.current.width + dWidth / 3;
+    const nextWidth = Math.max(3, resizeBaseRef.current.width + dWidth / 3);
     const nextHeight1 = resizeBaseRef.current.height1;
     const nextHeight3 = resizeBaseRef.current.height3 + dHeight;
     updateShape(nextWidth, nextHeight1, nextHeight3);
@@ -232,6 +234,26 @@ const RightTrapezoid = (props: {
     return Colors.RED;
   }
 
+  const handleWidthResizeStart = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    captureResizeBase(false);
+
+    const startX = event.clientX;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      handleResize3(moveEvent.clientX - startX, 0);
+    };
+
+    const handleMouseUp = () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
   return (
     <div
       className="relative"
@@ -270,9 +292,9 @@ const RightTrapezoid = (props: {
           minWidth={3}
           minHeight={multiplier * Zones.Z1.min}
           maxHeight={multiplier * cappedEditablePower}
-          enable={{ top: true, right: true }}
+          enable={{ top: true }}
           grid={[1, 1]}
-          onResizeStart={captureResizeBase}
+          onResizeStart={() => captureResizeBase(true)}
           onResize={(_e, _direction, _ref, d) => handleResize1(d.height)}
           onResizeStop={() => props.onVerticalResizeEnd?.()}
         ></Resizable>
@@ -287,7 +309,7 @@ const RightTrapezoid = (props: {
           maxHeight={multiplier * cappedEditablePower}
           enable={{ top: true }}
           grid={[1, 1]}
-          onResizeStart={captureResizeBase}
+          onResizeStart={() => captureResizeBase(true)}
           onResize={(_e, _direction, _ref, d) => handleResize2(d.height)}
           onResizeStop={() => props.onVerticalResizeEnd?.()}
         ></Resizable>
@@ -300,12 +322,19 @@ const RightTrapezoid = (props: {
           minWidth={3}
           minHeight={multiplier * Zones.Z1.min}
           maxHeight={multiplier * cappedEditablePower}
-          enable={{ top: true, right: true }}
+          enable={{ top: true }}
           grid={[1, 1]}
-          onResizeStart={captureResizeBase}
+          onResizeStart={() => captureResizeBase(true)}
           onResize={(_e, _direction, _ref, d) => handleResize3(d.width, d.height)}
           onResizeStop={() => props.onVerticalResizeEnd?.()}
         ></Resizable>
+        <button
+          type="button"
+          aria-label="Resize trapezoid width"
+          className="trapeze-width-handle"
+          onMouseDown={handleWidthResizeStart}
+          onClick={(event) => event.stopPropagation()}
+        />
       </div>
       <div
         className="trapeze-colors"
