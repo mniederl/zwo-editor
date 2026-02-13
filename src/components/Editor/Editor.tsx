@@ -88,17 +88,18 @@ const Editor = ({ id }: EditorProps) => {
   function handleKeyPress(event: React.KeyboardEvent<HTMLDivElement>) {
     if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
 
-    const actionDict: Record<string, () => void> = {
-      Backspace: () => actions.removeBar(state.actionId || ""),
-      ArrowLeft: () => actions.removeTimeFromBar(state.actionId || ""),
-      ArrowRight: () => actions.addTimeToBar(state.actionId || ""),
-      ArrowUp: () => actions.addPowerToBar(state.actionId || ""),
-      ArrowDown: () => actions.removePowerFromBar(state.actionId || ""),
+    const actionId = state.actionId || "";
+    // Normalize key names to avoid capitalized object keys that trigger Biome's nested-component false positive.
+    const normalizedKey = event.key.charAt(0).toLowerCase() + event.key.slice(1);
+    const actionByKey: Record<string, () => void> = {
+      backspace: () => actions.removeBar(actionId),
+      arrowLeft: () => actions.removeTimeFromBar(actionId),
+      arrowRight: () => actions.addTimeToBar(actionId),
+      arrowUp: () => actions.addPowerToBar(actionId),
+      arrowDown: () => actions.removePowerFromBar(actionId),
     };
 
-    if (event.key in actionDict) {
-      actionDict[event.key]();
-    }
+    actionByKey[normalizedKey]?.();
   }
 
   function switchSportType(newSportType: SportType) {
