@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Resizable } from "re-resizable";
 
 import { Colors, Zones } from "@/components/constants";
@@ -34,6 +34,12 @@ const Bar = (props: {
   const lengthMultiplier = 10;
   const absolutePowerCap = 2500 / Math.max(props.ftp, 1);
   const cappedEditablePower = Math.max(Zones.Z1.min, Math.min(props.maxEditablePower, absolutePowerCap));
+  const displayedWidth = useMemo(
+    () => (props.durationType === "time" ? (props.time || 0) / timeMultiplier : (props.length || 0) / lengthMultiplier),
+    [props.durationType, props.time, props.length],
+  );
+  const displayedHeight = props.power * multiplier;
+  const resizeBaseRef = useRef({ width: displayedWidth, height: displayedHeight });
 
   const powerLabel = Math.round(props.power * props.ftp);
 
@@ -51,26 +57,46 @@ const Bar = (props: {
 
   const style = zwiftStyle(props.power);
 
-  // RUN WORKOUTS ON DISTANCE - BIKE WORKOUTS ON TIME
-  const [width, setWidth] = useState(
-    props.durationType === "time" ? (props.time || 0) / timeMultiplier : (props.length || 0) / lengthMultiplier,
-  );
-
-  const [height, setHeight] = useState(props.power * multiplier);
-
   const [showLabel, setShowLabel] = useState(false);
-
-  const [selected, setSelected] = useState(props.selected);
 
   const speed = distance !== undefined && props.time !== undefined ? calculateSpeed(distance, props.time) : 0;
 
-  useEffect(() => {
-    setHeight(props.power * multiplier);
-  }, [props.power, multiplier]);
+  const getResizedValues = (dWidth: number, dHeight: number) => {
+    const nextWidth = Math.max(3, resizeBaseRef.current.width + dWidth);
+    const nextHeight = Math.max(
+      multiplier * Zones.Z1.min,
+      Math.min(multiplier * cappedEditablePower, resizeBaseRef.current.height + dHeight),
+    );
+    const nextPower = Math.max(Zones.Z1.min, Math.min(cappedEditablePower, nextHeight / multiplier));
 
-  useEffect(() => {
-    setSelected(props.selected);
-  }, [props.selected]);
+    const nextLength =
+      props.durationType === "time"
+        ? round(calculateDistance(nextWidth * timeMultiplier * nextPower, props.speed), 1)
+        : round(nextWidth * lengthMultiplier, 200);
+    const nextTime =
+      props.durationType === "time"
+        ? round(nextWidth * timeMultiplier, 5)
+        : round((calculateTime(nextLength, props.speed) * 1) / nextPower, 1);
+
+    return {
+      time: nextTime,
+      length: nextLength,
+      power: nextPower,
+    };
+  };
+
+  const handleOnChange = (dWidth: number, dHeight: number) => {
+    const { time, length, power } = getResizedValues(dWidth, dHeight);
+    props.onChange(props.id, {
+      time,
+      length,
+      power,
+      cadence: props.cadence,
+      type: "bar",
+      pace: props.pace,
+      id: props.id,
+    });
+  };
 
   const handleCadenceChange = (cadence: number) => {
     props.onChange(props.id, {
@@ -85,53 +111,12 @@ const Bar = (props: {
   };
 
   const handleResizeStop = (dWidth: number, dHeight: number) => {
-    setWidth(width + dWidth);
-    setHeight(height + dHeight);
-
-    const nextPower = Math.max(Zones.Z1.min, Math.min(cappedEditablePower, (height + dHeight) / multiplier));
-
-    const length =
-      props.durationType === "time"
-        ? round(calculateDistance((width + dWidth) * timeMultiplier * nextPower, props.speed), 1)
-        : round((width + dWidth) * lengthMultiplier, 200);
-    const time =
-      props.durationType === "time"
-        ? round((width + dWidth) * timeMultiplier, 5)
-        : round((calculateTime(props.length, props.speed) * 1) / nextPower, 1);
-
-    props.onChange(props.id, {
-      time: time,
-      length: length,
-      power: nextPower,
-      cadence: props.cadence,
-      type: "bar",
-      pace: props.pace,
-      id: props.id,
-    });
-
+    handleOnChange(dWidth, dHeight);
     props.onVerticalResizeEnd?.();
   };
 
   const handleResize = (dWidth: number, dHeight: number) => {
-    const nextPower = Math.max(Zones.Z1.min, Math.min(cappedEditablePower, (height + dHeight) / multiplier));
-    const length =
-      props.durationType === "time"
-        ? round(calculateDistance((width + dWidth) * timeMultiplier * nextPower, props.speed), 1)
-        : round((width + dWidth) * lengthMultiplier, 200);
-    const time =
-      props.durationType === "time"
-        ? round((width + dWidth) * timeMultiplier, 5)
-        : round((calculateTime(props.length, props.speed) * 1) / nextPower, 1);
-
-    props.onChange(props.id, {
-      time: time,
-      length: length,
-      power: nextPower,
-      cadence: props.cadence,
-      type: "bar",
-      pace: props.pace,
-      id: props.id,
-    });
+    handleOnChange(dWidth, dHeight);
   };
 
   function zwiftStyle(zone: number) {
@@ -165,9 +150,9 @@ const Bar = (props: {
       onMouseEnter={() => setShowLabel(true)}
       onMouseLeave={() => setShowLabel(false)}
       onClick={() => props.onClick(props.id)}
-      style={props.selected ? { zIndex: 10 } : {}}
+      style={props.selected ? { zIndex: 10 } : undefined}
     >
-      {(selected || showLabel) && props.showLabel && (
+      {(props.selected || showLabel) && props.showLabel && (
         <Label
           sportType={props.sportType}
           duration={duration}
@@ -185,16 +170,20 @@ const Bar = (props: {
       <Resizable
         className="rounded-[10px] border border-white"
         size={{
-          width:
-            props.durationType === "time" ? (props.time || 0) / timeMultiplier : (props.length || 0) / lengthMultiplier,
-          height: props.power * multiplier,
+          width: displayedWidth,
+          height: displayedHeight,
         }}
         minWidth={3}
         minHeight={multiplier * Zones.Z1.min}
         maxHeight={multiplier * cappedEditablePower}
         enable={{ top: true, right: true }}
         grid={[1, 1]}
-        onResizeStart={() => props.onVerticalResizeStart?.()}
+        onResizeStart={(_event, direction) => {
+          resizeBaseRef.current = { width: displayedWidth, height: displayedHeight };
+          if (direction.includes("top")) {
+            props.onVerticalResizeStart?.();
+          }
+        }}
         onResizeStop={(_e, _direction, _ref, d) => handleResizeStop(d.width, d.height)}
         onResize={(_e, _direction, _ref, d) => handleResize(d.width, d.height)}
         style={style}
