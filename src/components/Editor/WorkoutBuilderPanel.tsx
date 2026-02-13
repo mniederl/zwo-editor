@@ -13,7 +13,8 @@ import { Bar, Comment, FreeRide, Interval, RightTrapezoid } from "@/components/W
 export default function WorkoutBuilderPanel() {
   const { state, actions, helpers, refs } = useEditorContext();
   const { sportType, durationType, segmentsWidth, actionId, bars, instructions, ftp, weight, paceUnitType } = state;
-  const axisWidth = Math.max(1320, segmentsWidth);
+  const canvasViewportWidth = refs.canvasRef.current?.clientWidth || 0;
+  const axisWidth = Math.max(canvasViewportWidth, segmentsWidth);
 
   const segmentToolButtonClass =
     "inline-flex items-center justify-start gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900";

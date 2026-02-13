@@ -4,7 +4,7 @@
 
   border-top: 1px solid rgba(100, 116, 139, 0.5);
   overflow: hidden;
-  min-width: 1320px;
+  min-width: 100%;
   white-space: nowrap;
   color: #64748b;
   font-size: 0.73rem;
