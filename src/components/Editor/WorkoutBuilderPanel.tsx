@@ -1,20 +1,45 @@
-import { ArrowLeft, ArrowRight, Bike, Copy, Footprints, MessageSquare, Pencil, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bike,
+  Copy,
+  Footprints,
+  ListOrdered,
+  MessageSquare,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { Tooltip } from "react-tooltip";
 
 import { Colors, Zones } from "../constants";
+import buildProgramRows from "./buildProgramRows";
 import DistanceAxis from "./DistanceAxis";
 import { useEditorContext } from "./EditorContext";
 import type { BarType, Instruction } from "./editorTypes";
 import TimeAxis from "./TimeAxis";
+import WorkoutProgramPanel from "./WorkoutProgramPanel";
 import ZoneAxis from "./ZoneAxis";
 import { CooldownLogo, IntervalLogo, SteadyLogo, WarmupLogo } from "@/assets";
 import { Bar, Comment, FreeRide, Interval, RightTrapezoid } from "@/components/WorkoutElements";
+import { cn } from "@/utils/cssUtils";
 
 export default function WorkoutBuilderPanel() {
   const { state, actions, helpers, refs } = useEditorContext();
   const { sportType, durationType, segmentsWidth, actionId, bars, instructions, ftp, weight, paceUnitType } = state;
+  const [programVisible, setProgramVisible] = useState(true);
   const canvasViewportWidth = refs.canvasRef.current?.clientWidth || 0;
   const axisWidth = Math.max(canvasViewportWidth, segmentsWidth);
+  const programRows = useMemo(
+    () =>
+      buildProgramRows({
+        bars,
+        sportType,
+        durationType,
+        ftp,
+      }),
+    [bars, sportType, durationType, ftp],
+  );
 
   const segmentToolButtonClass =
     "inline-flex items-center justify-start gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900";
@@ -124,7 +149,23 @@ export default function WorkoutBuilderPanel() {
 
   return (
     <section className="rounded-3xl border border-white/50 bg-white/95 p-3 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-4">
-      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-800">Build Workout</p>
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-800">Build Workout</p>
+        <button
+          type="button"
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.08em] transition",
+            programVisible
+              ? "border-cyan-300 bg-cyan-50 text-cyan-700 hover:border-cyan-400 hover:bg-cyan-100"
+              : "border-slate-300 bg-white text-slate-600 hover:border-slate-400 hover:text-slate-800",
+          )}
+          onClick={() => setProgramVisible((value) => !value)}
+          aria-pressed={programVisible}
+        >
+          <ListOrdered className="h-3.5 w-3.5" />
+          {programVisible ? "Hide Program" : "Show Program"}
+        </button>
+      </div>
       <div className="flex flex-col gap-3 xl:flex-row xl:gap-6">
         <aside className="flex shrink-0 flex-col gap-2 xl:w-36">
           {sportType === "bike" ? (
@@ -181,91 +222,103 @@ export default function WorkoutBuilderPanel() {
         </aside>
 
         <div className="min-w-0 flex-1">
-          <div id="editor" className="editor-shell">
-            {actionId && (
-              <div className="editor-actions">
-                <button
-                  type="button"
-                  onClick={() => actions.moveLeft(actionId)}
-                  title="Move Left"
-                  className="editor-action-button"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => actions.moveRight(actionId)}
-                  title="Move Right"
-                  className="editor-action-button"
-                >
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => actions.removeBar(actionId)}
-                  title="Delete"
-                  className="editor-action-button"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => actions.duplicateBar(actionId)}
-                  title="Duplicate"
-                  className="editor-action-button"
-                >
-                  <Copy className="h-4 w-4" />
-                </button>
-                {sportType === "run" && (
-                  <select
-                    name="pace"
-                    value={actions.getPace(actionId)}
-                    onChange={(event) => actions.setPace(event.target.value, actionId)}
-                    className="rounded-full border border-slate-600 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-100 outline-none transition focus:border-cyan-400"
-                  >
-                    <option value="0">1 Mile Pace</option>
-                    <option value="1">5K Pace</option>
-                    <option value="2">10K Pace</option>
-                    <option value="3">Half Marathon Pace</option>
-                    <option value="4">Marathon Pace</option>
-                  </select>
+          <div className={cn("grid gap-3", programVisible && "2xl:grid-cols-[minmax(0,1fr)_20rem]")}>
+            <div className="min-w-0">
+              <div id="editor" className="editor-shell">
+                {actionId && (
+                  <div className="editor-actions">
+                    <button
+                      type="button"
+                      onClick={() => actions.moveLeft(actionId)}
+                      title="Move Left"
+                      className="editor-action-button"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => actions.moveRight(actionId)}
+                      title="Move Right"
+                      className="editor-action-button"
+                    >
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => actions.removeBar(actionId)}
+                      title="Delete"
+                      className="editor-action-button"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => actions.duplicateBar(actionId)}
+                      title="Duplicate"
+                      className="editor-action-button"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
+                    {sportType === "run" && (
+                      <select
+                        name="pace"
+                        value={actions.getPace(actionId)}
+                        onChange={(event) => actions.setPace(event.target.value, actionId)}
+                        className="rounded-full border border-slate-600 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-100 outline-none transition focus:border-cyan-400"
+                      >
+                        <option value="0">1 Mile Pace</option>
+                        <option value="1">5K Pace</option>
+                        <option value="2">10K Pace</option>
+                        <option value="3">Half Marathon Pace</option>
+                        <option value="4">Marathon Pace</option>
+                      </select>
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
-            <div className="canvas" ref={refs.canvasRef}>
-              {actionId && (
-                <div
-                  className="fader"
-                  style={{ width: refs.canvasRef.current?.scrollWidth }}
-                  onClick={() => state.setActionId(undefined)}
-                ></div>
-              )}
-              <div className="segments" ref={refs.segmentsRef}>
-                {bars.map((bar) => {
-                  if (bar.type === "bar") {
-                    return renderBar(bar);
-                  }
-                  if (bar.type === "trapeze") {
-                    return renderTrapeze(bar);
-                  }
-                  if (bar.type === "freeRide") {
-                    return renderFreeRide(bar);
-                  }
-                  if (bar.type === "interval") {
-                    return renderInterval(bar);
-                  }
-                  return false;
-                })}
-              </div>
+                <div className="canvas" ref={refs.canvasRef}>
+                  {actionId && (
+                    <div
+                      className="fader"
+                      style={{ width: refs.canvasRef.current?.scrollWidth }}
+                      onClick={() => state.setActionId(undefined)}
+                    ></div>
+                  )}
+                  <div className="segments" ref={refs.segmentsRef}>
+                    {bars.map((bar) => {
+                      if (bar.type === "bar") {
+                        return renderBar(bar);
+                      }
+                      if (bar.type === "trapeze") {
+                        return renderTrapeze(bar);
+                      }
+                      if (bar.type === "freeRide") {
+                        return renderFreeRide(bar);
+                      }
+                      if (bar.type === "interval") {
+                        return renderInterval(bar);
+                      }
+                      return false;
+                    })}
+                  </div>
 
-              <div className="slider">
-                {instructions.map((instruction, index) => renderComment(instruction, index))}
-              </div>
+                  <div className="slider">
+                    {instructions.map((instruction, index) => renderComment(instruction, index))}
+                  </div>
 
-              {durationType === "time" ? <TimeAxis width={axisWidth} /> : <DistanceAxis width={axisWidth} />}
+                  {durationType === "time" ? <TimeAxis width={axisWidth} /> : <DistanceAxis width={axisWidth} />}
+                </div>
+
+                <ZoneAxis />
+              </div>
             </div>
 
-            <ZoneAxis />
+            {programVisible && (
+              <WorkoutProgramPanel
+                rows={programRows}
+                selectedSegmentId={actionId}
+                onSelectSegment={(segmentId: string) => state.setActionId(segmentId)}
+              />
+            )}
           </div>
         </div>
       </div>
