@@ -126,7 +126,7 @@ export default function WorkoutBuilderPanel() {
 
   useLayoutEffect(() => {
     recalculateShellHeight();
-  });
+  }, [recalculateShellHeight, programVisible]);
 
   useEffect(() => {
     const handleResize = () => recalculateShellHeight();

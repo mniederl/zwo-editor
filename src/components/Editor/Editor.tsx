@@ -108,12 +108,33 @@ const Editor = ({ id }: EditorProps) => {
   }
 
   function toggleTextEditor() {
+    const scrollToComposer = () => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const scrollRoot = document.querySelector<HTMLElement>("[data-editor-scroll-root='true']");
+          if (!scrollRoot) {
+            return;
+          }
+
+          scrollRoot.scrollTo({
+            top: scrollRoot.scrollHeight,
+            behavior: "smooth",
+          });
+        });
+      });
+    };
+
     if (state.bars.length > 0 && !state.textEditorIsVisible) {
       if (window.confirm("Editing a workout from the text editor will overwrite current workout")) {
-        state.setTextEditorIsVisible(!state.textEditorIsVisible);
+        state.setTextEditorIsVisible(true);
+        scrollToComposer();
       }
     } else {
-      state.setTextEditorIsVisible(!state.textEditorIsVisible);
+      const nextVisible = !state.textEditorIsVisible;
+      state.setTextEditorIsVisible(nextVisible);
+      if (nextVisible) {
+        scrollToComposer();
+      }
     }
   }
 
@@ -135,8 +156,6 @@ const Editor = ({ id }: EditorProps) => {
       state.setInstructions(parsed.instructions);
       if (state.message?.class === "error") state.setMessage(undefined);
     } catch (error) {
-      state.setBars([]);
-      state.setInstructions([]);
       state.setMessage({
         visible: true,
         class: "error",
