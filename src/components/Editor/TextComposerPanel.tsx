@@ -8,14 +8,14 @@ export default function TextComposerPanel() {
   }
 
   return (
-    <section className="grid gap-3 rounded-3xl border border-white/50 bg-white/85 p-4 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md lg:grid-cols-[1.5fr_1fr]">
-      <div>
+    <section className="grid gap-3 rounded-3xl border border-white/50 bg-white/85 p-4 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <div className="min-w-0">
         <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">Text Composer</p>
         <textarea
           onChange={(event) => helpers.transformTextToWorkout(event.target.value)}
           rows={10}
           spellCheck={false}
-          className="h-full min-h-[210px] w-full resize-y rounded-2xl border border-slate-200 bg-slate-950 px-4 py-3 font-mono text-sm text-slate-100 shadow-inner outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-300/40"
+          className="block h-72 max-h-[55vh] w-full max-w-full resize-y rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 font-mono text-sm text-slate-800 shadow-inner outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-300/40"
           placeholder="Add one block per line here:&#10;steady 3.0wkg 30s"
         />
       </div>

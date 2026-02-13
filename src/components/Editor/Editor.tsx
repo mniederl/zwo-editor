@@ -240,8 +240,8 @@ const Editor = ({ id }: EditorProps) => {
           )}
 
           <EditorHeaderPanel />
-          <TextComposerPanel />
           <WorkoutBuilderPanel />
+          <TextComposerPanel />
         </div>
       </div>
     </EditorProvider>
