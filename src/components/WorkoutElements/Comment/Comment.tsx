@@ -21,6 +21,7 @@ const Comment = (props: {
     props.durationType === "time"
       ? props.instruction.time / timeMultiplier
       : props.instruction.length / lengthMultiplier;
+  const initialY = (props.index % 5) * 20;
   const [x, setX] = useState(initialX);
   const [isDragging, setIsDragging] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -75,10 +76,11 @@ const Comment = (props: {
 
   return (
     <Draggable
+      key={`${props.instruction.id}-${props.durationType}-${initialX}-${initialY}`}
       nodeRef={nodeRef}
       axis="x"
       handle=".handle"
-      position={{ x, y: (props.index % 5) * 20 }}
+      defaultPosition={{ x: initialX, y: initialY }}
       bounds={{ left: 0, right: props.width }}
       scale={1}
       onStart={() => {

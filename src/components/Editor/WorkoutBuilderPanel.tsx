@@ -2,7 +2,6 @@ import { ArrowLeft, ArrowRight, Bike, Copy, Footprints, MessageSquare, Pencil, T
 import { Tooltip } from "react-tooltip";
 
 import { Colors, Zones } from "../constants";
-import { getWorkoutDistance, getWorkoutLength } from "../helpers";
 import DistanceAxis from "./DistanceAxis";
 import { useEditorContext } from "./EditorContext";
 import type { BarType, Instruction } from "./editorTypes";
@@ -26,9 +25,6 @@ export default function WorkoutBuilderPanel() {
     { label: "Z5", color: Colors.ORANGE, zone: Zones.Z5.min, textColor: "#ffffff" },
     { label: "Z6", color: Colors.RED, zone: Zones.Z6.min, textColor: "#ffffff" },
   ];
-
-  const barsForMetrics = bars as Parameters<typeof getWorkoutLength>[0];
-  const barsForDistance = bars.filter((bar) => bar.type !== "freeRide") as Parameters<typeof getWorkoutDistance>[0];
 
   const renderBar = (bar: (typeof bars)[number]) => (
     <Bar
@@ -118,11 +114,7 @@ export default function WorkoutBuilderPanel() {
       key={instruction.id}
       instruction={instruction}
       durationType={durationType}
-      width={
-        durationType === "distance"
-          ? getWorkoutDistance(barsForDistance) * 100
-          : getWorkoutLength(barsForMetrics, durationType) / 3
-      }
+      width={axisWidth}
       onChange={(id: string, values: Instruction) => actions.changeInstruction(id, values)}
       onClick={(id: string) => state.setSelectedInstruction(instructions.find((item) => item.id === id))}
       index={index}
