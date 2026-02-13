@@ -193,7 +193,7 @@ const Editor = ({ id }: EditorProps) => {
         onKeyDown={handleKeyPress}
         tabIndex={0}
       >
-        <div className="pointer-events-none absolute inset-0 -z-10">
+        <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
           <div className="absolute -top-28 -left-30 h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(8,145,178,0.25)_0%,rgba(8,145,178,0)_70%)]" />
           <div className="absolute top-24 -right-35 h-96 w-96 rounded-full bg-[radial-gradient(circle,rgba(14,165,133,0.26)_0%,rgba(14,165,133,0)_70%)]" />
           <div className="absolute -bottom-27.5 left-1/3 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(2,132,199,0.22)_0%,rgba(2,132,199,0)_70%)]" />
