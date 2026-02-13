@@ -40,6 +40,7 @@ const Label = (props: {
     const anchorRect = anchorElement.getBoundingClientRect();
     const shellRect = shellElement.getBoundingClientRect();
     const edgePadding = 6;
+    const topSafeOffset = 18;
     const gap = 8;
 
     const desiredLeft = (anchorRect.width - labelRect.width) / 2;
@@ -49,7 +50,7 @@ const Label = (props: {
 
     const topAbove = -labelRect.height - gap;
     const preferredTop = topAbove;
-    const minTop = shellRect.top - anchorRect.top + edgePadding;
+    const minTop = shellRect.top - anchorRect.top + edgePadding + topSafeOffset;
     const maxTop = shellRect.bottom - anchorRect.top - labelRect.height - edgePadding;
     const top = Math.max(minTop, Math.min(maxTop, preferredTop));
 
