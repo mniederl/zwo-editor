@@ -148,7 +148,9 @@ const Editor = ({ id }: EditorProps) => {
   const normalizeEditableText = (value: string) => value.replace(/\u00A0/g, " ").trim();
 
   const barsForMetrics = state.bars as Parameters<typeof getWorkoutLength>[0];
-  const barsForDistance = state.bars.filter((bar) => bar.type !== "freeRide") as Parameters<typeof getWorkoutDistance>[0];
+  const barsForDistance = state.bars.filter((bar) => bar.type !== "freeRide") as Parameters<
+    typeof getWorkoutDistance
+  >[0];
 
   const metrics = {
     workoutTime: formatTime(getWorkoutLength(barsForMetrics, state.durationType)),
@@ -189,6 +191,7 @@ const Editor = ({ id }: EditorProps) => {
   return (
     <EditorProvider value={contextValue}>
       <div
+        data-editor-scroll-root="true"
         className="relative h-full overflow-y-auto overflow-x-hidden px-3 py-3 md:px-5 md:py-5"
         onKeyDown={handleKeyPress}
         tabIndex={0}

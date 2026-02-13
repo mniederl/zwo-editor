@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -28,6 +28,9 @@ export default function WorkoutBuilderPanel() {
   const { state, actions, helpers, refs } = useEditorContext();
   const { sportType, durationType, segmentsWidth, actionId, bars, instructions, ftp, weight, paceUnitType } = state;
   const [programVisible, setProgramVisible] = useState(true);
+  const [dynamicShellHeight, setDynamicShellHeight] = useState<number>();
+  const sectionRef = useRef<HTMLElement>(null);
+  const shellRef = useRef<HTMLDivElement>(null);
   const canvasViewportWidth = refs.canvasRef.current?.clientWidth || 0;
   const axisWidth = Math.max(canvasViewportWidth, segmentsWidth);
   const programRows = useMemo(
@@ -40,6 +43,55 @@ export default function WorkoutBuilderPanel() {
       }),
     [bars, sportType, durationType, ftp],
   );
+  const recalculateShellHeight = useCallback(() => {
+    const sectionElement = sectionRef.current;
+    const shellElement = shellRef.current;
+    if (!sectionElement || !shellElement) {
+      return;
+    }
+
+    const scrollRoot = sectionElement.closest<HTMLElement>("[data-editor-scroll-root='true']");
+    if (!scrollRoot) {
+      setDynamicShellHeight(undefined);
+      return;
+    }
+
+    const scrollRootRect = scrollRoot.getBoundingClientRect();
+    const sectionRect = sectionElement.getBoundingClientRect();
+    const shellRect = shellElement.getBoundingClientRect();
+    const scrollRootPaddingBottom = Number.parseFloat(window.getComputedStyle(scrollRoot).paddingBottom || "0") || 0;
+    const sectionBottomOffset = sectionRect.bottom - shellRect.bottom;
+    const availableHeight =
+      scrollRootRect.bottom - scrollRootPaddingBottom - shellRect.top - Math.max(0, sectionBottomOffset);
+    const maxAllowedHeight = Math.floor(Math.min(700, availableHeight));
+    const minimumShellHeight = window.matchMedia("(max-width: 900px)").matches ? 390 : 430;
+    const nextHeight = maxAllowedHeight >= minimumShellHeight ? maxAllowedHeight : undefined;
+
+    setDynamicShellHeight((currentHeight) => {
+      if (currentHeight === nextHeight) {
+        return currentHeight;
+      }
+
+      if (currentHeight !== undefined && nextHeight !== undefined && Math.abs(currentHeight - nextHeight) <= 1) {
+        return currentHeight;
+      }
+
+      return nextHeight;
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    recalculateShellHeight();
+  });
+
+  useEffect(() => {
+    const handleResize = () => recalculateShellHeight();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [recalculateShellHeight]);
 
   const segmentToolButtonClass =
     "inline-flex items-center justify-start gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900";
@@ -148,7 +200,10 @@ export default function WorkoutBuilderPanel() {
   );
 
   return (
-    <section className="rounded-3xl border border-white/50 bg-white/95 p-3 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-4">
+    <section
+      ref={sectionRef}
+      className="rounded-3xl border border-white/50 bg-white/95 p-3 shadow-[0_30px_80px_-45px_rgba(15,23,42,0.7)] backdrop-blur-md md:p-4"
+    >
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-800">Build Workout</p>
         <button
@@ -224,7 +279,7 @@ export default function WorkoutBuilderPanel() {
         <div className="min-w-0 flex-1">
           <div className={cn("grid gap-3", programVisible && "2xl:grid-cols-[minmax(0,1fr)_20rem]")}>
             <div className="min-w-0">
-              <div id="editor" className="editor-shell">
+              <div id="editor" ref={shellRef} className="editor-shell" style={{ height: dynamicShellHeight }}>
                 {actionId && (
                   <div className="editor-actions">
                     <button
