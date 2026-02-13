@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import Bar from "../Bar/Bar";
-import type { BarType } from "../Editor/editorTypes";
+import type { BarType } from "../../Editor/editorTypes";
 import { genId } from "@/utils/id";
 
 import "./Interval.css";

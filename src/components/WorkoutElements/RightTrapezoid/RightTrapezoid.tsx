@@ -1,20 +1,19 @@
 import { useState } from "react";
 import { Resizable } from "re-resizable";
 
-import { Colors, Zones, ZonesArray } from "../constants";
-import type { PaceUnitType } from "../Editor/editorTypes";
-import { calculateDistance, calculateTime, round } from "../helpers";
-import Label from "../Label/Label";
+import { Colors, Zones, ZonesArray } from "@/components/constants";
+import type { PaceUnitType } from "@/components/Editor/editorTypes";
+import { calculateDistance, calculateTime, round } from "@/components/helpers";
+import Label from "@/components/Label/Label";
 import { formatTime } from "@/utils/time";
 
-import "./Trapeze.css";
+import "./RightTrapezoid.css";
 
 interface IDictionary {
   [index: string]: number;
 }
 
-// TODO: rename to RightTrapezoid? - a bit of a misnomer otherwise
-const Trapeze = (props: {
+const RightTrapezoid = (props: {
   id: string;
   time?: number;
   length?: number;
@@ -339,4 +338,4 @@ const Trapeze = (props: {
   );
 };
 
-export default Trapeze;
+export default RightTrapezoid;

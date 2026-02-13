@@ -11,19 +11,15 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Tooltip } from "react-tooltip";
 
-import { CooldownLogo, IntervalLogo, SteadyLogo, WarmupLogo } from "../../assets";
-import Bar from "../Bar/Bar";
-import Comment from "../Comment/Comment";
 import { Colors, Zones } from "../constants";
-import FreeRide from "../FreeRide/FreeRide";
 import { getWorkoutDistance, getWorkoutLength } from "../helpers";
-import Interval from "../Interval/Interval";
-import RightTrapezoid from "../Trapeze/Trapeze";
 import DistanceAxis from "./DistanceAxis";
 import { useEditorContext } from "./EditorContext";
 import type { Instruction } from "./editorTypes";
 import TimeAxis from "./TimeAxis";
 import ZoneAxis from "./ZoneAxis";
+import { CooldownLogo, IntervalLogo, SteadyLogo, WarmupLogo } from "@/assets";
+import { Bar, Comment, FreeRide, Interval, RightTrapezoid } from "@/components/WorkoutElements";
 
 export default function WorkoutBuilderPanel() {
   const { state, actions, helpers, refs } = useEditorContext();
@@ -278,7 +274,9 @@ export default function WorkoutBuilderPanel() {
                 })}
               </div>
 
-              <div className="slider">{instructions.map((instruction, index) => renderComment(instruction, index))}</div>
+              <div className="slider">
+                {instructions.map((instruction, index) => renderComment(instruction, index))}
+              </div>
 
               {durationType === "time" ? <TimeAxis width={segmentsWidth} /> : <DistanceAxis width={segmentsWidth} />}
             </div>

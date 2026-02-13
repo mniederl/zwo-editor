@@ -2,7 +2,6 @@ import { useRef } from "react";
 import { faTimesCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import EditComment from "../Comment/EditComment";
 import { getStressScore, getWorkoutDistance, getWorkoutLength, getWorkoutPace, round } from "../helpers";
 import { EditorProvider } from "./EditorContext";
 import EditorHeaderPanel from "./EditorHeaderPanel";
@@ -12,6 +11,7 @@ import useEditorState from "./useEditorState";
 import useWorkoutActions from "./useWorkoutActions";
 import useWorkoutIO from "./useWorkoutIO";
 import WorkoutBuilderPanel from "./WorkoutBuilderPanel";
+import { EditComment } from "@/components/WorkoutElements";
 import parseWorkoutText from "@/parsers/parseWorkoutText";
 import { formatTime, parseTime } from "@/utils/time";
 

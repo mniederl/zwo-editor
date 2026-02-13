@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Resizable } from "re-resizable";
 
-import { Colors, Zones } from "../constants";
-import type { PaceUnitType } from "../Editor/editorTypes";
-import { calculateDistance, calculateSpeed, calculateTime, round } from "../helpers";
-import Label from "../Label/Label";
+import { Colors, Zones } from "@/components/constants";
+import type { PaceUnitType } from "@/components/Editor/editorTypes";
+import { calculateDistance, calculateSpeed, calculateTime, round } from "@/components/helpers";
+import Label from "@/components/Label/Label";
 import { formatTime } from "@/utils/time";
 
 import "./Bar.css";
