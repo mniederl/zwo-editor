@@ -29,6 +29,7 @@ import { cn } from "@/utils/cssUtils";
 export default function WorkoutBuilderPanel() {
   const { state, actions, helpers, refs } = useEditorContext();
   const { sportType, durationType, segmentsWidth, actionId, bars, instructions, ftp, weight, paceUnitType } = state;
+  const dragReorderEnabled = !actionId;
   const [programVisible, setProgramVisible] = useState(true);
   const [dynamicShellHeight, setDynamicShellHeight] = useState<number>();
   const [shellViewportHeight, setShellViewportHeight] = useState(430);
@@ -179,6 +180,12 @@ export default function WorkoutBuilderPanel() {
     barIds: bars.map((bar) => bar.id),
     moveBarToIndex: actions.moveBarToIndex,
   });
+
+  useEffect(() => {
+    if (!dragReorderEnabled) {
+      handleSegmentDragEnd();
+    }
+  }, [dragReorderEnabled, handleSegmentDragEnd]);
 
   const segmentToolButtonClass =
     "inline-flex items-center justify-start gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900";
@@ -470,33 +477,37 @@ export default function WorkoutBuilderPanel() {
                         return null;
                       }
 
-                      const showBeforeMarker = dropMarker?.barId === bar.id && dropMarker.position === "before";
-                      const showAfterMarker = dropMarker?.barId === bar.id && dropMarker.position === "after";
+                      const showBeforeMarker =
+                        dragReorderEnabled && dropMarker?.barId === bar.id && dropMarker.position === "before";
+                      const showAfterMarker =
+                        dragReorderEnabled && dropMarker?.barId === bar.id && dropMarker.position === "after";
 
                       return (
                         <div
                           key={bar.id}
                           className={cn(
                             "segment-dnd-item",
-                            draggingBarId === bar.id && "segment-dnd-item-dragging",
+                            dragReorderEnabled && draggingBarId === bar.id && "segment-dnd-item-dragging",
                             showBeforeMarker && "segment-dnd-drop-before",
                             showAfterMarker && "segment-dnd-drop-after",
                           )}
-                          onDragOver={(event) => handleSegmentDragOver(event, bar.id)}
-                          onDrop={(event) => handleSegmentDrop(event, bar.id)}
+                          onDragOver={dragReorderEnabled ? (event) => handleSegmentDragOver(event, bar.id) : undefined}
+                          onDrop={dragReorderEnabled ? (event) => handleSegmentDrop(event, bar.id) : undefined}
                         >
-                          <button
-                            type="button"
-                            className="segment-dnd-handle"
-                            draggable
-                            onDragStart={(event) => handleSegmentDragStart(event, bar.id)}
-                            onDragEnd={handleSegmentDragEnd}
-                            onClick={(event) => event.stopPropagation()}
-                            aria-label="Drag to reorder segment"
-                            title="Drag to reorder"
-                          >
-                            <GripVertical className="h-3.5 w-3.5" />
-                          </button>
+                          {dragReorderEnabled && (
+                            <button
+                              type="button"
+                              className="segment-dnd-handle"
+                              draggable
+                              onDragStart={(event) => handleSegmentDragStart(event, bar.id)}
+                              onDragEnd={handleSegmentDragEnd}
+                              onClick={(event) => event.stopPropagation()}
+                              aria-label="Drag to reorder segment"
+                              title="Drag to reorder"
+                            >
+                              <GripVertical className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                           {content}
                         </div>
                       );
