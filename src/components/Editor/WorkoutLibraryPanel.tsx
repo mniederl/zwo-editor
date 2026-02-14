@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Clock3,
+  Copy,
   FileSearch,
   FolderOpen,
   PanelLeftClose,
   PanelLeftOpen,
+  Plus,
   RefreshCw,
   Save,
   Trash2,
@@ -84,6 +86,31 @@ function normalizeWorkoutFileName(name: string) {
     return name;
   }
   return `${name}.zwo`;
+}
+
+function stripWorkoutFileExtension(fileName: string) {
+  return fileName.replace(/\.(zwo|xml)$/i, "");
+}
+
+function getUniqueWorkoutFileName(baseName: string, existingFileNames: string[]) {
+  const existing = new Set(existingFileNames.map((name) => name.toLowerCase()));
+  const normalizedBase = normalizeWorkoutFileName(baseName);
+
+  if (!existing.has(normalizedBase.toLowerCase())) {
+    return normalizedBase;
+  }
+
+  const withoutExtension = stripWorkoutFileExtension(normalizedBase);
+  let suffix = 1;
+  while (suffix < 5000) {
+    const candidate = normalizeWorkoutFileName(`${withoutExtension} copy${suffix > 1 ? ` ${suffix}` : ""}`);
+    if (!existing.has(candidate.toLowerCase())) {
+      return candidate;
+    }
+    suffix += 1;
+  }
+
+  return normalizeWorkoutFileName(`${withoutExtension} copy ${Date.now()}`);
 }
 
 function buildPreviewBlocks(segments: SegmentType[]): PreviewBlock[] {
@@ -356,9 +383,10 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
       const imported = await io.handleUpload(file);
       if (imported) {
         setActiveFileName(item.fileName);
+        state.setWorkoutId(item.fileName.replace(/\.(zwo|xml)$/i, ""));
       }
     },
-    [io],
+    [io, state],
   );
 
   const deleteWorkout = useCallback(
@@ -379,7 +407,70 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
     [activeFileName, directoryHandle, refreshDirectory],
   );
 
-  const saveCurrentWorkout = useCallback(async () => {
+  const cards = useMemo(() => libraryItems, [libraryItems]);
+  const targetFileName = normalizeWorkoutFileName(state.workoutId || "workout");
+
+  useEffect(() => {
+    if (!activeFileName) {
+      return;
+    }
+
+    const activeExists = cards.some((item) => item.fileName.toLowerCase() === activeFileName.toLowerCase());
+    const stillMatchesCurrentWorkout = activeFileName.toLowerCase() === targetFileName.toLowerCase();
+
+    if (!activeExists || !stillMatchesCurrentWorkout) {
+      setActiveFileName(undefined);
+    }
+  }, [activeFileName, cards, targetFileName]);
+
+  const hasSelectedLibraryWorkout = Boolean(activeFileName);
+
+  const saveSelectedWorkout = useCallback(async () => {
+    if (!directoryHandle || !activeFileName) {
+      state.setMessage({
+        class: "error",
+        text: "Select a workout from the library first.",
+        visible: true,
+      });
+      return;
+    }
+
+    const fileHandle = await directoryHandle.getFileHandle(activeFileName, { create: true });
+    if (!fileHandle.createWritable) {
+      state.setMessage({
+        class: "error",
+        text: "This browser cannot write files in the selected directory.",
+        visible: true,
+      });
+      return;
+    }
+
+    const writable = await fileHandle.createWritable();
+    try {
+      const xml = createWorkoutXml({
+        author: state.author,
+        bars: state.bars,
+        description: state.description,
+        durationType: state.durationType,
+        instructions: state.instructions,
+        name: state.name,
+        sportType: state.sportType,
+        tags: state.tags,
+      });
+      await writable.write(xml);
+    } finally {
+      await writable.close();
+    }
+
+    state.setMessage({
+      class: "success",
+      text: `Updated ${activeFileName}.`,
+      visible: true,
+    });
+    await refreshDirectory(directoryHandle);
+  }, [activeFileName, directoryHandle, refreshDirectory, state]);
+
+  const addCurrentWorkoutToLibrary = useCallback(async () => {
     if (!directoryHandle) {
       state.setMessage({
         class: "error",
@@ -389,7 +480,10 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
       return;
     }
 
-    const fileName = normalizeWorkoutFileName(state.workoutId || "workout");
+    const fileName = getUniqueWorkoutFileName(
+      state.workoutId || "workout",
+      libraryItems.map((item) => item.fileName),
+    );
     const fileHandle = await directoryHandle.getFileHandle(fileName, { create: true });
     if (!fileHandle.createWritable) {
       state.setMessage({
@@ -418,15 +512,63 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
     }
 
     setActiveFileName(fileName);
+    state.setWorkoutId(stripWorkoutFileExtension(fileName));
     state.setMessage({
       class: "success",
-      text: `Saved ${fileName} to selected directory.`,
+      text: `Added ${fileName} to the library.`,
       visible: true,
     });
     await refreshDirectory(directoryHandle);
-  }, [directoryHandle, refreshDirectory, state]);
+  }, [directoryHandle, libraryItems, refreshDirectory, state]);
 
-  const cards = useMemo(() => libraryItems, [libraryItems]);
+  const duplicateCurrentWorkout = useCallback(async () => {
+    if (!directoryHandle) {
+      state.setMessage({
+        class: "error",
+        text: "Pick a workout directory first.",
+        visible: true,
+      });
+      return;
+    }
+
+    const baseName = activeFileName ? stripWorkoutFileExtension(activeFileName) : state.workoutId || "workout";
+    const duplicateFileName = getUniqueWorkoutFileName(baseName, libraryItems.map((item) => item.fileName));
+    const fileHandle = await directoryHandle.getFileHandle(duplicateFileName, { create: true });
+    if (!fileHandle.createWritable) {
+      state.setMessage({
+        class: "error",
+        text: "This browser cannot write files in the selected directory.",
+        visible: true,
+      });
+      return;
+    }
+
+    const writable = await fileHandle.createWritable();
+    try {
+      const xml = createWorkoutXml({
+        author: state.author,
+        bars: state.bars,
+        description: state.description,
+        durationType: state.durationType,
+        instructions: state.instructions,
+        name: state.name,
+        sportType: state.sportType,
+        tags: state.tags,
+      });
+      await writable.write(xml);
+    } finally {
+      await writable.close();
+    }
+
+    setActiveFileName(duplicateFileName);
+    state.setWorkoutId(stripWorkoutFileExtension(duplicateFileName));
+    state.setMessage({
+      class: "success",
+      text: `Duplicated as ${duplicateFileName}.`,
+      visible: true,
+    });
+    await refreshDirectory(directoryHandle);
+  }, [activeFileName, directoryHandle, libraryItems, refreshDirectory, state]);
 
   return (
     <aside
@@ -462,7 +604,7 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
           <div className="flex gap-2">
             <button
               type="button"
-              className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!directoryHandle || isLoading}
               onClick={() => void refreshDirectory(directoryHandle)}
             >
@@ -470,12 +612,32 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
             </button>
             <button
               type="button"
-              className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!directoryHandle}
-              onClick={() => void saveCurrentWorkout()}
+              onClick={() => void (hasSelectedLibraryWorkout ? saveSelectedWorkout() : addCurrentWorkoutToLibrary())}
+              title={hasSelectedLibraryWorkout ? "Save selected workout" : `Add ${targetFileName} to library`}
             >
-              <Save className="h-4 w-4" /> Save Current
+              {hasSelectedLibraryWorkout ? (
+                <>
+                  <Save className="h-4 w-4" /> Save
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" /> Add
+                </>
+              )}
             </button>
+            {hasSelectedLibraryWorkout && (
+              <button
+                type="button"
+                className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!directoryHandle}
+                onClick={() => void duplicateCurrentWorkout()}
+                title="Duplicate selected workout to a new file"
+              >
+                <Copy className="h-4 w-4" /> Duplicate
+              </button>
+            )}
           </div>
         </div>
 

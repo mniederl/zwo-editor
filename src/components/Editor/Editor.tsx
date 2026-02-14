@@ -30,6 +30,7 @@ const Editor = ({ id }: EditorProps) => {
   const [isWideDesktop, setIsWideDesktop] = useState(false);
   const [storedLibraryOpen, setStoredLibraryOpen] = useState<boolean | null | undefined>(undefined);
   const [libraryLayoutInitialized, setLibraryLayoutInitialized] = useState(false);
+  const [isMessageExiting, setIsMessageExiting] = useState(false);
 
   const state = useEditorState({ id, segmentsRef });
 
@@ -88,6 +89,29 @@ const Editor = ({ id }: EditorProps) => {
     }
     window.localStorage.setItem(LIBRARY_OPEN_STORAGE_KEY, libraryOpen ? "1" : "0");
   }, [libraryLayoutInitialized, libraryOpen]);
+
+  useEffect(() => {
+    if (!state.message?.visible) {
+      return;
+    }
+
+    setIsMessageExiting(false);
+
+    if (state.message.class === "loading") {
+      return;
+    }
+
+    const dismissTimer = window.setTimeout(() => {
+      setIsMessageExiting(true);
+      window.setTimeout(() => {
+        state.setMessage(undefined);
+      }, 220);
+    }, 3200);
+
+    return () => {
+      window.clearTimeout(dismissTimer);
+    };
+  }, [state.message?.visible, state.message?.class, state.setMessage]);
 
   function calculateSpeed(pace: number = 0) {
     if (state.sportType === "bike") return 0;
@@ -303,7 +327,11 @@ const Editor = ({ id }: EditorProps) => {
             <div className="mx-auto flex w-full max-w-380 flex-col gap-3">
           {state.message?.visible && (
             <div
-              className={`fixed left-1/2 top-6 z-1000 flex w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 items-center justify-between rounded-2xl border px-4 py-3 shadow-lg ${messageToneClass}`}
+              className={cn(
+                "fixed bottom-3 right-3 z-1000 flex w-[calc(100%-1.5rem)] max-w-md items-center justify-between rounded-2xl border px-4 py-3 shadow-lg transition-all duration-200 md:bottom-5 md:right-5",
+                isMessageExiting ? "translate-y-2 opacity-0" : "translate-y-0 opacity-100",
+                messageToneClass,
+              )}
             >
               <p className="pr-3 text-sm font-semibold">{state.message.text}</p>
               <button
@@ -314,7 +342,12 @@ const Editor = ({ id }: EditorProps) => {
                     ? "text-slate-100 hover:bg-white/15"
                     : "text-current hover:bg-black/10",
                 )}
-                onClick={() => state.setMessage({ visible: false })}
+                onClick={() => {
+                  setIsMessageExiting(true);
+                  window.setTimeout(() => {
+                    state.setMessage(undefined);
+                  }, 220);
+                }}
                 aria-label="Dismiss message"
               >
                 <CircleX className="h-4 w-4" />
