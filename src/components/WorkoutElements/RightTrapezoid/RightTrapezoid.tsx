@@ -13,6 +13,15 @@ interface IDictionary {
   [index: string]: number;
 }
 
+const zoneBands = [
+  [Zones.Z1.min, Zones.Z1.max],
+  [Zones.Z2.min, Zones.Z2.max],
+  [Zones.Z3.min, Zones.Z3.max],
+  [Zones.Z4.min, Zones.Z4.max],
+  [Zones.Z5.min, Zones.Z5.max],
+  [Zones.Z6.min, Number.POSITIVE_INFINITY],
+] as const;
+
 const RightTrapezoid = (props: {
   id: string;
   time?: number;
@@ -192,20 +201,26 @@ const RightTrapezoid = (props: {
     });
   };
 
-  function calculateColors(start: number, end: number) {
-    const bars = {} as IDictionary;
+  function calculateColors(start: number, end: number): IDictionary {
+    const bars: IDictionary = {
+      Z1: 0,
+      Z2: 0,
+      Z3: 0,
+      Z4: 0,
+      Z5: 0,
+      Z6: 0,
+    };
 
-    ZonesArray.forEach((zone, index) => {
-      if (start >= zone[0] && start < zone[1]) {
-        bars[`Z${index + 1}`] = zone[1] - start;
-      } else if (end >= zone[0] && end < zone[1]) {
-        bars[`Z${index + 1}`] = end - zone[0];
-      } else if (end >= zone[1] && start < zone[0]) {
-        bars[`Z${index + 1}`] = zone[1] - zone[0];
-      } else {
-        bars[`Z${index + 1}`] = 0;
-      }
+    const low = Math.min(start, end);
+    const high = Math.max(start, end);
+
+    zoneBands.forEach(([zoneMin, zoneMax], index) => {
+      const overlapStart = Math.max(low, zoneMin);
+      const overlapEnd = Math.min(high, zoneMax);
+      const overlap = Math.max(0, overlapEnd - overlapStart);
+      bars[`Z${index + 1}`] = overlap;
     });
+
     return bars;
   }
 
@@ -347,48 +362,55 @@ const RightTrapezoid = (props: {
           WebkitClipPath: trapezeClipPath,
         }}
       >
-        <div
-          className="color"
-          style={{
-            backgroundColor: Colors.GRAY,
-            width: `${(bars.Z1 * 100) / Math.abs(props.endPower - props.startPower)}%`,
-          }}
-        ></div>
-        <div
-          className="color"
-          style={{
-            backgroundColor: Colors.BLUE,
-            width: `${(bars.Z2 * 100) / Math.abs(props.endPower - props.startPower)}%`,
-          }}
-        ></div>
-        <div
-          className="color"
-          style={{
-            backgroundColor: Colors.GREEN,
-            width: `${(bars.Z3 * 100) / Math.abs(props.endPower - props.startPower)}%`,
-          }}
-        ></div>
-        <div
-          className="color"
-          style={{
-            backgroundColor: Colors.YELLOW,
-            width: `${(bars.Z4 * 100) / Math.abs(props.endPower - props.startPower)}%`,
-          }}
-        ></div>
-        <div
-          className="color"
-          style={{
-            backgroundColor: Colors.ORANGE,
-            width: `${(bars.Z5 * 100) / Math.abs(props.endPower - props.startPower)}%`,
-          }}
-        ></div>
-        <div
-          className="color"
-          style={{
-            backgroundColor: Colors.RED,
-            width: `${(bars.Z6 * 100) / Math.abs(props.endPower - props.startPower)}%`,
-          }}
-        ></div>
+        {(() => {
+          const totalPowerDelta = Math.max(0.0001, Math.abs(props.endPower - props.startPower));
+          return (
+            <>
+              <div
+                className="color"
+                style={{
+                  backgroundColor: Colors.GRAY,
+                  width: `${(bars.Z1 * 100) / totalPowerDelta}%`,
+                }}
+              ></div>
+              <div
+                className="color"
+                style={{
+                  backgroundColor: Colors.BLUE,
+                  width: `${(bars.Z2 * 100) / totalPowerDelta}%`,
+                }}
+              ></div>
+              <div
+                className="color"
+                style={{
+                  backgroundColor: Colors.GREEN,
+                  width: `${(bars.Z3 * 100) / totalPowerDelta}%`,
+                }}
+              ></div>
+              <div
+                className="color"
+                style={{
+                  backgroundColor: Colors.YELLOW,
+                  width: `${(bars.Z4 * 100) / totalPowerDelta}%`,
+                }}
+              ></div>
+              <div
+                className="color"
+                style={{
+                  backgroundColor: Colors.ORANGE,
+                  width: `${(bars.Z5 * 100) / totalPowerDelta}%`,
+                }}
+              ></div>
+              <div
+                className="color"
+                style={{
+                  backgroundColor: Colors.RED,
+                  width: `${(bars.Z6 * 100) / totalPowerDelta}%`,
+                }}
+              ></div>
+            </>
+          );
+        })()}
       </div>
     </div>
   );
