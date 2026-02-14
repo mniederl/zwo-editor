@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Clock3,
   FileSearch,
@@ -15,6 +15,11 @@ import { getStressScore, getWorkoutLength, round } from "../helpers";
 import createWorkoutXml from "./createWorkoutXml";
 import { useEditorContext } from "./EditorContext";
 import type { SegmentType } from "./editorTypes";
+import {
+  clearPersistedWorkoutLibraryDirectoryHandle,
+  loadPersistedWorkoutLibraryDirectoryHandle,
+  persistWorkoutLibraryDirectoryHandle,
+} from "./workoutLibraryPersistence";
 import parseWorkoutXml from "@/parsers/parseWorkoutXml";
 import { cn } from "@/utils/cssUtils";
 import { formatTime } from "@/utils/time";
@@ -36,6 +41,8 @@ interface DirectoryHandleLike {
   entries: () => AsyncIterableIterator<[string, FileHandleLike]>;
   getFileHandle: (name: string, options?: { create?: boolean }) => Promise<FileHandleLike>;
   removeEntry: (name: string) => Promise<void>;
+  queryPermission?: (options?: { mode?: "read" | "readwrite" }) => Promise<PermissionState>;
+  requestPermission?: (options?: { mode?: "read" | "readwrite" }) => Promise<PermissionState>;
 }
 
 interface LibraryWorkoutItem {
@@ -149,6 +156,7 @@ function buildPreviewBlocks(segments: SegmentType[]): PreviewBlock[] {
 
 export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: WorkoutLibraryPanelProps) {
   const { state, io } = useEditorContext();
+  const { ftp, setMessage } = state;
   const [directoryHandle, setDirectoryHandle] = useState<DirectoryHandleLike | null>(null);
   const [libraryItems, setLibraryItems] = useState<LibraryWorkoutItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -161,8 +169,9 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
       "function";
 
   const refreshDirectory = useCallback(
-    async (targetDirectory = directoryHandle) => {
+    async (targetDirectory: DirectoryHandleLike | null) => {
       if (!targetDirectory) {
+        setLibraryItems([]);
         return;
       }
 
@@ -185,7 +194,7 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
               parsed.meta.durationType,
             );
             const stressScore = round(
-              getStressScore(parsed.segments as Parameters<typeof getStressScore>[0], state.ftp),
+              getStressScore(parsed.segments as Parameters<typeof getStressScore>[0], ftp),
               1,
             );
 
@@ -206,18 +215,60 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
 
         nextItems.sort((a, b) => a.name.localeCompare(b.name));
         setLibraryItems(nextItems);
+      } catch {
+        setLibraryItems([]);
+        setMessage({
+          class: "error",
+          text: "Unable to read workouts from selected directory.",
+          visible: true,
+        });
       } finally {
         setIsLoading(false);
       }
     },
-    [directoryHandle, state.ftp],
+    [ftp, setMessage],
   );
+
+  const ensureDirectoryPermission = useCallback(async (handle: DirectoryHandleLike): Promise<boolean> => {
+    try {
+      const currentPermission = await handle.queryPermission?.({ mode: "readwrite" });
+      if (currentPermission === "granted") {
+        return true;
+      }
+    } catch {
+      // Ignore and fall back to request.
+    }
+
+    try {
+      const requestedPermission = await handle.requestPermission?.({ mode: "readwrite" });
+      if (requestedPermission === "granted") {
+        return true;
+      }
+    } catch {
+      // Ignore and try read-only access.
+    }
+
+    try {
+      const currentReadPermission = await handle.queryPermission?.();
+      if (currentReadPermission === "granted") {
+        return true;
+      }
+      const requestedReadPermission = await handle.requestPermission?.();
+      if (requestedReadPermission === "granted") {
+        return true;
+      }
+    } catch {
+      // Ignore and deny below.
+    }
+
+    return false;
+  }, []);
 
   const pickDirectory = useCallback(async () => {
     const picker = (window as unknown as { showDirectoryPicker?: () => Promise<DirectoryHandleLike> })
       .showDirectoryPicker;
     if (!picker) {
-      state.setMessage({
+      setMessage({
         class: "error",
         text: "Directory access is only available in Chromium-based browsers.",
         visible: true,
@@ -227,19 +278,72 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
 
     try {
       const handle = await picker();
+      const hasPermission = await ensureDirectoryPermission(handle);
+      if (!hasPermission) {
+        setMessage({
+          class: "error",
+          text: "Directory permission is required to manage workouts.",
+          visible: true,
+        });
+        return;
+      }
+
       setDirectoryHandle(handle);
+      await persistWorkoutLibraryDirectoryHandle(handle);
       await refreshDirectory(handle);
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
         return;
       }
-      state.setMessage({
+      setMessage({
         class: "error",
         text: "Could not open the selected directory.",
         visible: true,
       });
     }
-  }, [refreshDirectory, state]);
+  }, [ensureDirectoryPermission, refreshDirectory, setMessage]);
+
+  useEffect(() => {
+    if (!canUseDirectoryPicker) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const restoreDirectoryHandle = async () => {
+      try {
+        const storedHandle = await loadPersistedWorkoutLibraryDirectoryHandle<DirectoryHandleLike>();
+        if (!storedHandle || cancelled) {
+          return;
+        }
+
+        const hasPermission = await ensureDirectoryPermission(storedHandle);
+        if (!hasPermission) {
+          await clearPersistedWorkoutLibraryDirectoryHandle();
+          if (!cancelled) {
+            setDirectoryHandle(null);
+            setLibraryItems([]);
+          }
+          return;
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        setDirectoryHandle(storedHandle);
+        await refreshDirectory(storedHandle);
+      } catch {
+        await clearPersistedWorkoutLibraryDirectoryHandle();
+      }
+    };
+
+    void restoreDirectoryHandle();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [canUseDirectoryPicker, ensureDirectoryPermission, refreshDirectory]);
 
   const openWorkout = useCallback(
     async (item: LibraryWorkoutItem) => {
@@ -265,7 +369,7 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
       if (activeFileName === item.fileName) {
         setActiveFileName(undefined);
       }
-      await refreshDirectory();
+      await refreshDirectory(directoryHandle);
     },
     [activeFileName, directoryHandle, refreshDirectory],
   );
@@ -314,7 +418,7 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
       text: `Saved ${fileName} to selected directory.`,
       visible: true,
     });
-    await refreshDirectory();
+    await refreshDirectory(directoryHandle);
   }, [directoryHandle, refreshDirectory, state]);
 
   const cards = useMemo(() => libraryItems, [libraryItems]);
@@ -355,7 +459,7 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
               type="button"
               className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!directoryHandle || isLoading}
-              onClick={() => void refreshDirectory()}
+              onClick={() => void refreshDirectory(directoryHandle)}
             >
               <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} /> Refresh
             </button>

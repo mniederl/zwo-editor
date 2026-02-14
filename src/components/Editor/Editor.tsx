@@ -19,6 +19,7 @@ import { formatTime, parseTime } from "@/utils/time";
 import "./Editor.css";
 
 type EditorProps = { id: string };
+const LIBRARY_OPEN_STORAGE_KEY = "editor.workoutLibrary.open";
 
 const Editor = ({ id }: EditorProps) => {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -27,9 +28,23 @@ const Editor = ({ id }: EditorProps) => {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [isDesktopLayout, setIsDesktopLayout] = useState(false);
   const [isWideDesktop, setIsWideDesktop] = useState(false);
+  const [storedLibraryOpen, setStoredLibraryOpen] = useState<boolean | null | undefined>(undefined);
   const [libraryLayoutInitialized, setLibraryLayoutInitialized] = useState(false);
 
   const state = useEditorState({ id, segmentsRef });
+
+  useEffect(() => {
+    const storedValue = window.localStorage.getItem(LIBRARY_OPEN_STORAGE_KEY);
+    if (storedValue === "1") {
+      setStoredLibraryOpen(true);
+      return;
+    }
+    if (storedValue === "0") {
+      setStoredLibraryOpen(false);
+      return;
+    }
+    setStoredLibraryOpen(null);
+  }, []);
 
   useEffect(() => {
     const desktopQuery = window.matchMedia("(min-width: 1024px)");
@@ -51,8 +66,11 @@ const Editor = ({ id }: EditorProps) => {
   }, []);
 
   useEffect(() => {
+    if (storedLibraryOpen === undefined) {
+      return;
+    }
+
     if (!isDesktopLayout) {
-      setLibraryOpen(false);
       return;
     }
 
@@ -60,9 +78,16 @@ const Editor = ({ id }: EditorProps) => {
       return;
     }
 
-    setLibraryOpen(isWideDesktop);
+    setLibraryOpen(storedLibraryOpen ?? isWideDesktop);
     setLibraryLayoutInitialized(true);
-  }, [isDesktopLayout, isWideDesktop, libraryLayoutInitialized]);
+  }, [isDesktopLayout, isWideDesktop, libraryLayoutInitialized, storedLibraryOpen]);
+
+  useEffect(() => {
+    if (!libraryLayoutInitialized) {
+      return;
+    }
+    window.localStorage.setItem(LIBRARY_OPEN_STORAGE_KEY, libraryOpen ? "1" : "0");
+  }, [libraryLayoutInitialized, libraryOpen]);
 
   function calculateSpeed(pace: number = 0) {
     if (state.sportType === "bike") return 0;
@@ -262,7 +287,10 @@ const Editor = ({ id }: EditorProps) => {
           <div className="absolute -bottom-27.5 left-1/3 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(2,132,199,0.22)_0%,rgba(2,132,199,0)_70%)]" />
         </div>
 
-        <WorkoutLibraryCollapsedToggle hidden={!isDesktopLayout || libraryOpen} onClick={() => setLibraryOpen(true)} />
+        <WorkoutLibraryCollapsedToggle
+          hidden={!isDesktopLayout || !libraryLayoutInitialized || libraryOpen}
+          onClick={() => setLibraryOpen(true)}
+        />
 
         <div className="mx-auto flex w-full max-w-[132rem] items-start gap-3">
           <WorkoutLibraryPanel
