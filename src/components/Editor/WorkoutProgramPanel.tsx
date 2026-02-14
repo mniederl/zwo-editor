@@ -85,7 +85,7 @@ export default function WorkoutProgramPanel({ rows, selectedSegmentId, onSelectS
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200/80 bg-white/90 p-3 shadow-sm">
+    <section className="flex h-full min-h-0 flex-col rounded-2xl border border-slate-200/80 bg-white/90 p-3 shadow-sm">
       <div className="mb-2 flex items-center justify-between gap-3">
         <p className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-800">
           <ListOrdered className="h-3.5 w-3.5" /> Program
@@ -100,7 +100,7 @@ export default function WorkoutProgramPanel({ rows, selectedSegmentId, onSelectS
           Add segments to generate the program list.
         </div>
       ) : (
-        <div className="max-h-[360px] overflow-y-auto pr-1 2xl:max-h-[430px]">
+        <div className="min-h-0 flex-1 overflow-y-auto pr-1">
           <div className="space-y-2">{renderedRows}</div>
         </div>
       )}

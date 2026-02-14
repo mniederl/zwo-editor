@@ -32,6 +32,7 @@ export default function WorkoutBuilderPanel() {
   const [programVisible, setProgramVisible] = useState(true);
   const [dynamicShellHeight, setDynamicShellHeight] = useState<number>();
   const [shellViewportHeight, setShellViewportHeight] = useState(430);
+  const [isProgramSideBySide, setIsProgramSideBySide] = useState(false);
   const [isPowerResizeActive, setIsPowerResizeActive] = useState(false);
   const [lockedVisibleMaxPower, setLockedVisibleMaxPower] = useState<number | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
@@ -180,6 +181,18 @@ export default function WorkoutBuilderPanel() {
       window.removeEventListener("resize", handleResize);
     };
   }, [recalculateShellHeight]);
+
+  useEffect(() => {
+    const sideBySideQuery = window.matchMedia("(min-width: 1536px)");
+    const updateSideBySideMode = () => setIsProgramSideBySide(sideBySideQuery.matches);
+
+    updateSideBySideMode();
+    sideBySideQuery.addEventListener("change", updateSideBySideMode);
+
+    return () => {
+      sideBySideQuery.removeEventListener("change", updateSideBySideMode);
+    };
+  }, []);
   const {
     draggingBarId,
     dropMarkerX,
@@ -390,7 +403,7 @@ export default function WorkoutBuilderPanel() {
         </aside>
 
         <div className="min-w-0 flex-1">
-          <div className={cn("grid gap-3", programVisible && "2xl:grid-cols-[minmax(0,1fr)_20rem]")}>
+          <div className={cn("grid min-h-0 gap-3", programVisible && "2xl:grid-cols-[minmax(0,1fr)_20rem]")}>
             <div className="min-w-0">
               <div id="editor" ref={shellRef} className="editor-shell" style={{ height: dynamicShellHeight }}>
                 {actionId && (
@@ -526,13 +539,15 @@ export default function WorkoutBuilderPanel() {
             </div>
 
             {programVisible && (
-              <WorkoutProgramPanel
-                rows={programRows}
-                selectedSegmentId={actionId}
-                onSelectSegment={(segmentId: string) =>
-                  state.setActionId((currentId) => (currentId === segmentId ? undefined : segmentId))
-                }
-              />
+              <div className="min-h-0" style={isProgramSideBySide ? { height: shellViewportHeight } : undefined}>
+                <WorkoutProgramPanel
+                  rows={programRows}
+                  selectedSegmentId={actionId}
+                  onSelectSegment={(segmentId: string) =>
+                    state.setActionId((currentId) => (currentId === segmentId ? undefined : segmentId))
+                  }
+                />
+              </div>
             )}
           </div>
         </div>
