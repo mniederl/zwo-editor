@@ -130,16 +130,22 @@ function buildPreviewBlocks(segments: SegmentType[]): PreviewBlock[] {
     }
 
     if (segment.type === "interval") {
-      blocks.push({
-        background: zoneToColor(segment.onPower),
-        height: toPreviewHeight(segment.onPower),
-        widthWeight: Math.max(0.1, segment.onDuration * segment.repeat),
-      });
-      blocks.push({
-        background: zoneToColor(segment.offPower),
-        height: toPreviewHeight(segment.offPower),
-        widthWeight: Math.max(0.1, segment.offDuration * segment.repeat),
-      });
+      const repeatCount = Math.max(1, Math.round(segment.repeat));
+      const onWidthWeight = Math.max(0.1, segment.onDuration || segment.onLength || 0.1);
+      const offWidthWeight = Math.max(0.1, segment.offDuration || segment.offLength || 0.1);
+
+      for (let repeatIndex = 0; repeatIndex < repeatCount; repeatIndex += 1) {
+        blocks.push({
+          background: zoneToColor(segment.onPower),
+          height: toPreviewHeight(segment.onPower),
+          widthWeight: onWidthWeight,
+        });
+        blocks.push({
+          background: zoneToColor(segment.offPower),
+          height: toPreviewHeight(segment.offPower),
+          widthWeight: offWidthWeight,
+        });
+      }
       return;
     }
 
@@ -150,24 +156,7 @@ function buildPreviewBlocks(segments: SegmentType[]): PreviewBlock[] {
     });
   });
 
-  const maxPreviewBlocks = 14;
-  if (blocks.length <= maxPreviewBlocks) {
-    return blocks;
-  }
-
-  const chunkSize = Math.ceil(blocks.length / maxPreviewBlocks);
-  const compacted: PreviewBlock[] = [];
-  for (let startIndex = 0; startIndex < blocks.length; startIndex += chunkSize) {
-    const chunk = blocks.slice(startIndex, startIndex + chunkSize);
-    const widthWeight = chunk.reduce((sum, block) => sum + block.widthWeight, 0);
-    const height = chunk.reduce((sum, block) => sum + block.height, 0) / chunk.length;
-    compacted.push({
-      background: chunk[chunk.length - 1]?.background || Colors.GRAY,
-      height,
-      widthWeight,
-    });
-  }
-  return compacted;
+  return blocks;
 }
 
 export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: WorkoutLibraryPanelProps) {
