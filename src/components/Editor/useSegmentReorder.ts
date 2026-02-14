@@ -26,7 +26,12 @@ export default function useSegmentReorder({ barIds, moveBarToIndex }: UseSegment
     [draggingBarId],
   );
 
-  const handleSegmentDragStart = useCallback((event: DragEvent<HTMLButtonElement>, barId: string) => {
+  const handleSegmentDragStart = useCallback((event: DragEvent<HTMLElement>, barId: string) => {
+    if (!event.altKey) {
+      event.preventDefault();
+      return;
+    }
+
     event.stopPropagation();
     setDraggingBarId(barId);
     setDropMarker(null);
@@ -93,4 +98,3 @@ export default function useSegmentReorder({ barIds, moveBarToIndex }: UseSegment
     handleSegmentDragEnd: clearDragState,
   };
 }
-

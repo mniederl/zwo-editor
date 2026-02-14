@@ -100,41 +100,6 @@
   opacity: 0.45;
 }
 
-.segment-dnd-handle {
-  position: absolute;
-  top: -18px;
-  left: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  padding: 0;
-  border: 1px solid rgba(100, 116, 139, 0.45);
-  border-radius: 999px;
-  background: rgba(248, 250, 252, 0.92);
-  color: #64748b;
-  transform: translateX(-50%);
-  cursor: grab;
-  opacity: 0;
-  transition: opacity 120ms ease, border-color 120ms ease, color 120ms ease;
-  z-index: 30;
-}
-
-.segment-dnd-item:hover .segment-dnd-handle,
-.segment-dnd-handle:focus-visible {
-  opacity: 1;
-}
-
-.segment-dnd-handle:hover {
-  border-color: rgba(8, 145, 178, 0.55);
-  color: #0e7490;
-}
-
-.segment-dnd-handle:active {
-  cursor: grabbing;
-}
-
 .segment-dnd-drop-before::before,
 .segment-dnd-drop-after::after {
   content: "";

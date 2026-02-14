@@ -5,7 +5,6 @@ import {
   Bike,
   Copy,
   Footprints,
-  GripVertical,
   ListOrdered,
   MessageSquare,
   Pencil,
@@ -491,23 +490,13 @@ export default function WorkoutBuilderPanel() {
                             showBeforeMarker && "segment-dnd-drop-before",
                             showAfterMarker && "segment-dnd-drop-after",
                           )}
+                          draggable={dragReorderEnabled}
+                          onDragStart={dragReorderEnabled ? (event) => handleSegmentDragStart(event, bar.id) : undefined}
+                          onDragEnd={dragReorderEnabled ? handleSegmentDragEnd : undefined}
                           onDragOver={dragReorderEnabled ? (event) => handleSegmentDragOver(event, bar.id) : undefined}
                           onDrop={dragReorderEnabled ? (event) => handleSegmentDrop(event, bar.id) : undefined}
+                          title={dragReorderEnabled ? "Hold Alt and drag to reorder" : undefined}
                         >
-                          {dragReorderEnabled && (
-                            <button
-                              type="button"
-                              className="segment-dnd-handle"
-                              draggable
-                              onDragStart={(event) => handleSegmentDragStart(event, bar.id)}
-                              onDragEnd={handleSegmentDragEnd}
-                              onClick={(event) => event.stopPropagation()}
-                              aria-label="Drag to reorder segment"
-                              title="Drag to reorder"
-                            >
-                              <GripVertical className="h-3.5 w-3.5" />
-                            </button>
-                          )}
                           {content}
                         </div>
                       );
