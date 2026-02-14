@@ -158,7 +158,14 @@ export default function WorkoutBuilderPanel() {
 
   useLayoutEffect(() => {
     recalculateShellHeight();
-  }, [recalculateShellHeight, programVisible]);
+    const animationFrame = window.requestAnimationFrame(() => {
+      recalculateShellHeight();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+    };
+  }, [recalculateShellHeight, programVisible, dynamicShellHeight]);
 
   useEffect(() => {
     const handleResize = () => recalculateShellHeight();
