@@ -67,9 +67,14 @@ export default function WorkoutBuilderPanel() {
   const liveVisibleMaxPower = Math.max(Zones.Z6.max, maxWorkoutPower * 1.05);
   const visibleMaxPower = isPowerResizeActive && lockedVisibleMaxPower ? lockedVisibleMaxPower : liveVisibleMaxPower;
   const maxEditablePower = Math.max(Zones.Z6.max * 1.8, visibleMaxPower * 1.6);
-  const verticalPlotHeight = Math.max(220, shellViewportHeight - 58);
   const canvasAxisHeight = 42;
-  const canvasTopZoneFillHeight = Math.max(0, shellViewportHeight - 48 - verticalPlotHeight);
+  const canvasBottomInset = 6;
+  const canvasTopPadding = 28;
+  const verticalPlotHeight = Math.max(
+    220,
+    shellViewportHeight - (canvasAxisHeight + canvasBottomInset + canvasTopPadding),
+  );
+  const canvasTopZoneFillHeight = Math.max(0, shellViewportHeight - (canvasAxisHeight + canvasBottomInset) - verticalPlotHeight);
   const z6BackgroundTint = "rgba(233, 0, 0, 0.088)";
   const powerScale = verticalPlotHeight / visibleMaxPower;
   const canvasZoneBackground = useMemo(() => {
