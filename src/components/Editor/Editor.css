@@ -82,6 +82,7 @@
 }
 
 .workout-library-scroll {
+  margin-right: -6px;
   scrollbar-color: rgba(153, 181, 221, 0.7) transparent;
 }
 
