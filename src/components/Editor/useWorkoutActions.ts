@@ -379,8 +379,8 @@ export default function useWorkoutActions({
       return;
     }
 
-    const boundedTargetIndex = Math.max(0, Math.min(targetIndex, bars.length - 1));
-    if (fromIndex === boundedTargetIndex) {
+    const boundedTargetIndex = Math.max(0, Math.min(targetIndex, bars.length));
+    if (fromIndex === boundedTargetIndex || fromIndex + 1 === boundedTargetIndex) {
       return;
     }
 
@@ -390,7 +390,7 @@ export default function useWorkoutActions({
       return;
     }
 
-    const insertIndex = Math.max(0, Math.min(boundedTargetIndex, updatedArray.length));
+    const insertIndex = fromIndex < boundedTargetIndex ? boundedTargetIndex - 1 : boundedTargetIndex;
     updatedArray.splice(insertIndex, 0, element);
     setBars(updatedArray);
   }

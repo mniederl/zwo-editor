@@ -1,12 +1,5 @@
 import { type DragEvent, useCallback, useState } from "react";
 
-type DropPosition = "before" | "after";
-
-interface DropMarker {
-  barId: string;
-  position: DropPosition;
-}
-
 interface UseSegmentReorderProps {
   barIds: string[];
   moveBarToIndex: (id: string, targetIndex: number) => void;
@@ -14,11 +7,37 @@ interface UseSegmentReorderProps {
 
 export default function useSegmentReorder({ barIds, moveBarToIndex }: UseSegmentReorderProps) {
   const [draggingBarId, setDraggingBarId] = useState<string | null>(null);
-  const [dropMarker, setDropMarker] = useState<DropMarker | null>(null);
+  const [dropInsertIndex, setDropInsertIndex] = useState<number | null>(null);
+  const [dropMarkerX, setDropMarkerX] = useState<number | null>(null);
 
-  const getDropPosition = useCallback((event: DragEvent<HTMLDivElement>): DropPosition => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    return event.clientX < rect.left + rect.width / 2 ? "before" : "after";
+  const getNearestBoundary = useCallback((event: DragEvent<HTMLDivElement>) => {
+    const container = event.currentTarget;
+    const rect = container.getBoundingClientRect();
+    const cursorX = event.clientX - rect.left;
+    const segmentElements = Array.from(container.children).filter(
+      (child): child is HTMLElement => child instanceof HTMLElement && child.classList.contains("segment-dnd-item"),
+    );
+
+    if (segmentElements.length === 0) {
+      return { insertIndex: 0, x: Math.max(0, cursorX) };
+    }
+
+    const boundaries: number[] = [segmentElements[0]?.offsetLeft || 0];
+    segmentElements.forEach((segmentElement) => {
+      boundaries.push(segmentElement.offsetLeft + segmentElement.offsetWidth);
+    });
+
+    let nearestInsertIndex = 0;
+    let nearestDistance = Number.POSITIVE_INFINITY;
+    boundaries.forEach((boundaryX, boundaryIndex) => {
+      const distance = Math.abs(cursorX - boundaryX);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestInsertIndex = boundaryIndex;
+      }
+    });
+
+    return { insertIndex: nearestInsertIndex, x: boundaries[nearestInsertIndex] || 0 };
   }, []);
 
   const getActiveDragId = useCallback(
@@ -34,67 +53,63 @@ export default function useSegmentReorder({ barIds, moveBarToIndex }: UseSegment
 
     event.stopPropagation();
     setDraggingBarId(barId);
-    setDropMarker(null);
+    setDropInsertIndex(null);
+    setDropMarkerX(null);
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", barId);
   }, []);
 
-  const handleSegmentDragOver = useCallback(
-    (event: DragEvent<HTMLDivElement>, targetBarId: string) => {
+  const handleLaneDragOver = useCallback(
+    (event: DragEvent<HTMLDivElement>) => {
       const activeDragId = getActiveDragId(event);
-      if (!activeDragId || activeDragId === targetBarId) {
+      if (!activeDragId) {
         return;
       }
 
       event.preventDefault();
       event.dataTransfer.dropEffect = "move";
-      const nextPosition = getDropPosition(event);
-      setDropMarker((current) => {
-        if (current?.barId === targetBarId && current.position === nextPosition) {
-          return current;
-        }
-        return { barId: targetBarId, position: nextPosition };
-      });
+      const nearestBoundary = getNearestBoundary(event);
+      setDropInsertIndex(nearestBoundary.insertIndex);
+      setDropMarkerX(nearestBoundary.x);
     },
-    [getActiveDragId, getDropPosition],
+    [getActiveDragId, getNearestBoundary],
   );
 
   const clearDragState = useCallback(() => {
     setDraggingBarId(null);
-    setDropMarker(null);
+    setDropInsertIndex(null);
+    setDropMarkerX(null);
   }, []);
 
-  const handleSegmentDrop = useCallback(
-    (event: DragEvent<HTMLDivElement>, targetBarId: string) => {
+  const handleLaneDrop = useCallback(
+    (event: DragEvent<HTMLDivElement>) => {
       event.preventDefault();
       const activeDragId = getActiveDragId(event);
-      if (!activeDragId || activeDragId === targetBarId) {
-        setDropMarker(null);
+      if (!activeDragId) {
+        clearDragState();
         return;
       }
 
+      const nearestBoundary = getNearestBoundary(event);
+      const targetInsertIndex = dropInsertIndex ?? nearestBoundary.insertIndex;
       const sourceIndex = barIds.findIndex((barId) => barId === activeDragId);
-      const targetIndex = barIds.findIndex((barId) => barId === targetBarId);
-      if (sourceIndex < 0 || targetIndex < 0) {
-        setDropMarker(null);
+      if (sourceIndex < 0) {
+        clearDragState();
         return;
       }
 
-      const markerPosition = dropMarker?.barId === targetBarId ? dropMarker.position : getDropPosition(event);
-      const rawInsertIndex = markerPosition === "before" ? targetIndex : targetIndex + 1;
-      const normalizedInsertIndex = sourceIndex < rawInsertIndex ? rawInsertIndex - 1 : rawInsertIndex;
-      moveBarToIndex(activeDragId, normalizedInsertIndex);
+      moveBarToIndex(activeDragId, targetInsertIndex);
       clearDragState();
     },
-    [barIds, clearDragState, dropMarker, getActiveDragId, getDropPosition, moveBarToIndex],
+    [barIds, clearDragState, dropInsertIndex, getActiveDragId, getNearestBoundary, moveBarToIndex],
   );
 
   return {
     draggingBarId,
-    dropMarker,
+    dropMarkerX,
     handleSegmentDragStart,
-    handleSegmentDragOver,
-    handleSegmentDrop,
+    handleLaneDragOver,
+    handleLaneDrop,
     handleSegmentDragEnd: clearDragState,
   };
 }

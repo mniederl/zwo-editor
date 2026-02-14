@@ -100,9 +100,7 @@
   opacity: 0.45;
 }
 
-.segment-dnd-drop-before::before,
-.segment-dnd-drop-after::after {
-  content: "";
+.segment-dnd-drop-indicator {
   position: absolute;
   top: 0;
   bottom: 42px;
@@ -112,14 +110,6 @@
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85);
   pointer-events: none;
   z-index: 25;
-}
-
-.segment-dnd-drop-before::before {
-  left: -1px;
-}
-
-.segment-dnd-drop-after::after {
-  right: -1px;
 }
 
 .slider {

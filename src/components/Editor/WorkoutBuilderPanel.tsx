@@ -170,10 +170,10 @@ export default function WorkoutBuilderPanel() {
   }, [recalculateShellHeight]);
   const {
     draggingBarId,
-    dropMarker,
+    dropMarkerX,
     handleSegmentDragStart,
-    handleSegmentDragOver,
-    handleSegmentDrop,
+    handleLaneDragOver,
+    handleLaneDrop,
     handleSegmentDragEnd,
   } = useSegmentReorder({
     barIds: bars.map((bar) => bar.id),
@@ -459,7 +459,12 @@ export default function WorkoutBuilderPanel() {
                       onClick={() => state.setActionId(undefined)}
                     ></div>
                   )}
-                  <div className="segments" ref={refs.segmentsRef}>
+                  <div
+                    className="segments"
+                    ref={refs.segmentsRef}
+                    onDragOver={dragReorderEnabled ? handleLaneDragOver : undefined}
+                    onDrop={dragReorderEnabled ? handleLaneDrop : undefined}
+                  >
                     {bars.map((bar) => {
                       let content: ReturnType<typeof renderBar> | null = null;
                       if (bar.type === "bar") {
@@ -476,31 +481,25 @@ export default function WorkoutBuilderPanel() {
                         return null;
                       }
 
-                      const showBeforeMarker =
-                        dragReorderEnabled && dropMarker?.barId === bar.id && dropMarker.position === "before";
-                      const showAfterMarker =
-                        dragReorderEnabled && dropMarker?.barId === bar.id && dropMarker.position === "after";
-
                       return (
                         <div
                           key={bar.id}
                           className={cn(
                             "segment-dnd-item",
                             dragReorderEnabled && draggingBarId === bar.id && "segment-dnd-item-dragging",
-                            showBeforeMarker && "segment-dnd-drop-before",
-                            showAfterMarker && "segment-dnd-drop-after",
                           )}
                           draggable={dragReorderEnabled}
                           onDragStart={dragReorderEnabled ? (event) => handleSegmentDragStart(event, bar.id) : undefined}
                           onDragEnd={dragReorderEnabled ? handleSegmentDragEnd : undefined}
-                          onDragOver={dragReorderEnabled ? (event) => handleSegmentDragOver(event, bar.id) : undefined}
-                          onDrop={dragReorderEnabled ? (event) => handleSegmentDrop(event, bar.id) : undefined}
                           title={dragReorderEnabled ? "Hold Alt and drag to reorder" : undefined}
                         >
                           {content}
                         </div>
                       );
                     })}
+                    {dragReorderEnabled && dropMarkerX !== null && (
+                      <div className="segment-dnd-drop-indicator" style={{ left: dropMarkerX }} />
+                    )}
                   </div>
 
                   <div className="slider">
