@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CircleX } from "lucide-react";
 
 import { getStressScore, getWorkoutDistance, getWorkoutLength, getWorkoutPace, round } from "../helpers";
@@ -6,6 +6,7 @@ import { EditorProvider } from "./EditorContext";
 import EditorHeaderPanel from "./EditorHeaderPanel";
 import type { Instruction, SportType } from "./editorTypes";
 import TextComposerPanel from "./TextComposerPanel";
+import WorkoutLibraryPanel, { WorkoutLibraryCollapsedToggle } from "./WorkoutLibraryPanel";
 import useEditorState from "./useEditorState";
 import useWorkoutActions from "./useWorkoutActions";
 import useWorkoutIO from "./useWorkoutIO";
@@ -23,8 +24,45 @@ const Editor = ({ id }: EditorProps) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const segmentsRef = useRef<HTMLDivElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [isDesktopLayout, setIsDesktopLayout] = useState(false);
+  const [isWideDesktop, setIsWideDesktop] = useState(false);
+  const [libraryLayoutInitialized, setLibraryLayoutInitialized] = useState(false);
 
   const state = useEditorState({ id, segmentsRef });
+
+  useEffect(() => {
+    const desktopQuery = window.matchMedia("(min-width: 1024px)");
+    const wideDesktopQuery = window.matchMedia("(min-width: 2200px)");
+
+    const updateLayout = () => {
+      setIsDesktopLayout(desktopQuery.matches);
+      setIsWideDesktop(wideDesktopQuery.matches);
+    };
+
+    updateLayout();
+    desktopQuery.addEventListener("change", updateLayout);
+    wideDesktopQuery.addEventListener("change", updateLayout);
+
+    return () => {
+      desktopQuery.removeEventListener("change", updateLayout);
+      wideDesktopQuery.removeEventListener("change", updateLayout);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isDesktopLayout) {
+      setLibraryOpen(false);
+      return;
+    }
+
+    if (libraryLayoutInitialized) {
+      return;
+    }
+
+    setLibraryOpen(isWideDesktop);
+    setLibraryLayoutInitialized(true);
+  }, [isDesktopLayout, isWideDesktop, libraryLayoutInitialized]);
 
   function calculateSpeed(pace: number = 0) {
     if (state.sportType === "bike") return 0;
@@ -224,7 +262,17 @@ const Editor = ({ id }: EditorProps) => {
           <div className="absolute -bottom-27.5 left-1/3 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(2,132,199,0.22)_0%,rgba(2,132,199,0)_70%)]" />
         </div>
 
-        <div className="mx-auto flex w-full max-w-380 flex-col gap-3">
+        <WorkoutLibraryCollapsedToggle hidden={!isDesktopLayout || libraryOpen} onClick={() => setLibraryOpen(true)} />
+
+        <div className="mx-auto flex w-full max-w-[132rem] items-start gap-3">
+          <WorkoutLibraryPanel
+            open={isDesktopLayout && libraryOpen}
+            onToggle={() => setLibraryOpen(false)}
+            isWideDesktop={isWideDesktop}
+          />
+
+          <div className="min-w-0 flex-1">
+            <div className="mx-auto flex w-full max-w-380 flex-col gap-3">
           {state.message?.visible && (
             <div
               className={`fixed left-1/2 top-6 z-1000 flex w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 items-center justify-between rounded-2xl border px-4 py-3 shadow-lg ${messageToneClass}`}
@@ -264,6 +312,8 @@ const Editor = ({ id }: EditorProps) => {
           <EditorHeaderPanel />
           <WorkoutBuilderPanel />
           <TextComposerPanel />
+            </div>
+          </div>
         </div>
       </div>
     </EditorProvider>
