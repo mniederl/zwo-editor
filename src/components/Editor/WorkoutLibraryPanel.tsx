@@ -88,6 +88,22 @@ function normalizeWorkoutFileName(name: string) {
 
 function buildPreviewBlocks(segments: SegmentType[]): PreviewBlock[] {
   const blocks: PreviewBlock[] = [];
+  const referenceMaxPower = Math.max(
+    Zones.Z6.max,
+    ...segments.flatMap((segment) => {
+      if (segment.type === "bar") {
+        return [segment.power];
+      }
+      if (segment.type === "trapeze") {
+        return [segment.startPower, segment.endPower];
+      }
+      if (segment.type === "interval") {
+        return [segment.onPower, segment.offPower];
+      }
+      return [Zones.Z1.min];
+    }),
+  );
+  const toPreviewHeight = (power: number) => clamp(8 + (power / referenceMaxPower) * 36, 8, 44);
 
   segments.forEach((segment) => {
     const segmentWidthWeight = Math.max(0.1, segment.time);
@@ -95,7 +111,7 @@ function buildPreviewBlocks(segments: SegmentType[]): PreviewBlock[] {
     if (segment.type === "bar") {
       blocks.push({
         background: zoneToColor(segment.power),
-        height: clamp(20 + segment.power * 42, 18, 68),
+        height: toPreviewHeight(segment.power),
         widthWeight: segmentWidthWeight,
       });
       return;
@@ -107,7 +123,7 @@ function buildPreviewBlocks(segments: SegmentType[]): PreviewBlock[] {
       blocks.push({
         background:
           startColor === endColor ? startColor : `linear-gradient(90deg, ${startColor} 0%, ${endColor} 100%)`,
-        height: clamp(20 + ((segment.startPower + segment.endPower) / 2) * 42, 18, 68),
+        height: toPreviewHeight(Math.max(segment.startPower, segment.endPower)),
         widthWeight: segmentWidthWeight,
       });
       return;
@@ -116,12 +132,12 @@ function buildPreviewBlocks(segments: SegmentType[]): PreviewBlock[] {
     if (segment.type === "interval") {
       blocks.push({
         background: zoneToColor(segment.onPower),
-        height: clamp(20 + segment.onPower * 42, 18, 68),
+        height: toPreviewHeight(segment.onPower),
         widthWeight: Math.max(0.1, segment.onDuration * segment.repeat),
       });
       blocks.push({
         background: zoneToColor(segment.offPower),
-        height: clamp(20 + segment.offPower * 42, 18, 68),
+        height: toPreviewHeight(segment.offPower),
         widthWeight: Math.max(0.1, segment.offDuration * segment.repeat),
       });
       return;
@@ -129,7 +145,7 @@ function buildPreviewBlocks(segments: SegmentType[]): PreviewBlock[] {
 
     blocks.push({
       background: Colors.GRAY,
-      height: 26,
+      height: toPreviewHeight(Zones.Z1.min),
       widthWeight: segmentWidthWeight,
     });
   });
