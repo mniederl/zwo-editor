@@ -1,15 +1,15 @@
 import { Minus, Plus } from "lucide-react";
 
-import type { BarType, DurationType, SportType } from "../../Editor/editorTypes";
+import type { DurationType, IntervalSegment, SportType, SteadySegment } from "../../Editor/editorTypes";
 import Bar from "../Bar/Bar";
 
 const Interval = (props: {
   id: string;
   repeat: number;
-  onDuration?: number;
-  offDuration?: number;
-  onLength?: number;
-  offLength?: number;
+  onDuration: number;
+  offDuration: number;
+  onLength: number;
+  offLength: number;
   onPower: number;
   offPower: number;
   cadence: number;
@@ -24,31 +24,31 @@ const Interval = (props: {
   onVerticalResizeEnd?: () => void;
   sportType: SportType;
   durationType: DurationType;
-  handleIntervalChange: (id: string, value: BarType) => void;
+  handleIntervalChange: (id: string, value: IntervalSegment) => void;
   handleIntervalClick: (id: string) => void;
   selected: boolean;
 }) => {
-  const bars: BarType[] = Array.from({ length: props.repeat * 2 }, (_, index) => {
+  const bars: SteadySegment[] = Array.from({ length: props.repeat * 2 }, (_, index) => {
     const isOnSegment = index % 2 === 0;
     return {
       id: `${props.id}-${index}`,
       type: "bar",
       pace: props.pace,
-      time: isOnSegment ? props.onDuration || 0 : props.offDuration || 0,
-      length: isOnSegment ? props.onLength || 0 : props.offLength || 0,
+      time: isOnSegment ? props.onDuration : props.offDuration,
+      length: isOnSegment ? props.onLength : props.offLength,
       power: isOnSegment ? props.onPower : props.offPower,
       cadence: isOnSegment ? props.cadence : props.restingCadence,
     };
   });
 
-  function handleOnChange(index: number, values: BarType) {
+  function handleOnChange(index: number, values: SteadySegment) {
     const isOnSegment = index % 2 === 0;
-    const onDuration = isOnSegment ? values.time : props.onDuration || 0;
-    const offDuration = isOnSegment ? props.offDuration || 0 : values.time;
-    const onLength = isOnSegment ? values.length || 0 : props.onLength || 0;
-    const offLength = isOnSegment ? props.offLength || 0 : values.length || 0;
-    const onPower = isOnSegment ? values.power || props.onPower : props.onPower;
-    const offPower = isOnSegment ? props.offPower : values.power || props.offPower;
+    const onDuration = isOnSegment ? values.time : props.onDuration;
+    const offDuration = isOnSegment ? props.offDuration : values.time;
+    const onLength = isOnSegment ? values.length : props.onLength;
+    const offLength = isOnSegment ? props.offLength : values.length;
+    const onPower = isOnSegment ? values.power : props.onPower;
+    const offPower = isOnSegment ? props.offPower : values.power;
     const cadence = isOnSegment ? values.cadence : props.cadence;
     const restingCadence = isOnSegment ? props.restingCadence : values.cadence;
 
@@ -72,8 +72,8 @@ const Interval = (props: {
 
   function handleAddInterval() {
     props.handleIntervalChange(props.id, {
-      time: ((props.onDuration || 0) + (props.offDuration || 0)) * (props.repeat + 1),
-      length: ((props.onLength || 0) + (props.offLength || 0)) * (props.repeat + 1),
+      time: (props.onDuration + props.offDuration) * (props.repeat + 1),
+      length: (props.onLength + props.offLength) * (props.repeat + 1),
       id: props.id,
       type: "interval",
       cadence: props.cadence,
@@ -92,8 +92,8 @@ const Interval = (props: {
   function handleRemoveInterval() {
     if (props.repeat <= 1) return;
     props.handleIntervalChange(props.id, {
-      time: ((props.onDuration || 0) + (props.offDuration || 0)) * (props.repeat - 1),
-      length: ((props.onLength || 0) + (props.offLength || 0)) * (props.repeat - 1),
+      time: (props.onDuration + props.offDuration) * (props.repeat - 1),
+      length: (props.onLength + props.offLength) * (props.repeat - 1),
       id: props.id,
       type: "interval",
       cadence: props.cadence,
@@ -109,13 +109,13 @@ const Interval = (props: {
     });
   }
 
-  const renderBar = (bar: BarType, index: number, withLabel: boolean) => (
+  const renderBar = (bar: SteadySegment, index: number, withLabel: boolean) => (
     <Bar
       key={bar.id}
       id={bar.id}
       time={bar.time}
       length={bar.length}
-      power={bar.power || 100}
+      power={bar.power}
       cadence={bar.cadence}
       ftp={props.ftp}
       weight={props.weight}

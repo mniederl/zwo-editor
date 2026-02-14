@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { BarType } from "@/components/Editor/Editor";
+import type { FreeRideSegment, IntervalSegment, RampSegment, SteadySegment } from "@/components/Editor/editorTypes";
 import { calculateTime, round } from "@/components/helpers";
 import { parseWorkoutText } from "@/parsers/parseWorkoutText";
 
@@ -8,7 +8,7 @@ describe("parseWorkoutText", () => {
   it("parses a simple steady block with seconds", () => {
     const { segments, instructions } = parseWorkoutText("steady 120w 30s");
     expect(segments.length).toBe(1);
-    const s = segments[0] as BarType;
+    const s = segments[0] as SteadySegment;
     expect(s.type).toBe("bar");
     expect(s.time).toBe(30);
     // power is scaled by default ftp=200 -> 120/200 = 0.6
@@ -32,26 +32,20 @@ describe("parseWorkoutText", () => {
     expect(segments[0].type).toBe("bar");
     expect(segments[0].time).toBe(30);
     // ramp/trapeze
-    const t = segments[1] as BarType & { startPower: number; endPower: number };
+    const t = segments[1] as RampSegment;
     expect(t.type).toBe("trapeze");
     expect(t.startPower).toBeCloseTo(120 / 200, 6);
     expect(t.endPower).toBeCloseTo(140 / 200, 6);
     expect(t.time).toBe(60);
 
     // freeride
-    const f = segments[2] as BarType;
+    const f = segments[2] as FreeRideSegment;
     expect(f.type).toBe("freeRide");
     expect(f.time).toBe(300);
     expect(f.cadence).toBe(90);
 
     // interval
-    const itv = segments[3] as BarType & {
-      repeat: number;
-      onDuration: number;
-      offDuration: number;
-      onPower: number;
-      offPower: number;
-    };
+    const itv = segments[3] as IntervalSegment;
     expect(itv.type).toBe("interval");
     expect(itv.repeat).toBe(3);
     expect(itv.time).toBe(270);
@@ -81,11 +75,11 @@ describe("parseWorkoutText", () => {
     // 3.0wkg with default weight 75 -> 3*75 / 200 = 1.125
     const { segments: s1 } = parseWorkoutText("steady 3.0wkg 30s");
     expect(s1[0].type).toBe("bar");
-    expect((s1[0] as BarType).power).toBeCloseTo((3.0 * 75) / 200, 6);
+    expect((s1[0] as SteadySegment).power).toBeCloseTo((3.0 * 75) / 200, 6);
 
     // 75% should translate to 0.75
     const { segments: s2 } = parseWorkoutText("steady 75% 20s");
-    expect((s2[0] as BarType).power).toBeCloseTo(0.75, 6);
+    expect((s2[0] as SteadySegment).power).toBeCloseTo(0.75, 6);
   });
 
   it("handles interval multipliers and message defaults", () => {
@@ -96,7 +90,7 @@ describe("parseWorkoutText", () => {
     ].join("\n");
     const { segments, instructions } = parseWorkoutText(input);
     expect(segments.length).toBe(1);
-    const itv = segments[0] as BarType & { repeat: number };
+    const itv = segments[0] as IntervalSegment;
     expect(itv.repeat).toBe(10);
 
     // message without a duration should default to 0

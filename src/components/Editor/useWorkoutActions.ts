@@ -2,12 +2,12 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { Zones } from "../constants";
 import { calculateDistance, calculateTime, round } from "../helpers";
-import type { BarType, DurationType, Instruction } from "./editorTypes";
+import type { DurationType, Instruction, SegmentType } from "./editorTypes";
 import { genId, genShortId } from "@/utils/id";
 
 interface UseWorkoutActionsProps {
-  bars: BarType[];
-  setBars: Dispatch<SetStateAction<BarType[]>>;
+  bars: SegmentType[];
+  setBars: Dispatch<SetStateAction<SegmentType[]>>;
   instructions: Instruction[];
   setInstructions: Dispatch<SetStateAction<Instruction[]>>;
   actionId: string | undefined;
@@ -24,7 +24,7 @@ interface UseWorkoutActionsProps {
 
 export interface WorkoutActions {
   newWorkout: () => void;
-  handleOnChange: (id: string, values: BarType) => void;
+  handleOnChange: (id: string, values: SegmentType) => void;
   handleOnClick: (id: string) => void;
   addBar: (zone: number, duration?: number, cadence?: number, pace?: number, length?: number) => void;
   addTrapeze: (
@@ -80,6 +80,19 @@ export default function useWorkoutActions({
   setAuthor,
   setTags,
 }: UseWorkoutActionsProps): WorkoutActions {
+  const getReferencePower = (segment: SegmentType): number => {
+    if (segment.type === "bar") {
+      return segment.power;
+    }
+    if (segment.type === "trapeze") {
+      return Math.max(0.01, (segment.startPower + segment.endPower) / 2);
+    }
+    if (segment.type === "interval") {
+      return Math.max(0.01, (segment.onPower + segment.offPower) / 2);
+    }
+    return 1;
+  };
+
   function newWorkout() {
     setWorkoutId(genShortId());
     setBars([]);
@@ -90,8 +103,11 @@ export default function useWorkoutActions({
     setTags([]);
   }
 
-  function handleOnChange(id: string, values: BarType) {
+  function handleOnChange(id: string, values: SegmentType) {
     const index = bars.findIndex((bar) => bar.id === id);
+    if (index === -1) {
+      return;
+    }
     const updatedArray = [...bars];
     updatedArray[index] = values;
     setBars(updatedArray);
@@ -239,14 +255,16 @@ export default function useWorkoutActions({
     const element = updatedArray[index];
 
     if (element && durationType === "time") {
+      const referencePower = getReferencePower(element);
       element.time += 5;
-      element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
+      element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / referencePower;
       setBars(updatedArray);
     }
 
     if (element && durationType === "distance") {
-      element.length = (element.length || 0) + 200;
-      element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
+      const referencePower = getReferencePower(element);
+      element.length += 200;
+      element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / referencePower;
       setBars(updatedArray);
     }
   }
@@ -257,14 +275,16 @@ export default function useWorkoutActions({
     const element = updatedArray[index];
 
     if (element && element.time > 5 && durationType === "time") {
+      const referencePower = getReferencePower(element);
       element.time -= 5;
-      element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
+      element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / referencePower;
       setBars(updatedArray);
     }
 
-    if (element && (element.length || 0) > 200 && durationType === "distance") {
-      element.length = (element.length || 0) - 200;
-      element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
+    if (element && element.length > 200 && durationType === "distance") {
+      const referencePower = getReferencePower(element);
+      element.length -= 200;
+      element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / referencePower;
       setBars(updatedArray);
     }
   }
@@ -274,7 +294,7 @@ export default function useWorkoutActions({
     const index = updatedArray.findIndex((bar) => bar.id === id);
     const element = updatedArray[index];
 
-    if (element?.power) {
+    if (element?.type === "bar") {
       const currentWatts = element.power * ftp;
       const nextWatts = useLargeStep ? Math.round(currentWatts / 10) * 10 + 10 : currentWatts + 1;
       element.power = parseFloat((nextWatts / ftp).toFixed(3));
@@ -282,7 +302,7 @@ export default function useWorkoutActions({
       if (durationType === "time") {
         element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / element.power;
       } else {
-        element.time = (calculateTime(element.length || 0, calculateSpeed(element.pace || 0)) * 1) / element.power;
+        element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / element.power;
       }
 
       setBars(updatedArray);
@@ -294,7 +314,7 @@ export default function useWorkoutActions({
     const index = updatedArray.findIndex((bar) => bar.id === id);
     const element = updatedArray[index];
 
-    if (element?.power && element.power >= Zones.Z1.min) {
+    if (element?.type === "bar" && element.power >= Zones.Z1.min) {
       const currentWatts = element.power * ftp;
       const minWatts = Zones.Z1.min * ftp;
       const rawNextWatts = useLargeStep ? Math.round(currentWatts / 10) * 10 - 10 : currentWatts - 1;
@@ -304,7 +324,7 @@ export default function useWorkoutActions({
       if (durationType === "time") {
         element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / element.power;
       } else {
-        element.time = (calculateTime(element.length || 0, calculateSpeed(element.pace || 0)) * 1) / element.power;
+        element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / element.power;
       }
 
       setBars(updatedArray);
@@ -314,23 +334,19 @@ export default function useWorkoutActions({
   function duplicateBar(id: string) {
     const index = bars.findIndex((bar) => bar.id === id);
     const element = [...bars][index];
+    if (!element) {
+      return;
+    }
 
     switch (element.type) {
       case "bar":
-        addBar(element.power || 80, element.time, element.cadence, element.pace, element.length);
+        addBar(element.power, element.time, element.cadence, element.pace, element.length);
         break;
       case "freeRide":
         addFreeRide(element.time, element.cadence, element.length);
         break;
       case "trapeze":
-        addTrapeze(
-          element.startPower || 80,
-          element.endPower || 160,
-          element.time,
-          element.pace || 0,
-          element.length,
-          element.cadence,
-        );
+        addTrapeze(element.startPower, element.endPower, element.time, element.pace || 0, element.length, element.cadence);
         break;
       case "interval":
         addInterval(
@@ -364,7 +380,7 @@ export default function useWorkoutActions({
 
   function moveRight(id: string) {
     const index = bars.findIndex((bar) => bar.id === id);
-    if (index < bars.length - 1) {
+    if (index >= 0 && index < bars.length - 1) {
       const updatedArray = [...bars];
       const element = [...bars][index];
       updatedArray.splice(index, 1);
@@ -401,11 +417,12 @@ export default function useWorkoutActions({
       const updatedArray = [...bars];
       const element = [...updatedArray][index];
       element.pace = Number.parseInt(value, 10);
+      const referencePower = getReferencePower(element);
 
       if (durationType === "time") {
-        element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
+        element.length = (calculateDistance(element.time, calculateSpeed(element.pace || 0)) * 1) / referencePower;
       } else {
-        element.time = (calculateTime(element.length || 0, calculateSpeed(element.pace || 0)) * 1) / (element.power || 1);
+        element.time = (calculateTime(element.length, calculateSpeed(element.pace || 0)) * 1) / referencePower;
       }
 
       setBars(updatedArray);

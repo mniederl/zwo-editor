@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { Resizable } from "re-resizable";
 
 import { Colors, Zones } from "@/components/constants";
-import type { BarType, DurationType, PaceUnitType, SportType } from "@/components/Editor/editorTypes";
+import type { DurationType, PaceUnitType, SportType, SteadySegment } from "@/components/Editor/editorTypes";
 import { calculateDistance, calculateSpeed, calculateTime, round } from "@/components/helpers";
 import Label from "@/components/Label/Label";
 import { formatTime } from "@/utils/time";
@@ -23,7 +23,7 @@ const Bar = (props: {
   maxEditablePower: number;
   onVerticalResizeStart?: () => void;
   onVerticalResizeEnd?: () => void;
-  onChange: (id: string, value: BarType) => void;
+  onChange: (id: string, value: SteadySegment) => void;
   onClick: (id: string) => void;
   selected: boolean;
   showLabel: boolean;
@@ -100,8 +100,8 @@ const Bar = (props: {
 
   const handleCadenceChange = (cadence: number) => {
     props.onChange(props.id, {
-      time: props.time,
-      length: props.length,
+      time: props.time ?? 0,
+      length: props.length ?? 0,
       power: props.power,
       cadence: cadence,
       type: "bar",

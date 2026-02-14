@@ -1,24 +1,44 @@
 import type { RunningTimes } from "./RunningTimesEditor";
 
-export interface BarType {
+export type SegmentKind = "bar" | "trapeze" | "interval" | "freeRide";
+
+export interface SegmentBase {
   id: string;
+  type: SegmentKind;
   time: number;
-  length?: number;
-  type: string;
-  power?: number;
-  startPower?: number;
-  endPower?: number;
+  length: number;
   cadence: number;
-  restingCadence?: number;
-  onPower?: number;
-  offPower?: number;
-  onDuration?: number;
-  offDuration?: number;
-  repeat?: number;
   pace?: number;
-  onLength?: number;
-  offLength?: number;
 }
+
+export interface SteadySegment extends SegmentBase {
+  type: "bar";
+  power: number;
+}
+
+export interface RampSegment extends SegmentBase {
+  type: "trapeze";
+  startPower: number;
+  endPower: number;
+}
+
+export interface IntervalSegment extends SegmentBase {
+  type: "interval";
+  repeat: number;
+  onDuration: number;
+  offDuration: number;
+  onPower: number;
+  offPower: number;
+  restingCadence: number;
+  onLength: number;
+  offLength: number;
+}
+
+export interface FreeRideSegment extends SegmentBase {
+  type: "freeRide";
+}
+
+export type SegmentType = SteadySegment | RampSegment | IntervalSegment | FreeRideSegment;
 
 export interface Instruction {
   id: string;

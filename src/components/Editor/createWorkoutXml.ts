@@ -1,6 +1,6 @@
 import { XMLBuilder } from "fast-xml-parser";
 
-import type { BarType, DurationType, Instruction, SportType } from "./editorTypes";
+import type { SegmentType, DurationType, Instruction, SportType } from "./editorTypes";
 
 interface Workout {
   author: string;
@@ -9,7 +9,7 @@ interface Workout {
   sportType: SportType;
   durationType: DurationType;
   tags: string[];
-  bars: Array<BarType>;
+  bars: Array<SegmentType>;
   instructions: Array<Instruction>;
 }
 
@@ -27,7 +27,7 @@ export default function createWorkoutXml({
   let totalLength = 0;
   const workoutNodes: Array<Record<string, unknown>> = [];
 
-  const addTextEvents = (nodeChildren: Array<Record<string, unknown>>, bar: BarType) => {
+  const addTextEvents = (nodeChildren: Array<Record<string, unknown>>, bar: SegmentType) => {
     if (durationType === "time") {
       instructions
         .filter((instruction) => instruction.time >= totalTime && instruction.time < totalTime + bar.time)
@@ -41,12 +41,12 @@ export default function createWorkoutXml({
           });
         });
       totalTime += bar.time;
-      totalLength += bar.length || 0;
+      totalLength += bar.length;
       return;
     }
 
     instructions
-      .filter((instruction) => instruction.length >= totalLength && instruction.length < totalLength + (bar.length || 0))
+      .filter((instruction) => instruction.length >= totalLength && instruction.length < totalLength + bar.length)
       .forEach((instruction) => {
         nodeChildren.push({
           textevent: [],
@@ -57,7 +57,7 @@ export default function createWorkoutXml({
         });
       });
     totalTime += bar.time;
-    totalLength += bar.length || 0;
+    totalLength += bar.length;
   };
 
   bars.forEach((bar, index) => {
@@ -73,7 +73,7 @@ export default function createWorkoutXml({
         pace: bar.pace,
       };
       if (bar.cadence !== 0) attrs.Cadence = bar.cadence;
-    } else if (bar.type === "trapeze" && bar.startPower && bar.endPower) {
+    } else if (bar.type === "trapeze") {
       nodeName = "Ramp";
       if (index === 0) nodeName = "Warmup";
       if (index === bars.length - 1 && bar.startPower > bar.endPower) nodeName = "Cooldown";

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Resizable } from "re-resizable";
 
-import type { BarType, DurationType, SportType } from "@/components/Editor/editorTypes";
+import type { DurationType, FreeRideSegment, SportType } from "@/components/Editor/editorTypes";
 import { round } from "@/components/helpers";
 import Label from "@/components/Label/Label";
 import { formatTime } from "@/utils/time";
@@ -15,7 +15,7 @@ const FreeRide = (props: {
   cadence: number;
   sportType: SportType;
   durationType: DurationType;
-  onChange: (id: string, value: BarType) => void;
+  onChange: (id: string, value: FreeRideSegment) => void;
   onClick: (id: string) => void;
   selected: boolean;
 }) => {
@@ -36,7 +36,8 @@ const FreeRide = (props: {
 
   const handleCadenceChange = (cadence: number) => {
     props.onChange(props.id, {
-      time: props.time,
+      time: props.time ?? 0,
+      length: props.length ?? 0,
       type: "freeRide",
       cadence: cadence,
       id: props.id,

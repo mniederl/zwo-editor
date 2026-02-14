@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Resizable } from "re-resizable";
 
 import { Colors, Zones, ZonesArray } from "@/components/constants";
-import type { BarType, DurationType, PaceUnitType, SportType } from "@/components/Editor/editorTypes";
+import type { DurationType, PaceUnitType, RampSegment, SportType } from "@/components/Editor/editorTypes";
 import { calculateDistance, calculateTime, round } from "@/components/helpers";
 import Label from "@/components/Label/Label";
 import { formatTime } from "@/utils/time";
@@ -29,7 +29,7 @@ const RightTrapezoid = (props: {
   maxEditablePower: number;
   onVerticalResizeStart?: () => void;
   onVerticalResizeEnd?: () => void;
-  onChange: (id: string, value: BarType) => void;
+  onChange: (id: string, value: RampSegment) => void;
   onClick: (id: string) => void;
   selected: boolean;
   paceUnitType?: PaceUnitType;
@@ -51,8 +51,8 @@ const RightTrapezoid = (props: {
 
   const handleCadenceChange = (cadence: number) => {
     props.onChange(props.id, {
-      time: props.time,
-      length: props.length,
+      time: props.time ?? 0,
+      length: props.length ?? 0,
       startPower: props.startPower,
       endPower: props.endPower,
       cadence: cadence,
@@ -120,7 +120,7 @@ const RightTrapezoid = (props: {
     const time =
       props.durationType === "time"
         ? round(nextWidth * timeMultiplier * 3, 5)
-        : round((calculateTime(props.length, props.speed) * 1) / avgPower, 1);
+        : round((calculateTime(props.length ?? 0, props.speed ?? 0) * 1) / avgPower, 1);
     const length =
       props.durationType === "time"
         ? round((calculateDistance(nextWidth * timeMultiplier, props.speed) * 1) / avgPower, 1)
@@ -147,7 +147,7 @@ const RightTrapezoid = (props: {
     const time =
       props.durationType === "time"
         ? round(nextWidth * timeMultiplier * 3, 5)
-        : round((calculateTime(props.length, props.speed) * 1) / avgPower, 1);
+        : round((calculateTime(props.length ?? 0, props.speed ?? 0) * 1) / avgPower, 1);
     const length =
       props.durationType === "time"
         ? round((calculateDistance(nextWidth * timeMultiplier, props.speed) * 1) / avgPower, 1)
@@ -178,7 +178,7 @@ const RightTrapezoid = (props: {
     const time =
       props.durationType === "time"
         ? round(nextWidth * timeMultiplier * 3, 5)
-        : round((calculateTime(props.length, props.speed) * 1) / avgPower, 1);
+        : round((calculateTime(props.length ?? 0, props.speed ?? 0) * 1) / avgPower, 1);
 
     props.onChange(props.id, {
       time: time,

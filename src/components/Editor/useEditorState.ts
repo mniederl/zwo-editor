@@ -1,7 +1,7 @@
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import { useCallback, useEffect, useReducer, useState } from "react";
 
-import type { BarType, DurationType, Instruction, PaceUnitType, SportType } from "./editorTypes";
+import type { SegmentType, DurationType, Instruction, PaceUnitType, SportType } from "./editorTypes";
 import { loadRunningTimes } from "./editorTypes";
 import type { RunningTimes } from "./RunningTimesEditor";
 import { genShortId } from "@/utils/id";
@@ -18,13 +18,13 @@ interface UseEditorStateProps {
 }
 
 interface WorkoutState {
-  bars: BarType[];
+  bars: SegmentType[];
   instructions: Instruction[];
   actionId: string | undefined;
 }
 
 type WorkoutStateAction =
-  | { type: "setBars"; value: SetStateAction<BarType[]> }
+  | { type: "setBars"; value: SetStateAction<SegmentType[]> }
   | { type: "setInstructions"; value: SetStateAction<Instruction[]> }
   | { type: "setActionId"; value: SetStateAction<string | undefined> };
 
@@ -47,8 +47,8 @@ function workoutReducer(state: WorkoutState, action: WorkoutStateAction): Workou
 export interface EditorStateModel {
   workoutId: string;
   setWorkoutId: Dispatch<SetStateAction<string>>;
-  bars: BarType[];
-  setBars: (value: SetStateAction<BarType[]>) => void;
+  bars: SegmentType[];
+  setBars: (value: SetStateAction<SegmentType[]>) => void;
   actionId: string | undefined;
   setActionId: (value: SetStateAction<string | undefined>) => void;
   ftp: number;
@@ -92,7 +92,7 @@ export default function useEditorState({ id, segmentsRef }: UseEditorStateProps)
     actionId: undefined,
   } as WorkoutState);
   const { bars, instructions, actionId } = workoutState;
-  const setBars = useCallback((value: SetStateAction<BarType[]>) => dispatchWorkout({ type: "setBars", value }), []);
+  const setBars = useCallback((value: SetStateAction<SegmentType[]>) => dispatchWorkout({ type: "setBars", value }), []);
   const setInstructions = useCallback(
     (value: SetStateAction<Instruction[]>) => dispatchWorkout({ type: "setInstructions", value }),
     [],

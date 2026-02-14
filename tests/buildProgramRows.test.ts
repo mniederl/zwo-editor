@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import buildProgramRows from "../src/components/Editor/buildProgramRows";
-import type { BarType } from "../src/components/Editor/editorTypes";
+import type { SegmentType } from "../src/components/Editor/editorTypes";
 
 describe("buildProgramRows", () => {
   it("groups intervals and formats bike rows", () => {
-    const bars: BarType[] = [
+    const bars: SegmentType[] = [
       {
         id: "bar-a",
         type: "bar",
@@ -25,6 +25,8 @@ describe("buildProgramRows", () => {
         repeat: 2,
         onDuration: 10,
         offDuration: 20,
+        onLength: 0,
+        offLength: 0,
         onPower: 1.1,
         offPower: 0.5,
         pace: 0,

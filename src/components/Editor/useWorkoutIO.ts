@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 
 import createWorkoutXml from "./createWorkoutXml";
-import type { BarType, DurationType, Instruction, SportType } from "./editorTypes";
+import type { SegmentType, DurationType, Instruction, SportType } from "./editorTypes";
 import type { EditorMessage } from "./useEditorState";
 import parseWorkoutXml from "@/parsers/parseWorkoutXml";
 import { genId } from "@/utils/id";
@@ -14,9 +14,9 @@ interface UseWorkoutIOProps {
   sportType: SportType;
   durationType: DurationType;
   tags: string[];
-  bars: BarType[];
+  bars: SegmentType[];
   instructions: Instruction[];
-  setBars: Dispatch<SetStateAction<BarType[]>>;
+  setBars: Dispatch<SetStateAction<SegmentType[]>>;
   setInstructions: Dispatch<SetStateAction<Instruction[]>>;
   setAuthor: Dispatch<SetStateAction<string>>;
   setName: Dispatch<SetStateAction<string>>;

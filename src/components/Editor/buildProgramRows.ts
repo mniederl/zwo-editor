@@ -1,5 +1,5 @@
 import { Colors, Zones } from "../constants";
-import type { BarType, DurationType, SportType } from "./editorTypes";
+import type { SegmentType, DurationType, SportType } from "./editorTypes";
 
 export interface ProgramRow {
   id: string;
@@ -12,7 +12,7 @@ export interface ProgramRow {
 }
 
 interface BuildProgramRowsOptions {
-  bars: BarType[];
+  bars: SegmentType[];
   sportType: SportType;
   durationType: DurationType;
   ftp: number;
@@ -237,30 +237,30 @@ export default function buildProgramRows({
           segmentId: bar.id,
           text: formatBarRow({
             cadence: bar.cadence,
-            durationLabel: formatDuration(durationType === "time" ? bar.time : bar.length || 0, durationType),
+            durationLabel: formatDuration(durationType === "time" ? bar.time : bar.length, durationType),
             ftp,
-            pace: bar.pace || 0,
-            power: bar.power || 0,
+            pace: bar.pace ?? 0,
+            power: bar.power,
             sportType,
           }),
-          power: bar.power || 0,
+          power: bar.power,
         }),
       );
       return;
     }
 
     if (bar.type === "trapeze") {
-      const startPower = bar.startPower || 0;
-      const endPower = bar.endPower || 0;
+      const startPower = bar.startPower;
+      const endPower = bar.endPower;
       rows.push(
         createGradientRow({
           id: `${bar.id}-${barIndex}`,
           segmentId: bar.id,
           text: formatRampRow({
             cadence: bar.cadence,
-            durationLabel: formatDuration(durationType === "time" ? bar.time : bar.length || 0, durationType),
+            durationLabel: formatDuration(durationType === "time" ? bar.time : bar.length, durationType),
             ftp,
-            pace: bar.pace || 0,
+            pace: bar.pace ?? 0,
             startPower,
             endPower,
             sportType,
@@ -273,9 +273,9 @@ export default function buildProgramRows({
     }
 
     if (bar.type === "interval") {
-      const repeat = Math.max(0, Math.round(bar.repeat || 0));
-      const onDuration = durationType === "time" ? bar.onDuration || 0 : bar.onLength || 0;
-      const offDuration = durationType === "time" ? bar.offDuration || 0 : bar.offLength || 0;
+      const repeat = Math.max(0, Math.round(bar.repeat));
+      const onDuration = durationType === "time" ? bar.onDuration : bar.onLength;
+      const offDuration = durationType === "time" ? bar.offDuration : bar.offLength;
 
       rows.push(
         createSolidRow({
@@ -283,13 +283,13 @@ export default function buildProgramRows({
           segmentId: bar.id,
           text: formatIntervalStepRow({
             durationLabel: formatDuration(onDuration, durationType),
-            power: bar.onPower || 0,
+            power: bar.onPower,
             cadence: bar.cadence,
             ftp,
-            pace: bar.pace || 0,
+            pace: bar.pace ?? 0,
             sportType,
           }),
-          power: bar.onPower || 0,
+          power: bar.onPower,
           variant: "intervalOn",
           repeatCount: repeat,
         }),
@@ -300,13 +300,13 @@ export default function buildProgramRows({
           segmentId: bar.id,
           text: formatIntervalStepRow({
             durationLabel: formatDuration(offDuration, durationType),
-            power: bar.offPower || 0,
-            cadence: bar.restingCadence || 0,
+            power: bar.offPower,
+            cadence: bar.restingCadence,
             ftp,
-            pace: bar.pace || 0,
+            pace: bar.pace ?? 0,
             sportType,
           }),
-          power: bar.offPower || 0,
+          power: bar.offPower,
           variant: "intervalOff",
           repeatCount: repeat,
         }),
@@ -314,7 +314,7 @@ export default function buildProgramRows({
       return;
     }
 
-    const durationLabel = formatDuration(durationType === "time" ? bar.time : bar.length || 0, durationType);
+    const durationLabel = formatDuration(durationType === "time" ? bar.time : bar.length, durationType);
     rows.push({
       id: `${bar.id}-${barIndex}`,
       segmentId: bar.id,

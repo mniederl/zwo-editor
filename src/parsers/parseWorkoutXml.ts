@@ -1,6 +1,15 @@
 import { XMLParser } from "fast-xml-parser";
 
-import type { BarType, DurationType, Instruction, SportType } from "@/components/Editor/editorTypes";
+import type {
+  DurationType,
+  FreeRideSegment,
+  Instruction,
+  IntervalSegment,
+  RampSegment,
+  SegmentType,
+  SportType,
+  SteadySegment,
+} from "@/components/Editor/editorTypes";
 import { genId } from "@/utils/id";
 
 export interface ParsedWorkoutXml {
@@ -12,7 +21,7 @@ export interface ParsedWorkoutXml {
     sportType: SportType;
     durationType: DurationType;
   };
-  segments: BarType[];
+  segments: SegmentType[];
   instructions: Instruction[];
 }
 
@@ -84,7 +93,7 @@ export function parseWorkoutXml(
   const workoutNode = rootChildren.find((n) => "workout" in n);
   const workoutChildren = toArray(workoutNode?.workout as OrderedNode[] | undefined);
 
-  const segments: BarType[] = [];
+  const segments: SegmentType[] = [];
   const instructions: Instruction[] = [];
 
   let totalTime = 0;
@@ -103,7 +112,7 @@ export function parseWorkoutXml(
     if (segmentName === "SteadyState") {
       const duration = asNumber(readAttr(attrs, "Duration"));
       const pace = asNumber(readAttr(attrs, "pace", "Pace"));
-      const bar: BarType = {
+      const bar: SteadySegment = {
         id: idGenerator(),
         type: "bar",
         time: durationType === "time" ? duration : 0,
@@ -117,7 +126,7 @@ export function parseWorkoutXml(
     } else if (segmentName === "Ramp" || segmentName === "Warmup" || segmentName === "Cooldown") {
       const duration = asNumber(readAttr(attrs, "Duration"));
       const pace = asNumber(readAttr(attrs, "pace", "Pace"));
-      const bar: BarType = {
+      const bar: RampSegment = {
         id: idGenerator(),
         type: "trapeze",
         time: durationType === "time" ? duration : 0,
@@ -136,16 +145,16 @@ export function parseWorkoutXml(
       const duration = (on + off) * repeat;
       const pace = asNumber(readAttr(attrs, "pace", "Pace"));
 
-      const bar: BarType = {
+      const bar: IntervalSegment = {
         id: idGenerator(),
         type: "interval",
         time: durationType === "time" ? duration : 0,
         length: durationType === "distance" ? duration : 0,
         repeat,
-        onDuration: durationType === "time" ? on : undefined,
-        offDuration: durationType === "time" ? off : undefined,
-        onLength: durationType === "distance" ? on : undefined,
-        offLength: durationType === "distance" ? off : undefined,
+        onDuration: durationType === "time" ? on : 0,
+        offDuration: durationType === "time" ? off : 0,
+        onLength: durationType === "distance" ? on : 0,
+        offLength: durationType === "distance" ? off : 0,
         onPower: asNumber(readAttr(attrs, "OnPower"), 1),
         offPower: asNumber(readAttr(attrs, "OffPower"), 0.5),
         cadence: asNumber(readAttr(attrs, "Cadence"), 0),
@@ -156,7 +165,7 @@ export function parseWorkoutXml(
       segmentSpan = duration;
     } else if (segmentName === "FreeRide") {
       const duration = asNumber(readAttr(attrs, "Duration"));
-      const bar: BarType = {
+      const bar: FreeRideSegment = {
         id: idGenerator(),
         type: "freeRide",
         time: durationType === "time" ? duration : 0,

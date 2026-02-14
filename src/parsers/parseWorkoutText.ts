@@ -1,4 +1,12 @@
-import type { BarType, DurationType, Instruction } from "@/components/Editor/editorTypes";
+import type {
+  DurationType,
+  FreeRideSegment,
+  Instruction,
+  IntervalSegment,
+  RampSegment,
+  SegmentType,
+  SteadySegment,
+} from "@/components/Editor/editorTypes";
 import { calculateDistance, calculateTime, round } from "@/components/helpers";
 import { type Block, type PowerValue, parseLines, type Range } from "@/parsers/parseWorkoutLine";
 import { genId } from "@/utils/id";
@@ -15,7 +23,7 @@ export function parseWorkoutText(
   textValue: string,
   { durationType = "time", ftp = 200, weight = 75, calculateSpeed = () => 0 }: ParseOptions = {},
 ) {
-  const segments: Array<BarType> = [];
+  const segments: Array<SegmentType> = [];
   const instructions: Array<Instruction> = [];
 
   const powerToRatio = (power: PowerValue): number => {
@@ -60,7 +68,7 @@ export function parseWorkoutText(
       const length =
         durationType === "time" ? round(calculateDistance(duration, calculateSpeed(pace)), 1) : lengthDefault;
 
-      segments.push({
+      const segment: SteadySegment = {
         time,
         length,
         power,
@@ -68,7 +76,8 @@ export function parseWorkoutText(
         type: "bar",
         id: genId(),
         pace,
-      } as BarType);
+      };
+      segments.push(segment);
       return;
     }
 
@@ -83,7 +92,7 @@ export function parseWorkoutText(
       const length =
         durationType === "time" ? round(calculateDistance(duration, calculateSpeed(pace)), 1) : lengthDefault;
 
-      segments.push({
+      const segment: RampSegment = {
         time,
         length,
         startPower: powers.a,
@@ -92,7 +101,8 @@ export function parseWorkoutText(
         pace,
         type: "trapeze",
         id: genId(),
-      } as BarType);
+      };
+      segments.push(segment);
       return;
     }
 
@@ -101,13 +111,14 @@ export function parseWorkoutText(
       const duration = block.time || 600;
       const length = 1000;
 
-      segments.push({
+      const segment: FreeRideSegment = {
         time: durationType === "time" ? duration : 0,
         length: durationType === "time" ? 0 : length,
         cadence,
         type: "freeRide",
         id: genId(),
-      } as BarType);
+      };
+      segments.push(segment);
       return;
     }
 
@@ -153,7 +164,7 @@ export function parseWorkoutText(
           ? round(calculateDistance(offDurationVal / (power.b || 1), calculateSpeed(pace)), 1)
           : offLengthDefault;
 
-      segments.push({
+      const segment: IntervalSegment = {
         time,
         length,
         id: genId(),
@@ -168,7 +179,8 @@ export function parseWorkoutText(
         pace,
         onLength: onLengthVal,
         offLength: offLengthVal,
-      } as BarType);
+      };
+      segments.push(segment);
       return;
     }
 

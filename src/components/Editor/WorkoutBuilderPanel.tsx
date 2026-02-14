@@ -16,7 +16,7 @@ import { Colors, Zones } from "../constants";
 import buildProgramRows from "./buildProgramRows";
 import DistanceAxis from "./DistanceAxis";
 import { useEditorContext } from "./EditorContext";
-import type { BarType, Instruction } from "./editorTypes";
+import type { FreeRideSegment, Instruction, IntervalSegment, RampSegment, SteadySegment } from "./editorTypes";
 import TimeAxis from "./TimeAxis";
 import useSegmentReorder from "./useSegmentReorder";
 import WorkoutProgramPanel from "./WorkoutProgramPanel";
@@ -52,13 +52,13 @@ export default function WorkoutBuilderPanel() {
     () =>
       bars.reduce((maxPower, bar) => {
         if (bar.type === "bar") {
-          return Math.max(maxPower, bar.power || 0);
+          return Math.max(maxPower, bar.power);
         }
         if (bar.type === "trapeze") {
-          return Math.max(maxPower, bar.startPower || 0, bar.endPower || 0);
+          return Math.max(maxPower, bar.startPower, bar.endPower);
         }
         if (bar.type === "interval") {
-          return Math.max(maxPower, bar.onPower || 0, bar.offPower || 0);
+          return Math.max(maxPower, bar.onPower, bar.offPower);
         }
         return maxPower;
       }, Zones.Z6.max),
@@ -209,56 +209,56 @@ export default function WorkoutBuilderPanel() {
     { label: "Z6", color: Colors.RED, zone: Zones.Z6.min, textColor: "#ffffff" },
   ];
 
-  const renderBar = (bar: (typeof bars)[number]) => (
+  const renderBar = (bar: SteadySegment) => (
     <Bar
       id={bar.id}
       time={bar.time}
-      length={bar.length || 200}
-      power={bar.power || 100}
+      length={bar.length}
+      power={bar.power}
       cadence={bar.cadence}
       ftp={ftp}
       weight={weight}
       sportType={sportType}
       durationType={durationType}
       paceUnitType={paceUnitType}
-      pace={bar.pace || 0}
-      speed={helpers.calculateSpeed(bar.pace || 0)}
+      pace={bar.pace ?? 0}
+      speed={helpers.calculateSpeed(bar.pace ?? 0)}
       powerScale={powerScale}
       maxEditablePower={maxEditablePower}
       onVerticalResizeStart={handleVerticalResizeStart}
       onVerticalResizeEnd={handleVerticalResizeEnd}
-      onChange={(id: string, value: BarType) => actions.handleOnChange(id, value)}
+      onChange={(id: string, value: SteadySegment) => actions.handleOnChange(id, value)}
       onClick={(id: string) => actions.handleOnClick(id)}
       selected={bar.id === actionId}
       showLabel={true}
     />
   );
 
-  const renderTrapeze = (bar: (typeof bars)[number]) => (
+  const renderTrapeze = (bar: RampSegment) => (
     <RightTrapezoid
       id={bar.id}
       time={bar.time}
-      length={bar.length || 200}
+      length={bar.length}
       cadence={bar.cadence}
-      startPower={bar.startPower || 80}
-      endPower={bar.endPower || 160}
+      startPower={bar.startPower}
+      endPower={bar.endPower}
       ftp={ftp}
       sportType={sportType}
       durationType={durationType}
       paceUnitType={paceUnitType}
-      pace={bar.pace || 0}
-      speed={helpers.calculateSpeed(bar.pace || 0)}
+      pace={bar.pace ?? 0}
+      speed={helpers.calculateSpeed(bar.pace ?? 0)}
       powerScale={powerScale}
       maxEditablePower={maxEditablePower}
       onVerticalResizeStart={handleVerticalResizeStart}
       onVerticalResizeEnd={handleVerticalResizeEnd}
-      onChange={(id: string, value: BarType) => actions.handleOnChange(id, value)}
+      onChange={(id: string, value: RampSegment) => actions.handleOnChange(id, value)}
       onClick={(id: string) => actions.handleOnClick(id)}
       selected={bar.id === actionId}
     />
   );
 
-  const renderFreeRide = (bar: (typeof bars)[number]) => (
+  const renderFreeRide = (bar: FreeRideSegment) => (
     <FreeRide
       id={bar.id}
       time={bar.time}
@@ -266,35 +266,35 @@ export default function WorkoutBuilderPanel() {
       cadence={bar.cadence}
       durationType={durationType}
       sportType={sportType}
-      onChange={(id: string, value: BarType) => actions.handleOnChange(id, value)}
+      onChange={(id: string, value: FreeRideSegment) => actions.handleOnChange(id, value)}
       onClick={(id: string) => actions.handleOnClick(id)}
       selected={bar.id === actionId}
     />
   );
 
-  const renderInterval = (bar: (typeof bars)[number]) => (
+  const renderInterval = (bar: IntervalSegment) => (
     <Interval
       id={bar.id}
-      repeat={bar.repeat || 3}
-      onDuration={bar.onDuration || 10}
-      offDuration={bar.offDuration || 50}
-      onPower={bar.onPower || 250}
-      offPower={bar.offPower || 120}
-      onLength={bar.onLength || 200}
-      offLength={bar.offLength || 200}
+      repeat={bar.repeat}
+      onDuration={bar.onDuration}
+      offDuration={bar.offDuration}
+      onPower={bar.onPower}
+      offPower={bar.offPower}
+      onLength={bar.onLength}
+      offLength={bar.offLength}
       cadence={bar.cadence}
-      restingCadence={bar.restingCadence || 0}
+      restingCadence={bar.restingCadence}
       ftp={ftp}
       weight={weight}
       sportType={sportType}
       durationType={durationType}
-      pace={bar.pace || 0}
-      speed={helpers.calculateSpeed(bar.pace || 0)}
+      pace={bar.pace ?? 0}
+      speed={helpers.calculateSpeed(bar.pace ?? 0)}
       powerScale={powerScale}
       maxEditablePower={maxEditablePower}
       onVerticalResizeStart={handleVerticalResizeStart}
       onVerticalResizeEnd={handleVerticalResizeEnd}
-      handleIntervalChange={(id: string, value: BarType) => actions.handleOnChange(id, value)}
+      handleIntervalChange={(id: string, value: IntervalSegment) => actions.handleOnChange(id, value)}
       handleIntervalClick={(id: string) => actions.handleOnClick(id)}
       selected={bar.id === actionId}
     />
