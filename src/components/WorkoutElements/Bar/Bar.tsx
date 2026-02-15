@@ -3,7 +3,7 @@ import { Resizable } from "re-resizable";
 
 import { calculateDistance, calculateSpeed, calculateTime, round } from "@/domain/workout/metrics";
 import type { DurationType, PaceUnitType, SportType, SteadySegment } from "@/domain/workout/types";
-import { Colors, Zones } from "@/domain/workout/zones";
+import { Zones, getZoneColor } from "@/domain/workout/zones";
 import Label from "@/components/Label/Label";
 import { formatTime } from "@/utils/time";
 
@@ -55,7 +55,7 @@ const Bar = (props: {
   // time is set -> calculate distance
   // distance is set -> calculate time
 
-  const style = zwiftStyle(props.power);
+  const style = { backgroundColor: getZoneColor(props.power) };
 
   const [showLabel, setShowLabel] = useState(false);
 
@@ -119,31 +119,6 @@ const Bar = (props: {
   const handleResize = (dWidth: number, dHeight: number) => {
     handleOnChange(dWidth, dHeight);
   };
-
-  function zwiftStyle(zone: number) {
-    if (zone >= 0 && zone < Zones.Z1.max) {
-      // Z1 gray
-      return { backgroundColor: Colors.GRAY };
-    }
-    if (zone >= Zones.Z2.min && zone < Zones.Z2.max) {
-      // Z2 blue
-      return { backgroundColor: Colors.BLUE };
-    }
-    if (zone >= Zones.Z3.min && zone < Zones.Z3.max) {
-      // Z3 green
-      return { backgroundColor: Colors.GREEN };
-    }
-    if (zone >= Zones.Z4.min && zone < Zones.Z4.max) {
-      // Z4 yellow
-      return { backgroundColor: Colors.YELLOW };
-    }
-    if (zone >= Zones.Z5.min && zone < Zones.Z5.max) {
-      // Z5 orange
-      return { backgroundColor: Colors.ORANGE };
-    }
-    // Z6 red
-    return { backgroundColor: Colors.RED };
-  }
 
   return (
     <div

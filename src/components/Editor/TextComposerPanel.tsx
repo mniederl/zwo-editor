@@ -1,7 +1,8 @@
-import { useEditorContext } from "./EditorContext";
+import { useEditorHelpersContext, useEditorStateContext } from "./EditorContext";
 
 export default function TextComposerPanel() {
-  const { state, helpers } = useEditorContext();
+  const state = useEditorStateContext();
+  const helpers = useEditorHelpersContext();
   const { isVisible, sportType } = { isVisible: state.textEditorIsVisible, sportType: state.sportType };
   if (!isVisible || sportType !== "bike") {
     return null;

@@ -1,12 +1,24 @@
 import { Bike, Clock3, Download, FileText, Footprints, Pencil, Ruler, Upload } from "lucide-react";
 
-import { useEditorContext } from "./EditorContext";
+import {
+  useEditorActionsContext,
+  useEditorHelpersContext,
+  useEditorIOContext,
+  useEditorMetricsContext,
+  useEditorRefsContext,
+  useEditorStateContext,
+} from "./EditorContext";
 import LeftRightToggle from "./LeftRightToggle";
 import RunningTimesEditor from "./RunningTimesEditor";
 import { cn } from "@/utils/cssUtils";
 
 export default function EditorHeaderPanel() {
-  const { state, actions, io, metrics, helpers, refs } = useEditorContext();
+  const state = useEditorStateContext();
+  const actions = useEditorActionsContext();
+  const io = useEditorIOContext();
+  const metrics = useEditorMetricsContext();
+  const helpers = useEditorHelpersContext();
+  const refs = useEditorRefsContext();
   const {
     sportType,
     durationType,

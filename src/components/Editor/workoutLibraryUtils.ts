@@ -1,16 +1,7 @@
 import type { SegmentType } from "@/domain/workout/types";
-import { Colors, Zones } from "@/domain/workout/zones";
+import { Colors, Zones, getZoneColor } from "@/domain/workout/zones";
 
 import type { PreviewBlock } from "./workoutLibraryTypes";
-
-const zoneToColor = (power: number) => {
-  if (power < Zones.Z2.min) return Colors.GRAY;
-  if (power < Zones.Z3.min) return Colors.BLUE;
-  if (power < Zones.Z4.min) return Colors.GREEN;
-  if (power < Zones.Z5.min) return Colors.YELLOW;
-  if (power < Zones.Z6.min) return Colors.ORANGE;
-  return Colors.RED;
-};
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
@@ -70,7 +61,7 @@ export function buildPreviewBlocks(segments: SegmentType[]): PreviewBlock[] {
 
     if (segment.type === "bar") {
       blocks.push({
-        background: zoneToColor(segment.power),
+        background: getZoneColor(segment.power),
         height: toPreviewHeight(segment.power),
         widthWeight: segmentWidthWeight,
       });
@@ -78,8 +69,8 @@ export function buildPreviewBlocks(segments: SegmentType[]): PreviewBlock[] {
     }
 
     if (segment.type === "trapeze") {
-      const startColor = zoneToColor(segment.startPower);
-      const endColor = zoneToColor(segment.endPower);
+      const startColor = getZoneColor(segment.startPower);
+      const endColor = getZoneColor(segment.endPower);
       blocks.push({
         background:
           startColor === endColor ? startColor : `linear-gradient(90deg, ${startColor} 0%, ${endColor} 100%)`,
@@ -96,12 +87,12 @@ export function buildPreviewBlocks(segments: SegmentType[]): PreviewBlock[] {
 
       for (let repeatIndex = 0; repeatIndex < repeatCount; repeatIndex += 1) {
         blocks.push({
-          background: zoneToColor(segment.onPower),
+          background: getZoneColor(segment.onPower),
           height: toPreviewHeight(segment.onPower),
           widthWeight: onWidthWeight,
         });
         blocks.push({
-          background: zoneToColor(segment.offPower),
+          background: getZoneColor(segment.offPower),
           height: toPreviewHeight(segment.offPower),
           widthWeight: offWidthWeight,
         });

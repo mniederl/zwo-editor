@@ -196,9 +196,9 @@ Acceptance:
 - [x] Phase 2 Extract Domain Types + Utilities
 - [x] Phase 3 Move XML IO Logic
 - [ ] Phase 4 Decompose Oversized Editor Units
-- [ ] Phase 5 Context and Prop Surface Cleanup
-- [ ] Phase 6 Deduplicate Shared Logic
-- [ ] Phase 7 Remove Dead/Conflicting Models
+- [x] Phase 5 Context and Prop Surface Cleanup
+- [x] Phase 6 Deduplicate Shared Logic
+- [x] Phase 7 Remove Dead/Conflicting Models
 - [ ] Phase 8 Tests and Safety Nets
 
 Phase 4 progress:
@@ -206,3 +206,19 @@ Phase 4 progress:
 - Extracted library card rendering to `src/components/Editor/WorkoutLibraryItemCard.tsx`.
 - Extracted directory permissions/loading logic to `src/components/Editor/useWorkoutLibraryDirectory.ts`.
 - Extracted builder tools UI into `src/components/Editor/WorkoutBuilderToolbar.tsx`.
+- Extracted builder layout/sizing logic to `src/components/Editor/useWorkoutBuilderLayout.ts`.
+
+Phase 5 progress:
+- Split `EditorContext` into focused contexts (`state`, `actions`, `io`, `metrics`, `helpers`, `refs`).
+- Migrated editor panel consumers to narrowed context hooks.
+
+Phase 6 progress:
+- Centralized zone-to-color mapping in `src/domain/workout/zones.ts` via `getZoneColor`.
+- Removed duplicated color mapping logic from builder rows, workout elements, and library preview helpers.
+
+Phase 7 progress:
+- Removed unused legacy segment model implementation at `src/models/segments.ts` (no runtime references).
+
+Phase 8 progress:
+- Added regression tests for zone-color mapping (`tests/zones.test.ts`).
+- Added regression tests for workout library filename utility behavior (`tests/workoutLibraryUtils.test.ts`).

@@ -1,13 +1,19 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Copy, ListOrdered, Trash2 } from "lucide-react";
 
 import { Zones } from "@/domain/workout/zones";
 import buildProgramRows from "./buildProgramRows";
 import DistanceAxis from "./DistanceAxis";
-import { useEditorContext } from "./EditorContext";
+import {
+  useEditorActionsContext,
+  useEditorHelpersContext,
+  useEditorRefsContext,
+  useEditorStateContext,
+} from "./EditorContext";
 import type { FreeRideSegment, Instruction, IntervalSegment, RampSegment, SteadySegment } from "@/domain/workout/types";
 import TimeAxis from "./TimeAxis";
 import useSegmentReorder from "./useSegmentReorder";
+import useWorkoutBuilderLayout from "./useWorkoutBuilderLayout";
 import WorkoutProgramPanel from "./WorkoutProgramPanel";
 import WorkoutBuilderToolbar from "./WorkoutBuilderToolbar";
 import ZoneAxis from "./ZoneAxis";
@@ -15,17 +21,22 @@ import { Bar, Comment, FreeRide, Interval, RightTrapezoid } from "@/components/W
 import { cn } from "@/utils/cssUtils";
 
 export default function WorkoutBuilderPanel() {
-  const { state, actions, helpers, refs } = useEditorContext();
+  const state = useEditorStateContext();
+  const actions = useEditorActionsContext();
+  const helpers = useEditorHelpersContext();
+  const refs = useEditorRefsContext();
   const { sportType, durationType, segmentsWidth, actionId, bars, instructions, ftp, weight, paceUnitType } = state;
   const dragReorderEnabled = !actionId;
   const [programVisible, setProgramVisible] = useState(true);
-  const [dynamicShellHeight, setDynamicShellHeight] = useState<number>();
-  const [shellViewportHeight, setShellViewportHeight] = useState(430);
-  const [isProgramSideBySide, setIsProgramSideBySide] = useState(false);
   const [isPowerResizeActive, setIsPowerResizeActive] = useState(false);
   const [lockedVisibleMaxPower, setLockedVisibleMaxPower] = useState<number | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
+  const { dynamicShellHeight, shellViewportHeight, isProgramSideBySide } = useWorkoutBuilderLayout({
+    programVisible,
+    sectionRef,
+    shellRef,
+  });
   const canvasViewportWidth = refs.canvasRef.current?.clientWidth || 0;
   const axisWidth = Math.max(canvasViewportWidth, segmentsWidth);
   const programRows = useMemo(
@@ -105,83 +116,6 @@ export default function WorkoutBuilderPanel() {
     setLockedVisibleMaxPower(null);
   }, []);
 
-  const recalculateShellHeight = useCallback(() => {
-    const sectionElement = sectionRef.current;
-    const shellElement = shellRef.current;
-    if (!sectionElement || !shellElement) {
-      return;
-    }
-
-    const scrollRoot = sectionElement.closest<HTMLElement>("[data-editor-scroll-root='true']");
-    if (!scrollRoot) {
-      setDynamicShellHeight(undefined);
-      return;
-    }
-
-    const scrollRootRect = scrollRoot.getBoundingClientRect();
-    const sectionRect = sectionElement.getBoundingClientRect();
-    const shellRect = shellElement.getBoundingClientRect();
-    const scrollRootPaddingBottom = Number.parseFloat(window.getComputedStyle(scrollRoot).paddingBottom || "0") || 0;
-    const sectionBottomOffset = sectionRect.bottom - shellRect.bottom;
-    const availableHeight =
-      scrollRootRect.bottom - scrollRootPaddingBottom - shellRect.top - Math.max(0, sectionBottomOffset);
-    const maxAllowedHeight = Math.floor(Math.min(700, availableHeight));
-    const minimumShellHeight = window.matchMedia("(max-width: 900px)").matches ? 390 : 430;
-    const nextHeight = maxAllowedHeight >= minimumShellHeight ? maxAllowedHeight : undefined;
-    const measuredShellHeight = Math.max(1, shellRect.height);
-
-    setShellViewportHeight((currentHeight) => {
-      if (Math.abs(currentHeight - measuredShellHeight) <= 1) {
-        return currentHeight;
-      }
-
-      return measuredShellHeight;
-    });
-
-    setDynamicShellHeight((currentHeight) => {
-      if (currentHeight === nextHeight) {
-        return currentHeight;
-      }
-
-      if (currentHeight !== undefined && nextHeight !== undefined && Math.abs(currentHeight - nextHeight) <= 1) {
-        return currentHeight;
-      }
-
-      return nextHeight;
-    });
-  }, []);
-
-  useLayoutEffect(() => {
-    recalculateShellHeight();
-    const animationFrame = window.requestAnimationFrame(() => {
-      recalculateShellHeight();
-    });
-
-    return () => {
-      window.cancelAnimationFrame(animationFrame);
-    };
-  }, [recalculateShellHeight, programVisible, dynamicShellHeight]);
-
-  useEffect(() => {
-    const handleResize = () => recalculateShellHeight();
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [recalculateShellHeight]);
-
-  useEffect(() => {
-    const sideBySideQuery = window.matchMedia("(min-width: 1536px)");
-    const updateSideBySideMode = () => setIsProgramSideBySide(sideBySideQuery.matches);
-
-    updateSideBySideMode();
-    sideBySideQuery.addEventListener("change", updateSideBySideMode);
-
-    return () => {
-      sideBySideQuery.removeEventListener("change", updateSideBySideMode);
-    };
-  }, []);
   const {
     draggingBarId,
     dropMarkerX,

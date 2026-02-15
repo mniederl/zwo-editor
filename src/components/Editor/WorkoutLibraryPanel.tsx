@@ -10,9 +10,9 @@ import {
 } from "lucide-react";
 
 import serializeWorkoutXml from "@/domain/workout/xml/serializeWorkoutXml";
-import { useEditorContext } from "./EditorContext";
+import { useEditorIOContext, useEditorStateContext } from "./EditorContext";
 import WorkoutLibraryItemCard from "./WorkoutLibraryItemCard";
-import type { LibraryWorkoutItem } from "./workoutLibraryTypes";
+import type { FileHandleLike, LibraryWorkoutItem } from "./workoutLibraryTypes";
 import useWorkoutLibraryDirectory from "./useWorkoutLibraryDirectory";
 import { getUniqueWorkoutFileName, normalizeWorkoutFileName, stripWorkoutFileExtension } from "./workoutLibraryUtils";
 import { cn } from "@/utils/cssUtils";
@@ -24,7 +24,8 @@ interface WorkoutLibraryPanelProps {
 }
 
 export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: WorkoutLibraryPanelProps) {
-  const { state, io } = useEditorContext();
+  const state = useEditorStateContext();
+  const io = useEditorIOContext();
   const { ftp } = state;
   const { canUseDirectoryPicker, directoryHandle, isLoading, libraryItems, pickDirectory, refreshDirectory } =
     useWorkoutLibraryDirectory({
@@ -88,6 +89,53 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
 
   const hasSelectedLibraryWorkout = Boolean(activeFileName);
 
+  const buildCurrentWorkoutXml = useCallback(
+    () =>
+      serializeWorkoutXml({
+        author: state.author,
+        bars: state.bars,
+        description: state.description,
+        durationType: state.durationType,
+        instructions: state.instructions,
+        name: state.name,
+        sportType: state.sportType,
+        tags: state.tags,
+      }),
+    [
+      state.author,
+      state.bars,
+      state.description,
+      state.durationType,
+      state.instructions,
+      state.name,
+      state.sportType,
+      state.tags,
+    ],
+  );
+
+  const writeWorkoutFile = useCallback(
+    async (fileHandle: FileHandleLike): Promise<boolean> => {
+      if (!fileHandle.createWritable) {
+        state.setMessage({
+          class: "error",
+          text: "This browser cannot write files in the selected directory.",
+          visible: true,
+        });
+        return false;
+      }
+
+      const writable = await fileHandle.createWritable();
+      try {
+        await writable.write(buildCurrentWorkoutXml());
+      } finally {
+        await writable.close();
+      }
+
+      return true;
+    },
+    [buildCurrentWorkoutXml, state],
+  );
+
   const saveSelectedWorkout = useCallback(async () => {
     if (!directoryHandle || !activeFileName) {
       state.setMessage({
@@ -99,30 +147,9 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
     }
 
     const fileHandle = await directoryHandle.getFileHandle(activeFileName, { create: true });
-    if (!fileHandle.createWritable) {
-      state.setMessage({
-        class: "error",
-        text: "This browser cannot write files in the selected directory.",
-        visible: true,
-      });
+    const wasWritten = await writeWorkoutFile(fileHandle);
+    if (!wasWritten) {
       return;
-    }
-
-    const writable = await fileHandle.createWritable();
-    try {
-      const xml = serializeWorkoutXml({
-        author: state.author,
-        bars: state.bars,
-        description: state.description,
-        durationType: state.durationType,
-        instructions: state.instructions,
-        name: state.name,
-        sportType: state.sportType,
-        tags: state.tags,
-      });
-      await writable.write(xml);
-    } finally {
-      await writable.close();
     }
 
     state.setMessage({
@@ -131,7 +158,7 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
       visible: true,
     });
     await refreshDirectory(directoryHandle);
-  }, [activeFileName, directoryHandle, refreshDirectory, state]);
+  }, [activeFileName, directoryHandle, refreshDirectory, state, writeWorkoutFile]);
 
   const addCurrentWorkoutToLibrary = useCallback(async () => {
     if (!directoryHandle) {
@@ -148,30 +175,9 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
       libraryItems.map((item) => item.fileName),
     );
     const fileHandle = await directoryHandle.getFileHandle(fileName, { create: true });
-    if (!fileHandle.createWritable) {
-      state.setMessage({
-        class: "error",
-        text: "This browser cannot write files in the selected directory.",
-        visible: true,
-      });
+    const wasWritten = await writeWorkoutFile(fileHandle);
+    if (!wasWritten) {
       return;
-    }
-
-    const writable = await fileHandle.createWritable();
-    try {
-      const xml = serializeWorkoutXml({
-        author: state.author,
-        bars: state.bars,
-        description: state.description,
-        durationType: state.durationType,
-        instructions: state.instructions,
-        name: state.name,
-        sportType: state.sportType,
-        tags: state.tags,
-      });
-      await writable.write(xml);
-    } finally {
-      await writable.close();
     }
 
     setActiveFileName(fileName);
@@ -197,30 +203,9 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
     const baseName = activeFileName ? stripWorkoutFileExtension(activeFileName) : state.workoutId || "workout";
     const duplicateFileName = getUniqueWorkoutFileName(baseName, libraryItems.map((item) => item.fileName));
     const fileHandle = await directoryHandle.getFileHandle(duplicateFileName, { create: true });
-    if (!fileHandle.createWritable) {
-      state.setMessage({
-        class: "error",
-        text: "This browser cannot write files in the selected directory.",
-        visible: true,
-      });
+    const wasWritten = await writeWorkoutFile(fileHandle);
+    if (!wasWritten) {
       return;
-    }
-
-    const writable = await fileHandle.createWritable();
-    try {
-      const xml = serializeWorkoutXml({
-        author: state.author,
-        bars: state.bars,
-        description: state.description,
-        durationType: state.durationType,
-        instructions: state.instructions,
-        name: state.name,
-        sportType: state.sportType,
-        tags: state.tags,
-      });
-      await writable.write(xml);
-    } finally {
-      await writable.close();
     }
 
     setActiveFileName(duplicateFileName);
@@ -231,7 +216,7 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
       visible: true,
     });
     await refreshDirectory(directoryHandle);
-  }, [activeFileName, directoryHandle, libraryItems, refreshDirectory, state]);
+  }, [activeFileName, directoryHandle, libraryItems, refreshDirectory, state, writeWorkoutFile]);
 
   return (
     <aside

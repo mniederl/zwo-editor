@@ -25,3 +25,12 @@ export const Zones: Record<ZoneKey, ZoneRange> = {
 };
 
 export const ZonesArray: [number, number][] = Object.values(Zones).map(({ min, max }) => [min, max]);
+
+export const getZoneColor = (power: number): string => {
+  if (power < Zones.Z2.min) return Colors.GRAY;
+  if (power < Zones.Z3.min) return Colors.BLUE;
+  if (power < Zones.Z4.min) return Colors.GREEN;
+  if (power < Zones.Z5.min) return Colors.YELLOW;
+  if (power < Zones.Z6.min) return Colors.ORANGE;
+  return Colors.RED;
+};

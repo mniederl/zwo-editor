@@ -36,7 +36,12 @@ export interface EditorContextValue {
   refs: EditorRefsModel;
 }
 
-const EditorContext = createContext<EditorContextValue | null>(null);
+const EditorStateContext = createContext<EditorStateModel | null>(null);
+const EditorActionsContext = createContext<WorkoutActions | null>(null);
+const EditorIOContext = createContext<WorkoutIOActions | null>(null);
+const EditorMetricsContext = createContext<EditorMetricsModel | null>(null);
+const EditorHelpersContext = createContext<EditorHelpersModel | null>(null);
+const EditorRefsContext = createContext<EditorRefsModel | null>(null);
 
 export function EditorProvider({
   value,
@@ -45,13 +50,76 @@ export function EditorProvider({
   value: EditorContextValue;
   children: ReactNode;
 }) {
-  return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>;
+  return (
+    <EditorStateContext.Provider value={value.state}>
+      <EditorActionsContext.Provider value={value.actions}>
+        <EditorIOContext.Provider value={value.io}>
+          <EditorMetricsContext.Provider value={value.metrics}>
+            <EditorHelpersContext.Provider value={value.helpers}>
+              <EditorRefsContext.Provider value={value.refs}>{children}</EditorRefsContext.Provider>
+            </EditorHelpersContext.Provider>
+          </EditorMetricsContext.Provider>
+        </EditorIOContext.Provider>
+      </EditorActionsContext.Provider>
+    </EditorStateContext.Provider>
+  );
+}
+
+export function useEditorStateContext(): EditorStateModel {
+  const context = useContext(EditorStateContext);
+  if (!context) {
+    throw new Error("useEditorStateContext must be used inside an EditorProvider");
+  }
+  return context;
+}
+
+export function useEditorActionsContext(): WorkoutActions {
+  const context = useContext(EditorActionsContext);
+  if (!context) {
+    throw new Error("useEditorActionsContext must be used inside an EditorProvider");
+  }
+  return context;
+}
+
+export function useEditorIOContext(): WorkoutIOActions {
+  const context = useContext(EditorIOContext);
+  if (!context) {
+    throw new Error("useEditorIOContext must be used inside an EditorProvider");
+  }
+  return context;
+}
+
+export function useEditorMetricsContext(): EditorMetricsModel {
+  const context = useContext(EditorMetricsContext);
+  if (!context) {
+    throw new Error("useEditorMetricsContext must be used inside an EditorProvider");
+  }
+  return context;
+}
+
+export function useEditorHelpersContext(): EditorHelpersModel {
+  const context = useContext(EditorHelpersContext);
+  if (!context) {
+    throw new Error("useEditorHelpersContext must be used inside an EditorProvider");
+  }
+  return context;
+}
+
+export function useEditorRefsContext(): EditorRefsModel {
+  const context = useContext(EditorRefsContext);
+  if (!context) {
+    throw new Error("useEditorRefsContext must be used inside an EditorProvider");
+  }
+  return context;
 }
 
 export function useEditorContext(): EditorContextValue {
-  const context = useContext(EditorContext);
-  if (!context) {
-    throw new Error("useEditorContext must be used inside an EditorProvider");
-  }
-  return context;
+  return {
+    state: useEditorStateContext(),
+    actions: useEditorActionsContext(),
+    io: useEditorIOContext(),
+    metrics: useEditorMetricsContext(),
+    helpers: useEditorHelpersContext(),
+    refs: useEditorRefsContext(),
+  };
 }

@@ -3,7 +3,7 @@ import { Resizable } from "re-resizable";
 
 import { calculateDistance, calculateTime, round } from "@/domain/workout/metrics";
 import type { DurationType, PaceUnitType, RampSegment, SportType } from "@/domain/workout/types";
-import { Colors, Zones } from "@/domain/workout/zones";
+import { Colors, Zones, getZoneColor } from "@/domain/workout/zones";
 import Label from "@/components/Label/Label";
 import { formatTime } from "@/utils/time";
 
@@ -225,31 +225,6 @@ const RightTrapezoid = (props: {
     return bars;
   }
 
-  function zwiftStyle(zone: number) {
-    if (zone >= 0 && zone < Zones.Z1.max) {
-      // Z1 gray
-      return Colors.GRAY;
-    }
-    if (zone >= Zones.Z2.min && zone < Zones.Z2.max) {
-      // Z2 blue
-      return Colors.BLUE;
-    }
-    if (zone >= Zones.Z3.min && zone < Zones.Z3.max) {
-      // Z3 green
-      return Colors.GREEN;
-    }
-    if (zone >= Zones.Z4.min && zone < Zones.Z4.max) {
-      // Z4 yellow
-      return Colors.YELLOW;
-    }
-    if (zone >= Zones.Z5.min && zone < Zones.Z5.max) {
-      // Z5 orange
-      return Colors.ORANGE;
-    }
-    // Z6 red
-    return Colors.RED;
-  }
-
   const handleWidthResizeStart = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -358,7 +333,7 @@ const RightTrapezoid = (props: {
           height: trapezeHeight,
           width: width * 3,
           flexDirection: flexDirection,
-          backgroundColor: zwiftStyle(props.startPower),
+          backgroundColor: getZoneColor(props.startPower),
           clipPath: trapezeClipPath,
           WebkitClipPath: trapezeClipPath,
         }}

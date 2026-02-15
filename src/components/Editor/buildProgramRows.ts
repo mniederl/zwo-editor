@@ -1,4 +1,4 @@
-import { Colors, Zones } from "@/domain/workout/zones";
+import { Colors, getZoneColor } from "@/domain/workout/zones";
 import type { SegmentType, DurationType, SportType } from "@/domain/workout/types";
 
 export interface ProgramRow {
@@ -49,15 +49,6 @@ function formatDistance(meters: number): string {
 function formatDuration(value: number, durationType: DurationType): string {
   if (!Number.isFinite(value)) return durationType === "time" ? "0sec" : "0m";
   return durationType === "time" ? formatSeconds(value) : formatDistance(value);
-}
-
-function getZoneColor(power: number): string {
-  if (power >= 0 && power < Zones.Z1.max) return Colors.GRAY;
-  if (power >= Zones.Z2.min && power < Zones.Z2.max) return Colors.BLUE;
-  if (power >= Zones.Z3.min && power < Zones.Z3.max) return Colors.GREEN;
-  if (power >= Zones.Z4.min && power < Zones.Z4.max) return Colors.YELLOW;
-  if (power >= Zones.Z5.min && power < Zones.Z5.max) return Colors.ORANGE;
-  return Colors.RED;
 }
 
 function getTextColor(background: string): string {
