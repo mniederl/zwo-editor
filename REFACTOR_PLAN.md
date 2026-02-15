@@ -195,11 +195,11 @@ Acceptance:
 - [x] Phase 1 Define Module Boundaries
 - [x] Phase 2 Extract Domain Types + Utilities
 - [x] Phase 3 Move XML IO Logic
-- [ ] Phase 4 Decompose Oversized Editor Units
+- [x] Phase 4 Decompose Oversized Editor Units
 - [x] Phase 5 Context and Prop Surface Cleanup
 - [x] Phase 6 Deduplicate Shared Logic
 - [x] Phase 7 Remove Dead/Conflicting Models
-- [ ] Phase 8 Tests and Safety Nets
+- [x] Phase 8 Tests and Safety Nets
 
 Phase 4 progress:
 - Extracted workout library helpers to `src/components/Editor/workoutLibraryUtils.ts`.
@@ -207,6 +207,7 @@ Phase 4 progress:
 - Extracted directory permissions/loading logic to `src/components/Editor/useWorkoutLibraryDirectory.ts`.
 - Extracted builder tools UI into `src/components/Editor/WorkoutBuilderToolbar.tsx`.
 - Extracted builder layout/sizing logic to `src/components/Editor/useWorkoutBuilderLayout.ts`.
+- Extracted selected-segment action overlay to `src/components/Editor/SelectedSegmentActions.tsx`.
 
 Phase 5 progress:
 - Split `EditorContext` into focused contexts (`state`, `actions`, `io`, `metrics`, `helpers`, `refs`).
