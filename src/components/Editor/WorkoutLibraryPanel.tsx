@@ -40,7 +40,8 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
     });
   const [activeFileName, setActiveFileName] = useState<string>();
 
-  const panelWidthClass = isWideDesktop ? "w-[24rem]" : "w-[20rem]";
+  const panelWidthClass = isWideDesktop ? "w-[40rem]" : "w-[20rem]";
+  const libraryGridClass = isWideDesktop ? "grid grid-cols-2 gap-2 pb-1" : "space-y-2 pb-1";
 
   const openWorkout = useCallback(
     async (item: LibraryWorkoutItem) => {
@@ -308,7 +309,7 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
             </p>
           )}
 
-          <div className="space-y-2 pb-1">
+          <div className={libraryGridClass}>
             {libraryItems.map((item) => (
               <WorkoutLibraryItemCard
                 key={item.id}

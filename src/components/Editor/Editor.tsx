@@ -49,7 +49,7 @@ const Editor = ({ id }: EditorProps) => {
 
   useEffect(() => {
     const desktopQuery = window.matchMedia("(min-width: 1024px)");
-    const wideDesktopQuery = window.matchMedia("(min-width: 2200px)");
+    const wideDesktopQuery = window.matchMedia("(min-width: 2000px)");
 
     const updateLayout = () => {
       setIsDesktopLayout(desktopQuery.matches);
