@@ -5,6 +5,7 @@ import App from "./App.tsx";
 
 import "./index.css";
 
+// biome-ignore lint/style/noNonNullAssertion: We know that the root element exists in the HTML.
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />
