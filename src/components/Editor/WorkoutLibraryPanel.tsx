@@ -26,17 +26,21 @@ interface WorkoutLibraryPanelProps {
 export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: WorkoutLibraryPanelProps) {
   const state = useEditorStateContext();
   const io = useEditorIOContext();
-  const { ftp } = state;
+  const { ftp, setMessage } = state;
+  const handleDirectoryError = useCallback(
+    (text: string) => {
+      setMessage({
+        class: "error",
+        text,
+        visible: true,
+      });
+    },
+    [setMessage],
+  );
   const { canUseDirectoryPicker, directoryHandle, isLoading, libraryItems, pickDirectory, refreshDirectory } =
     useWorkoutLibraryDirectory({
       ftp,
-      onError: (text) => {
-        state.setMessage({
-          class: "error",
-          text,
-          visible: true,
-        });
-      },
+      onError: handleDirectoryError,
     });
   const [activeFileName, setActiveFileName] = useState<string>();
 

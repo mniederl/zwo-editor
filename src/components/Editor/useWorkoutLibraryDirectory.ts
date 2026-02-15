@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getStressScore, getWorkoutLength, round } from "@/domain/workout/metrics";
 import parseWorkoutXml from "@/domain/workout/xml/parseWorkoutXml";
@@ -32,10 +32,15 @@ export default function useWorkoutLibraryDirectory({
   const [directoryHandle, setDirectoryHandle] = useState<DirectoryHandleLike | null>(null);
   const [libraryItems, setLibraryItems] = useState<LibraryWorkoutItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const onErrorRef = useRef(onError);
   const canUseDirectoryPicker =
     typeof window !== "undefined" &&
     typeof (window as unknown as { showDirectoryPicker?: () => Promise<DirectoryHandleLike> }).showDirectoryPicker ===
       "function";
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
 
   const refreshDirectory = useCallback(
     async (targetDirectory: DirectoryHandleLike | null) => {
@@ -86,12 +91,12 @@ export default function useWorkoutLibraryDirectory({
         setLibraryItems(nextItems);
       } catch {
         setLibraryItems([]);
-        onError("Unable to read workouts from selected directory.");
+        onErrorRef.current("Unable to read workouts from selected directory.");
       } finally {
         setIsLoading(false);
       }
     },
-    [ftp, onError],
+    [ftp],
   );
 
   const ensureDirectoryPermission = useCallback(async (handle: DirectoryHandleLike): Promise<boolean> => {
@@ -133,7 +138,7 @@ export default function useWorkoutLibraryDirectory({
     const picker = (window as unknown as { showDirectoryPicker?: () => Promise<DirectoryHandleLike> })
       .showDirectoryPicker;
     if (!picker) {
-      onError("Directory access is only available in Chromium-based browsers.");
+      onErrorRef.current("Directory access is only available in Chromium-based browsers.");
       return;
     }
 
@@ -141,7 +146,7 @@ export default function useWorkoutLibraryDirectory({
       const handle = await picker();
       const hasPermission = await ensureDirectoryPermission(handle);
       if (!hasPermission) {
-        onError("Directory permission is required to manage workouts.");
+        onErrorRef.current("Directory permission is required to manage workouts.");
         return;
       }
 
@@ -152,9 +157,9 @@ export default function useWorkoutLibraryDirectory({
       if (error instanceof Error && error.name === "AbortError") {
         return;
       }
-      onError("Could not open the selected directory.");
+      onErrorRef.current("Could not open the selected directory.");
     }
-  }, [ensureDirectoryPermission, onError, refreshDirectory]);
+  }, [ensureDirectoryPermission, refreshDirectory]);
 
   useEffect(() => {
     if (!canUseDirectoryPicker) {
