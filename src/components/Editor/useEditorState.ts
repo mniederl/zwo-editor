@@ -1,9 +1,9 @@
 import type { Dispatch, RefObject, SetStateAction } from "react";
 import { useCallback, useEffect, useReducer, useState } from "react";
 
-import type { SegmentType, DurationType, Instruction, PaceUnitType, SportType } from "./editorTypes";
-import { loadRunningTimes } from "./editorTypes";
-import type { RunningTimes } from "./RunningTimesEditor";
+import type { SegmentType, DurationType, Instruction, PaceUnitType, SportType } from "@/domain/workout/types";
+import { loadRunningTimes } from "@/domain/workout/running";
+import type { RunningTimes } from "@/domain/workout/running";
 import { genShortId } from "@/utils/id";
 
 export interface EditorMessage {

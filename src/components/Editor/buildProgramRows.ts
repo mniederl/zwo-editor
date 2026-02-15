@@ -1,5 +1,5 @@
-import { Colors, Zones } from "../constants";
-import type { SegmentType, DurationType, SportType } from "./editorTypes";
+import { Colors, Zones } from "@/domain/workout/zones";
+import type { SegmentType, DurationType, SportType } from "@/domain/workout/types";
 
 export interface ProgramRow {
   id: string;

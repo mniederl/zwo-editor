@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 
 import createWorkoutXml from "./createWorkoutXml";
-import type { SegmentType, DurationType, Instruction, SportType } from "./editorTypes";
+import type { SegmentType, DurationType, Instruction, SportType } from "@/domain/workout/types";
 import type { EditorMessage } from "./useEditorState";
 import parseWorkoutXml from "@/parsers/parseWorkoutXml";
 import { genId } from "@/utils/id";

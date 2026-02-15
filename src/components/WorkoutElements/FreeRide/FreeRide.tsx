@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Resizable } from "re-resizable";
 
-import type { DurationType, FreeRideSegment, SportType } from "@/components/Editor/editorTypes";
-import { round } from "@/components/helpers";
+import { round } from "@/domain/workout/metrics";
+import type { DurationType, FreeRideSegment, SportType } from "@/domain/workout/types";
 import Label from "@/components/Label/Label";
 import { formatTime } from "@/utils/time";
 

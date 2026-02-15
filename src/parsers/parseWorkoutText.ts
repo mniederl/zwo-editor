@@ -6,8 +6,8 @@ import type {
   RampSegment,
   SegmentType,
   SteadySegment,
-} from "@/components/Editor/editorTypes";
-import { calculateDistance, calculateTime, round } from "@/components/helpers";
+} from "@/domain/workout/types";
+import { calculateDistance, calculateTime, round } from "@/domain/workout/metrics";
 import { type Block, type PowerValue, parseLines, type Range } from "@/parsers/parseWorkoutLine";
 import { genId } from "@/utils/id";
 

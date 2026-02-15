@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Resizable } from "re-resizable";
 
-import { Colors, Zones } from "@/components/constants";
-import type { DurationType, PaceUnitType, RampSegment, SportType } from "@/components/Editor/editorTypes";
-import { calculateDistance, calculateTime, round } from "@/components/helpers";
+import { calculateDistance, calculateTime, round } from "@/domain/workout/metrics";
+import type { DurationType, PaceUnitType, RampSegment, SportType } from "@/domain/workout/types";
+import { Colors, Zones } from "@/domain/workout/zones";
 import Label from "@/components/Label/Label";
 import { formatTime } from "@/utils/time";
 

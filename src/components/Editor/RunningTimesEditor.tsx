@@ -2,17 +2,10 @@ import type React from "react";
 import { useCallback } from "react";
 import TimePicker from "react-time-picker";
 
-import { calculateEstimatedTimes } from "../helpers";
+import { calculateEstimatedTimes } from "@/domain/workout/metrics";
+import type { RunningTimes } from "@/domain/workout/running";
 
 import "./RunningTimesEditor.css";
-
-export interface RunningTimes {
-  oneMile: string | undefined;
-  fiveKm: string | undefined;
-  tenKm: string | undefined;
-  halfMarathon: string | undefined;
-  marathon: string | undefined;
-}
 
 interface RunningTimesEditorProps {
   times: RunningTimes;

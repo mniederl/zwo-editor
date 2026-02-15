@@ -1,4 +1,4 @@
-import type { getWorkoutLength } from "../src/components/helpers";
+import type { getWorkoutLength } from "../src/domain/workout/metrics";
 
 // derive the bars type from the function signature
 type Bars = Parameters<typeof getWorkoutLength>[0];

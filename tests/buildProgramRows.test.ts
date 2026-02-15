@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import buildProgramRows from "../src/components/Editor/buildProgramRows";
-import type { SegmentType } from "../src/components/Editor/editorTypes";
+import type { SegmentType } from "../src/domain/workout/types";
 
 describe("buildProgramRows", () => {
   it("groups intervals and formats bike rows", () => {

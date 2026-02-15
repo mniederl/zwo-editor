@@ -9,7 +9,7 @@ import type {
   SegmentType,
   SportType,
   SteadySegment,
-} from "@/components/Editor/editorTypes";
+} from "@/domain/workout/types";
 import { genId } from "@/utils/id";
 
 export interface ParsedWorkoutXml {

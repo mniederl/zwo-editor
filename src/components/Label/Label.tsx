@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Clock3, Ruler, Zap } from "lucide-react";
 
-import type { PaceUnitType } from "../Editor/editorTypes";
-import { speedToPace } from "../helpers";
+import type { PaceUnitType } from "@/domain/workout/types";
+import { speedToPace } from "@/domain/workout/metrics";
 
 import "./Label.css";
 

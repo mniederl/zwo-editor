@@ -192,8 +192,8 @@ Acceptance:
 
 ## Status Tracker
 - [x] Phase 0 Baseline Stabilization
-- [ ] Phase 1 Define Module Boundaries
-- [ ] Phase 2 Extract Domain Types + Utilities
+- [x] Phase 1 Define Module Boundaries
+- [x] Phase 2 Extract Domain Types + Utilities
 - [ ] Phase 3 Move XML IO Logic
 - [ ] Phase 4 Decompose Oversized Editor Units
 - [ ] Phase 5 Context and Prop Surface Cleanup

@@ -12,11 +12,11 @@ import {
   Trash2,
 } from "lucide-react";
 
-import { Colors, Zones } from "../constants";
-import { getStressScore, getWorkoutLength, round } from "../helpers";
+import { getStressScore, getWorkoutLength, round } from "@/domain/workout/metrics";
+import type { SegmentType } from "@/domain/workout/types";
+import { Colors, Zones } from "@/domain/workout/zones";
 import createWorkoutXml from "./createWorkoutXml";
 import { useEditorContext } from "./EditorContext";
-import type { SegmentType } from "./editorTypes";
 import {
   clearPersistedWorkoutLibraryDirectoryHandle,
   loadPersistedWorkoutLibraryDirectoryHandle,

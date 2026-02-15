@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { MessageCircle, MessageCircleMore } from "lucide-react";
 import Draggable from "react-draggable";
 
-import type { Instruction } from "@/components/Editor/editorTypes";
+import type { Instruction } from "@/domain/workout/types";
 import { formatTime } from "@/utils/time";
 
 const Comment = (props: {

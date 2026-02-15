@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Save, Trash2, X } from "lucide-react";
 
-import type { Instruction } from "@/components/Editor/editorTypes";
+import type { Instruction } from "@/domain/workout/types";
 import { formatTime, parseTime } from "@/utils/time";
 
 const EditComment = (props: {

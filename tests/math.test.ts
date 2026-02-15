@@ -7,7 +7,7 @@ import {
   getWorkoutLength,
   round,
   speedToPace,
-} from "../src/components/helpers";
+} from "../src/domain/workout/metrics";
 import { allBars, paced } from "./fixtures";
 
 describe("workout math", () => {

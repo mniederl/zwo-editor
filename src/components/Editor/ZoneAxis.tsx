@@ -1,4 +1,4 @@
-import { Zones } from "../constants";
+import { Zones } from "@/domain/workout/zones";
 import "./ZoneAxis.css";
 
 const zoneRanges = [

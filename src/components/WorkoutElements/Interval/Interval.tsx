@@ -1,6 +1,6 @@
 import { Minus, Plus } from "lucide-react";
 
-import type { DurationType, IntervalSegment, SportType, SteadySegment } from "../../Editor/editorTypes";
+import type { DurationType, IntervalSegment, SportType, SteadySegment } from "@/domain/workout/types";
 import Bar from "../Bar/Bar";
 
 const Interval = (props: {

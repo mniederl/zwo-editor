@@ -1,8 +1,8 @@
 import type { Dispatch, SetStateAction } from "react";
 
-import { Zones } from "../constants";
-import { calculateDistance, calculateTime, round } from "../helpers";
-import type { DurationType, Instruction, SegmentType } from "./editorTypes";
+import { calculateDistance, calculateTime, round } from "@/domain/workout/metrics";
+import type { DurationType, Instruction, SegmentType } from "@/domain/workout/types";
+import { Zones } from "@/domain/workout/zones";
 import { genId, genShortId } from "@/utils/id";
 
 interface UseWorkoutActionsProps {

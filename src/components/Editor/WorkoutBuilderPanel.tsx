@@ -12,11 +12,11 @@ import {
 } from "lucide-react";
 import { Tooltip } from "react-tooltip";
 
-import { Colors, Zones } from "../constants";
+import { Colors, Zones } from "@/domain/workout/zones";
 import buildProgramRows from "./buildProgramRows";
 import DistanceAxis from "./DistanceAxis";
 import { useEditorContext } from "./EditorContext";
-import type { FreeRideSegment, Instruction, IntervalSegment, RampSegment, SteadySegment } from "./editorTypes";
+import type { FreeRideSegment, Instruction, IntervalSegment, RampSegment, SteadySegment } from "@/domain/workout/types";
 import TimeAxis from "./TimeAxis";
 import useSegmentReorder from "./useSegmentReorder";
 import WorkoutProgramPanel from "./WorkoutProgramPanel";

@@ -1,6 +1,6 @@
 import { XMLBuilder } from "fast-xml-parser";
 
-import type { DurationType, Instruction, SegmentType, SportType } from "./editorTypes";
+import type { DurationType, Instruction, SegmentType, SportType } from "@/domain/workout/types";
 
 interface Workout {
   author: string;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { FreeRideSegment, IntervalSegment, RampSegment, SteadySegment } from "@/components/Editor/editorTypes";
-import { calculateTime, round } from "@/components/helpers";
+import type { FreeRideSegment, IntervalSegment, RampSegment, SteadySegment } from "@/domain/workout/types";
+import { calculateTime, round } from "@/domain/workout/metrics";
 import { parseWorkoutText } from "@/parsers/parseWorkoutText";
 
 describe("parseWorkoutText", () => {

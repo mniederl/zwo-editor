@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { CircleX } from "lucide-react";
 
-import { getStressScore, getWorkoutDistance, getWorkoutLength, getWorkoutPace, round } from "../helpers";
+import { getStressScore, getWorkoutDistance, getWorkoutLength, getWorkoutPace, round } from "@/domain/workout/metrics";
 import { EditorProvider } from "./EditorContext";
 import EditorHeaderPanel from "./EditorHeaderPanel";
-import type { Instruction, SportType } from "./editorTypes";
+import type { Instruction, SportType } from "@/domain/workout/types";
 import TextComposerPanel from "./TextComposerPanel";
 import WorkoutLibraryPanel, { WorkoutLibraryCollapsedToggle } from "./WorkoutLibraryPanel";
 import useEditorState from "./useEditorState";

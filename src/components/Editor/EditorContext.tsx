@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 import type { ReactNode, RefObject } from "react";
 
-import type { SportType } from "./editorTypes";
+import type { SportType } from "@/domain/workout/types";
 import type { EditorStateModel } from "./useEditorState";
 import type { WorkoutActions } from "./useWorkoutActions";
 import type { WorkoutIOActions } from "./useWorkoutIO";
