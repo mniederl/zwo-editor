@@ -29,7 +29,11 @@ interface UseWorkoutIOProps {
 
 export interface WorkoutIOActions {
   downloadWorkout: () => void;
-  handleUpload: (file: Blob) => Promise<boolean>;
+  handleUpload: (file: Blob, options?: HandleUploadOptions) => Promise<boolean>;
+}
+
+interface HandleUploadOptions {
+  confirmOverwrite?: boolean;
 }
 
 export default function useWorkoutIO({
@@ -93,8 +97,8 @@ export default function useWorkoutIO({
     setDurationType(parsed.meta.durationType || "time");
   }
 
-  async function handleUpload(file: Blob) {
-    if (bars.length > 0 && !window.confirm("Are you sure you want to create a new workout?")) {
+  async function handleUpload(file: Blob, { confirmOverwrite = true }: HandleUploadOptions = {}) {
+    if (confirmOverwrite && bars.length > 0 && !window.confirm("Are you sure you want to create a new workout?")) {
       return false;
     }
 

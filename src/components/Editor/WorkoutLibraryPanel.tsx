@@ -45,7 +45,7 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
   const openWorkout = useCallback(
     async (item: LibraryWorkoutItem) => {
       const file = await item.handle.getFile();
-      const imported = await io.handleUpload(file);
+      const imported = await io.handleUpload(file, { confirmOverwrite: false });
       if (imported) {
         setActiveFileName(item.fileName);
         state.setWorkoutId(item.fileName.replace(/\.(zwo|xml)$/i, ""));
