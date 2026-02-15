@@ -104,8 +104,8 @@ const FreeRide = (props: {
         maxHeight={height}
         enable={{ right: true }}
         grid={[1, 1]}
-        onResizeStop={(e, direction, ref, d) => handleResizeStop(d.width)}
-        onResize={(e, direction, ref, d) => handleResize(d.width)}
+        onResizeStop={(_e, _direction, _ref, d) => handleResizeStop(d.width)}
+        onResize={(_e, _direction, _ref, d) => handleResize(d.width)}
       ></Resizable>
     </div>
   );

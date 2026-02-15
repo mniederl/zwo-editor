@@ -156,7 +156,7 @@ const Label = (props: {
           </div>
         </div>
       )}
-      {props.sportType === "run" && props.speedStart && props.speedEnd && (
+      {props.sportType === "run" && props.speedStart && props.speedEnd && props.paceUnitType && (
         <div>
           <div>
             {props.speedStart?.toFixed(1)} km/h - {props.speedEnd?.toFixed(1)} km/h

@@ -60,9 +60,13 @@ describe("parseWorkoutXml + createWorkoutXml", () => {
     expect(parsed.segments.length).toBe(2);
     expect(parsed.segments[0].type).toBe("bar");
     expect(parsed.segments[1].type).toBe("interval");
-    expect(parsed.segments[1].repeat).toBe(2);
-    expect(parsed.segments[1].onDuration).toBe(30);
-    expect(parsed.segments[1].offDuration).toBe(60);
+    const secondSegment = parsed.segments[1];
+    if (secondSegment?.type !== "interval") {
+      throw new Error("Expected second segment to be interval");
+    }
+    expect(secondSegment.repeat).toBe(2);
+    expect(secondSegment.onDuration).toBe(30);
+    expect(secondSegment.offDuration).toBe(60);
 
     expect(parsed.instructions.length).toBe(2);
     expect(parsed.instructions[0].text).toBe("go");

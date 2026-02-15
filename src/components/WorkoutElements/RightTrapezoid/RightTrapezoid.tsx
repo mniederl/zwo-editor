@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Resizable } from "re-resizable";
 
-import { Colors, Zones, ZonesArray } from "@/components/constants";
+import { Colors, Zones } from "@/components/constants";
 import type { DurationType, PaceUnitType, RampSegment, SportType } from "@/components/Editor/editorTypes";
 import { calculateDistance, calculateTime, round } from "@/components/helpers";
 import Label from "@/components/Label/Label";
@@ -86,6 +86,7 @@ const RightTrapezoid = (props: {
   const [height2, setHeight2] = useState(((props.endPower + props.startPower) * multiplier) / 2);
   const [height3, setHeight3] = useState(props.endPower * multiplier);
   const resizeBaseRef = useRef({ width, height1, height3 });
+  const safeSpeed = props.speed ?? 0;
 
   useEffect(() => {
     setHeight1(props.startPower * multiplier);
@@ -132,7 +133,7 @@ const RightTrapezoid = (props: {
         : round((calculateTime(props.length ?? 0, props.speed ?? 0) * 1) / avgPower, 1);
     const length =
       props.durationType === "time"
-        ? round((calculateDistance(nextWidth * timeMultiplier, props.speed) * 1) / avgPower, 1)
+        ? round((calculateDistance(nextWidth * timeMultiplier, safeSpeed) * 1) / avgPower, 1)
         : round(nextWidth * lengthMultiplier * 3, 200);
 
     props.onChange(props.id, {
@@ -159,7 +160,7 @@ const RightTrapezoid = (props: {
         : round((calculateTime(props.length ?? 0, props.speed ?? 0) * 1) / avgPower, 1);
     const length =
       props.durationType === "time"
-        ? round((calculateDistance(nextWidth * timeMultiplier, props.speed) * 1) / avgPower, 1)
+        ? round((calculateDistance(nextWidth * timeMultiplier, safeSpeed) * 1) / avgPower, 1)
         : round(nextWidth * lengthMultiplier * 3, 200);
 
     props.onChange(props.id, {
@@ -182,7 +183,7 @@ const RightTrapezoid = (props: {
 
     const length =
       props.durationType === "time"
-        ? round((calculateDistance(nextWidth * timeMultiplier * 3, props.speed) * 1) / avgPower, 1)
+        ? round((calculateDistance(nextWidth * timeMultiplier * 3, safeSpeed) * 1) / avgPower, 1)
         : round(nextWidth * lengthMultiplier * 3, 200);
     const time =
       props.durationType === "time"

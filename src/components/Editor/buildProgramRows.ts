@@ -321,6 +321,7 @@ export default function buildProgramRows({
       text: `${durationLabel} ${sportType === "bike" ? "Free Ride" : "Free Run"}`,
       background: Colors.GRAY,
       textColor: getTextColor(Colors.GRAY),
+      variant: "default",
     });
   });
 

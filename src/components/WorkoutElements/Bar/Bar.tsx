@@ -62,6 +62,7 @@ const Bar = (props: {
   const speed = distance !== undefined && props.time !== undefined ? calculateSpeed(distance, props.time) : 0;
 
   const getResizedValues = (dWidth: number, dHeight: number) => {
+    const safeSpeed = props.speed ?? 0;
     const nextWidth = Math.max(3, resizeBaseRef.current.width + dWidth);
     const nextHeight = Math.max(
       multiplier * Zones.Z1.min,
@@ -71,12 +72,12 @@ const Bar = (props: {
 
     const nextLength =
       props.durationType === "time"
-        ? round(calculateDistance(nextWidth * timeMultiplier * nextPower, props.speed), 1)
+        ? round(calculateDistance(nextWidth * timeMultiplier * nextPower, safeSpeed), 1)
         : round(nextWidth * lengthMultiplier, 200);
     const nextTime =
       props.durationType === "time"
         ? round(nextWidth * timeMultiplier, 5)
-        : round((calculateTime(nextLength, props.speed) * 1) / nextPower, 1);
+        : round((calculateTime(nextLength, safeSpeed) * 1) / nextPower, 1);
 
     return {
       time: nextTime,
