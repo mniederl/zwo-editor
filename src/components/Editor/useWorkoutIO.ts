@@ -1,9 +1,9 @@
 import type { Dispatch, SetStateAction } from "react";
 
-import createWorkoutXml from "./createWorkoutXml";
+import serializeWorkoutXml from "@/domain/workout/xml/serializeWorkoutXml";
 import type { SegmentType, DurationType, Instruction, SportType } from "@/domain/workout/types";
+import parseWorkoutXml from "@/domain/workout/xml/parseWorkoutXml";
 import type { EditorMessage } from "./useEditorState";
-import parseWorkoutXml from "@/parsers/parseWorkoutXml";
 import { genId } from "@/utils/id";
 
 interface UseWorkoutIOProps {
@@ -55,7 +55,7 @@ export default function useWorkoutIO({
   function save() {
     setMessage({ visible: true, class: "loading", text: "Saving.." });
 
-    const xml = createWorkoutXml({
+    const xml = serializeWorkoutXml({
       author,
       name,
       description,

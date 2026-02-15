@@ -194,9 +194,15 @@ Acceptance:
 - [x] Phase 0 Baseline Stabilization
 - [x] Phase 1 Define Module Boundaries
 - [x] Phase 2 Extract Domain Types + Utilities
-- [ ] Phase 3 Move XML IO Logic
+- [x] Phase 3 Move XML IO Logic
 - [ ] Phase 4 Decompose Oversized Editor Units
 - [ ] Phase 5 Context and Prop Surface Cleanup
 - [ ] Phase 6 Deduplicate Shared Logic
 - [ ] Phase 7 Remove Dead/Conflicting Models
 - [ ] Phase 8 Tests and Safety Nets
+
+Phase 4 progress:
+- Extracted workout library helpers to `src/components/Editor/workoutLibraryUtils.ts`.
+- Extracted library card rendering to `src/components/Editor/WorkoutLibraryItemCard.tsx`.
+- Extracted directory permissions/loading logic to `src/components/Editor/useWorkoutLibraryDirectory.ts`.
+- Extracted builder tools UI into `src/components/Editor/WorkoutBuilderToolbar.tsx`.

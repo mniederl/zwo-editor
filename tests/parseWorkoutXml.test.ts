@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import createWorkoutXml from "../src/components/Editor/createWorkoutXml";
-import { parseWorkoutXml } from "@/parsers/parseWorkoutXml";
+import { parseWorkoutXml } from "@/domain/workout/xml/parseWorkoutXml";
+import serializeWorkoutXml from "@/domain/workout/xml/serializeWorkoutXml";
 
-describe("parseWorkoutXml + createWorkoutXml", () => {
+describe("parseWorkoutXml + serializeWorkoutXml", () => {
   it("throws on invalid xml root", () => {
     expect(() => parseWorkoutXml("<invalid></invalid>")).toThrow(/workout_file/i);
   });
 
   it("round-trips a time-based workout", () => {
-    const xml = createWorkoutXml({
+    const xml = serializeWorkoutXml({
       author: "tester",
       name: "sample",
       description: "time workout",
@@ -76,7 +76,7 @@ describe("parseWorkoutXml + createWorkoutXml", () => {
   });
 
   it("round-trips a distance-based workout with distoffset text events", () => {
-    const xml = createWorkoutXml({
+    const xml = serializeWorkoutXml({
       author: "runner",
       name: "distance sample",
       description: "distance workout",
@@ -109,7 +109,7 @@ describe("parseWorkoutXml + createWorkoutXml", () => {
   });
 
   it("keeps a single ramp-up trapeze as Warmup (not Cooldown)", () => {
-    const xml = createWorkoutXml({
+    const xml = serializeWorkoutXml({
       author: "tester",
       name: "warmup check",
       description: "single trapeze should remain warmup",

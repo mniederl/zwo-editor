@@ -1,68 +1,21 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-  Clock3,
   Copy,
-  FileSearch,
   FolderOpen,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
   RefreshCw,
   Save,
-  Trash2,
 } from "lucide-react";
 
-import { getStressScore, getWorkoutLength, round } from "@/domain/workout/metrics";
-import type { SegmentType } from "@/domain/workout/types";
-import { Colors, Zones } from "@/domain/workout/zones";
-import createWorkoutXml from "./createWorkoutXml";
+import serializeWorkoutXml from "@/domain/workout/xml/serializeWorkoutXml";
 import { useEditorContext } from "./EditorContext";
-import {
-  clearPersistedWorkoutLibraryDirectoryHandle,
-  loadPersistedWorkoutLibraryDirectoryHandle,
-  persistWorkoutLibraryDirectoryHandle,
-} from "./workoutLibraryPersistence";
-import parseWorkoutXml from "@/parsers/parseWorkoutXml";
+import WorkoutLibraryItemCard from "./WorkoutLibraryItemCard";
+import type { LibraryWorkoutItem } from "./workoutLibraryTypes";
+import useWorkoutLibraryDirectory from "./useWorkoutLibraryDirectory";
+import { getUniqueWorkoutFileName, normalizeWorkoutFileName, stripWorkoutFileExtension } from "./workoutLibraryUtils";
 import { cn } from "@/utils/cssUtils";
-import { formatTime } from "@/utils/time";
-
-interface FileWritableLike {
-  close: () => Promise<void>;
-  write: (data: string | Blob) => Promise<void>;
-}
-
-interface FileHandleLike {
-  kind: string;
-  name: string;
-  getFile: () => Promise<File>;
-  createWritable?: () => Promise<FileWritableLike>;
-}
-
-interface DirectoryHandleLike {
-  name: string;
-  entries: () => AsyncIterableIterator<[string, FileHandleLike]>;
-  getFileHandle: (name: string, options?: { create?: boolean }) => Promise<FileHandleLike>;
-  removeEntry: (name: string) => Promise<void>;
-  queryPermission?: (options?: { mode?: "read" | "readwrite" }) => Promise<PermissionState>;
-  requestPermission?: (options?: { mode?: "read" | "readwrite" }) => Promise<PermissionState>;
-}
-
-interface LibraryWorkoutItem {
-  author: string;
-  fileName: string;
-  handle: FileHandleLike;
-  id: string;
-  name: string;
-  segments: SegmentType[];
-  stressScore: number;
-  workoutTime: string;
-}
-
-interface PreviewBlock {
-  background: string;
-  height: number;
-  widthWeight: number;
-}
 
 interface WorkoutLibraryPanelProps {
   isWideDesktop: boolean;
@@ -70,312 +23,23 @@ interface WorkoutLibraryPanelProps {
   open: boolean;
 }
 
-const zoneToColor = (power: number) => {
-  if (power < Zones.Z2.min) return Colors.GRAY;
-  if (power < Zones.Z3.min) return Colors.BLUE;
-  if (power < Zones.Z4.min) return Colors.GREEN;
-  if (power < Zones.Z5.min) return Colors.YELLOW;
-  if (power < Zones.Z6.min) return Colors.ORANGE;
-  return Colors.RED;
-};
-
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-
-function normalizeWorkoutFileName(name: string) {
-  if (name.toLowerCase().endsWith(".zwo")) {
-    return name;
-  }
-  return `${name}.zwo`;
-}
-
-function stripWorkoutFileExtension(fileName: string) {
-  return fileName.replace(/\.(zwo|xml)$/i, "");
-}
-
-function getUniqueWorkoutFileName(baseName: string, existingFileNames: string[]) {
-  const existing = new Set(existingFileNames.map((name) => name.toLowerCase()));
-  const normalizedBase = normalizeWorkoutFileName(baseName);
-
-  if (!existing.has(normalizedBase.toLowerCase())) {
-    return normalizedBase;
-  }
-
-  const withoutExtension = stripWorkoutFileExtension(normalizedBase);
-  let suffix = 1;
-  while (suffix < 5000) {
-    const candidate = normalizeWorkoutFileName(`${withoutExtension} copy${suffix > 1 ? ` ${suffix}` : ""}`);
-    if (!existing.has(candidate.toLowerCase())) {
-      return candidate;
-    }
-    suffix += 1;
-  }
-
-  return normalizeWorkoutFileName(`${withoutExtension} copy ${Date.now()}`);
-}
-
-function buildPreviewBlocks(segments: SegmentType[]): PreviewBlock[] {
-  const blocks: PreviewBlock[] = [];
-  const referenceMaxPower = Math.max(
-    Zones.Z6.max,
-    ...segments.flatMap((segment) => {
-      if (segment.type === "bar") {
-        return [segment.power];
-      }
-      if (segment.type === "trapeze") {
-        return [segment.startPower, segment.endPower];
-      }
-      if (segment.type === "interval") {
-        return [segment.onPower, segment.offPower];
-      }
-      return [Zones.Z1.min];
-    }),
-  );
-  const toPreviewHeight = (power: number) => clamp(8 + (power / referenceMaxPower) * 36, 8, 44);
-
-  segments.forEach((segment) => {
-    const segmentWidthWeight = Math.max(0.1, segment.time);
-
-    if (segment.type === "bar") {
-      blocks.push({
-        background: zoneToColor(segment.power),
-        height: toPreviewHeight(segment.power),
-        widthWeight: segmentWidthWeight,
-      });
-      return;
-    }
-
-    if (segment.type === "trapeze") {
-      const startColor = zoneToColor(segment.startPower);
-      const endColor = zoneToColor(segment.endPower);
-      blocks.push({
-        background:
-          startColor === endColor ? startColor : `linear-gradient(90deg, ${startColor} 0%, ${endColor} 100%)`,
-        height: toPreviewHeight(Math.max(segment.startPower, segment.endPower)),
-        widthWeight: segmentWidthWeight,
-      });
-      return;
-    }
-
-    if (segment.type === "interval") {
-      const repeatCount = Math.max(1, Math.round(segment.repeat));
-      const onWidthWeight = Math.max(0.1, segment.onDuration || segment.onLength || 0.1);
-      const offWidthWeight = Math.max(0.1, segment.offDuration || segment.offLength || 0.1);
-
-      for (let repeatIndex = 0; repeatIndex < repeatCount; repeatIndex += 1) {
-        blocks.push({
-          background: zoneToColor(segment.onPower),
-          height: toPreviewHeight(segment.onPower),
-          widthWeight: onWidthWeight,
-        });
-        blocks.push({
-          background: zoneToColor(segment.offPower),
-          height: toPreviewHeight(segment.offPower),
-          widthWeight: offWidthWeight,
-        });
-      }
-      return;
-    }
-
-    blocks.push({
-      background: Colors.GRAY,
-      height: toPreviewHeight(Zones.Z1.min),
-      widthWeight: segmentWidthWeight,
-    });
-  });
-
-  return blocks;
-}
-
 export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: WorkoutLibraryPanelProps) {
   const { state, io } = useEditorContext();
-  const { ftp, setMessage } = state;
-  const [directoryHandle, setDirectoryHandle] = useState<DirectoryHandleLike | null>(null);
-  const [libraryItems, setLibraryItems] = useState<LibraryWorkoutItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { ftp } = state;
+  const { canUseDirectoryPicker, directoryHandle, isLoading, libraryItems, pickDirectory, refreshDirectory } =
+    useWorkoutLibraryDirectory({
+      ftp,
+      onError: (text) => {
+        state.setMessage({
+          class: "error",
+          text,
+          visible: true,
+        });
+      },
+    });
   const [activeFileName, setActiveFileName] = useState<string>();
 
   const panelWidthClass = isWideDesktop ? "w-[24rem]" : "w-[20rem]";
-  const canUseDirectoryPicker =
-    typeof window !== "undefined" &&
-    typeof (window as unknown as { showDirectoryPicker?: () => Promise<DirectoryHandleLike> }).showDirectoryPicker ===
-      "function";
-
-  const refreshDirectory = useCallback(
-    async (targetDirectory: DirectoryHandleLike | null) => {
-      if (!targetDirectory) {
-        setLibraryItems([]);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const nextItems: LibraryWorkoutItem[] = [];
-
-        for await (const [fileName, handle] of targetDirectory.entries()) {
-          if (handle.kind !== "file" || !/\.(zwo|xml)$/i.test(fileName)) {
-            continue;
-          }
-
-          const file = await handle.getFile();
-          const xml = await file.text();
-
-          try {
-            const parsed = parseWorkoutXml(xml);
-            const workoutLength = getWorkoutLength(
-              parsed.segments as Parameters<typeof getWorkoutLength>[0],
-              parsed.meta.durationType,
-            );
-            const stressScore = round(
-              getStressScore(parsed.segments as Parameters<typeof getStressScore>[0], ftp),
-              1,
-            );
-
-            nextItems.push({
-              author: parsed.meta.author,
-              fileName,
-              handle,
-              id: `${fileName}-${parsed.meta.name}`,
-              name: parsed.meta.name || fileName.replace(/\.(zwo|xml)$/i, ""),
-              segments: parsed.segments,
-              stressScore,
-              workoutTime: formatTime(workoutLength),
-            });
-          } catch {
-            // Ignore files that are not valid workout XML.
-          }
-        }
-
-        nextItems.sort((a, b) => a.name.localeCompare(b.name));
-        setLibraryItems(nextItems);
-      } catch {
-        setLibraryItems([]);
-        setMessage({
-          class: "error",
-          text: "Unable to read workouts from selected directory.",
-          visible: true,
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [ftp, setMessage],
-  );
-
-  const ensureDirectoryPermission = useCallback(async (handle: DirectoryHandleLike): Promise<boolean> => {
-    try {
-      const currentPermission = await handle.queryPermission?.({ mode: "readwrite" });
-      if (currentPermission === "granted") {
-        return true;
-      }
-    } catch {
-      // Ignore and fall back to request.
-    }
-
-    try {
-      const requestedPermission = await handle.requestPermission?.({ mode: "readwrite" });
-      if (requestedPermission === "granted") {
-        return true;
-      }
-    } catch {
-      // Ignore and try read-only access.
-    }
-
-    try {
-      const currentReadPermission = await handle.queryPermission?.();
-      if (currentReadPermission === "granted") {
-        return true;
-      }
-      const requestedReadPermission = await handle.requestPermission?.();
-      if (requestedReadPermission === "granted") {
-        return true;
-      }
-    } catch {
-      // Ignore and deny below.
-    }
-
-    return false;
-  }, []);
-
-  const pickDirectory = useCallback(async () => {
-    const picker = (window as unknown as { showDirectoryPicker?: () => Promise<DirectoryHandleLike> })
-      .showDirectoryPicker;
-    if (!picker) {
-      setMessage({
-        class: "error",
-        text: "Directory access is only available in Chromium-based browsers.",
-        visible: true,
-      });
-      return;
-    }
-
-    try {
-      const handle = await picker();
-      const hasPermission = await ensureDirectoryPermission(handle);
-      if (!hasPermission) {
-        setMessage({
-          class: "error",
-          text: "Directory permission is required to manage workouts.",
-          visible: true,
-        });
-        return;
-      }
-
-      setDirectoryHandle(handle);
-      await persistWorkoutLibraryDirectoryHandle(handle);
-      await refreshDirectory(handle);
-    } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
-        return;
-      }
-      setMessage({
-        class: "error",
-        text: "Could not open the selected directory.",
-        visible: true,
-      });
-    }
-  }, [ensureDirectoryPermission, refreshDirectory, setMessage]);
-
-  useEffect(() => {
-    if (!canUseDirectoryPicker) {
-      return;
-    }
-
-    let cancelled = false;
-
-    const restoreDirectoryHandle = async () => {
-      try {
-        const storedHandle = await loadPersistedWorkoutLibraryDirectoryHandle<DirectoryHandleLike>();
-        if (!storedHandle || cancelled) {
-          return;
-        }
-
-        const hasPermission = await ensureDirectoryPermission(storedHandle);
-        if (!hasPermission) {
-          await clearPersistedWorkoutLibraryDirectoryHandle();
-          if (!cancelled) {
-            setDirectoryHandle(null);
-            setLibraryItems([]);
-          }
-          return;
-        }
-
-        if (cancelled) {
-          return;
-        }
-
-        setDirectoryHandle(storedHandle);
-        await refreshDirectory(storedHandle);
-      } catch {
-        await clearPersistedWorkoutLibraryDirectoryHandle();
-      }
-    };
-
-    void restoreDirectoryHandle();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [canUseDirectoryPicker, ensureDirectoryPermission, refreshDirectory]);
 
   const openWorkout = useCallback(
     async (item: LibraryWorkoutItem) => {
@@ -407,7 +71,6 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
     [activeFileName, directoryHandle, refreshDirectory],
   );
 
-  const cards = useMemo(() => libraryItems, [libraryItems]);
   const targetFileName = normalizeWorkoutFileName(state.workoutId || "workout");
 
   useEffect(() => {
@@ -415,13 +78,13 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
       return;
     }
 
-    const activeExists = cards.some((item) => item.fileName.toLowerCase() === activeFileName.toLowerCase());
+    const activeExists = libraryItems.some((item) => item.fileName.toLowerCase() === activeFileName.toLowerCase());
     const stillMatchesCurrentWorkout = activeFileName.toLowerCase() === targetFileName.toLowerCase();
 
     if (!activeExists || !stillMatchesCurrentWorkout) {
       setActiveFileName(undefined);
     }
-  }, [activeFileName, cards, targetFileName]);
+  }, [activeFileName, libraryItems, targetFileName]);
 
   const hasSelectedLibraryWorkout = Boolean(activeFileName);
 
@@ -447,7 +110,7 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
 
     const writable = await fileHandle.createWritable();
     try {
-      const xml = createWorkoutXml({
+      const xml = serializeWorkoutXml({
         author: state.author,
         bars: state.bars,
         description: state.description,
@@ -496,7 +159,7 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
 
     const writable = await fileHandle.createWritable();
     try {
-      const xml = createWorkoutXml({
+      const xml = serializeWorkoutXml({
         author: state.author,
         bars: state.bars,
         description: state.description,
@@ -545,7 +208,7 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
 
     const writable = await fileHandle.createWritable();
     try {
-      const xml = createWorkoutXml({
+      const xml = serializeWorkoutXml({
         author: state.author,
         bars: state.bars,
         description: state.description,
@@ -661,71 +324,15 @@ export default function WorkoutLibraryPanel({ open, onToggle, isWideDesktop }: W
           )}
 
           <div className="space-y-2 pb-1">
-            {cards.map((item) => {
-              const previewBlocks = buildPreviewBlocks(item.segments);
-              const totalWidthWeight = previewBlocks.reduce((sum, block) => sum + block.widthWeight, 0) || 1;
-              const isActive = activeFileName === item.fileName;
-
-              return (
-                <article
-                  key={item.id}
-                  className={cn(
-                    "group rounded-2xl border bg-white p-2 transition",
-                    isActive ? "border-cyan-400" : "border-slate-200",
-                  )}
-                >
-                  <button
-                    type="button"
-                    className="block w-full text-left"
-                    onClick={() => void openWorkout(item)}
-                    title={`Open ${item.fileName}`}
-                  >
-                    <div className="mb-2 flex h-12 items-end overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-                      {previewBlocks.map((block, index) => (
-                        <div
-                          key={`${item.id}-${index}`}
-                          className="rounded-t-sm"
-                          style={{
-                            background: block.background,
-                            height: `${block.height}px`,
-                            flexBasis: 0,
-                            flexGrow: block.widthWeight / totalWidthWeight,
-                          }}
-                        />
-                      ))}
-                    </div>
-                    <p className="truncate text-sm font-semibold text-slate-900">{item.name}</p>
-                    <p className="truncate text-xs text-slate-500">{item.author || "Unknown author"}</p>
-                  </button>
-                  <div className="mt-1 flex items-center justify-between gap-2 text-xs text-slate-600">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <span className="inline-flex items-center gap-1 whitespace-nowrap">
-                        <Clock3 className="h-3.5 w-3.5" /> {item.workoutTime}
-                      </span>
-                      <span className="whitespace-nowrap">{item.stressScore} TSS</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
-                      <button
-                        type="button"
-                        className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 transition hover:border-slate-400 hover:text-slate-800"
-                        onClick={() => void openWorkout(item)}
-                        title="Open workout"
-                      >
-                        <FileSearch className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-rose-300 bg-rose-50 text-rose-700 transition hover:border-rose-400 hover:bg-rose-100"
-                        onClick={() => void deleteWorkout(item)}
-                        title="Delete from directory"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+            {libraryItems.map((item) => (
+              <WorkoutLibraryItemCard
+                key={item.id}
+                item={item}
+                isActive={activeFileName === item.fileName}
+                onOpen={(selectedItem) => void openWorkout(selectedItem)}
+                onDelete={(selectedItem) => void deleteWorkout(selectedItem)}
+              />
+            ))}
           </div>
         </div>
       </section>
